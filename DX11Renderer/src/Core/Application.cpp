@@ -8,6 +8,7 @@ namespace Yassin
 	Application::Application(const ApplicationSpecification& appSpec) :
 		m_Window(appSpec.width, appSpec.height, appSpec.name)
 	{
+		m_Window.Init();
 	}
 	
 	Application::~Application()

@@ -13,6 +13,8 @@ namespace Yassin
 	public:
 		Window(int width, int height, wchar_t* name);
 		~Window();
+		
+		void Init();
 
 		inline Renderer& GetRenderer() { return *m_Renderer; }
 		inline Input& GetInput() { return m_Input; }

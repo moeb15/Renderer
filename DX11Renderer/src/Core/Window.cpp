@@ -11,6 +11,16 @@ namespace Yassin
 		m_Height(height),
 		m_Name(name)
 	{
+	}
+
+	Window::~Window()
+	{
+		ImGui_ImplWin32_Shutdown();
+		DestroyWindow(m_HWND);
+	}
+
+	void Window::Init()
+	{
 		m_HINST = GetModuleHandle(NULL);
 		WNDCLASSEX wc = {};
 		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -54,13 +64,8 @@ namespace Yassin
 		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(m_HWND);
 
-		m_Renderer = std::make_unique<Renderer>(m_Width, m_Height, m_HWND, m_Fullscreen);
-	}
-
-	Window::~Window()
-	{
-		ImGui_ImplWin32_Shutdown();
-		DestroyWindow(m_HWND);
+		m_Renderer = std::make_unique<Renderer>();
+		m_Renderer->Init(m_Width, m_Height, m_HWND, m_Fullscreen);
 	}
 
 	std::optional<int> Window::ProcessMessages()
