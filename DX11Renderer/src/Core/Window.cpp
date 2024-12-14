@@ -4,6 +4,8 @@
 #define IMGUI_IMPL_API
 #include <backends/imgui_impl_win32.h>
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);                // Use ImGui::GetCurrentContext()
+
 namespace Yassin
 {
 	Window::Window(int width, int height, wchar_t* name) :
@@ -105,6 +107,8 @@ namespace Yassin
 
 	LRESULT Window::MessageHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
+		if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) return true;
+
 		switch (msg)
 		{
 			case WM_CLOSE:
