@@ -13,6 +13,7 @@ struct VSIn
 struct VSOut
 {
     float4 position : SV_POSITION;
+    float4 color : COLOR;
 };
 
 VSOut main(VSIn input)
@@ -22,6 +23,9 @@ VSOut main(VSIn input)
     vso.position = mul(float4(input.position.xyz, 1.0f), world);
     vso.position = mul(vso.position, view);
     vso.position = mul(vso.position, proj);
+    
+    vso.color = input.position;
+    vso.color.w = 1.0f;
     
 	return vso;
 }

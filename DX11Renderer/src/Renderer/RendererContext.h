@@ -21,6 +21,7 @@ namespace Yassin
 
 		void SetBackBufferRenderTarget();
 		void ResetViewport();
+		void ResizeBuffer(unsigned int width, unsigned int height);
 
 		void ClearRenderTarget(float r, float g, float b, float a);
 

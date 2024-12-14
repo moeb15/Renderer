@@ -22,6 +22,9 @@ project "DX11Renderer"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
+	shadermodel ("5.0")
+	shaderobjectfileoutput ("%{prj.name}/src/Shaders/CSO/%%(Filename).cso")
+
 	files
 	{
 		"%{prj.name}/src/**.h",
@@ -53,9 +56,6 @@ project "DX11Renderer"
 		"d3dcompiler.lib",
 		"dxgi.lib"
 	}
-
-	shadermodel ("5.0")
-	shaderobjectfileoutput ("%{prj.name}/src/Shaders/CSO/%%(Filename).cso")
 
 	filter "system:windows"
 		systemversion "latest"

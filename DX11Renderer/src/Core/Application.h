@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Window.h"
 #include "Core/Timer.h"
-
+#include "Renderer/CameraController.h"
 
 namespace Yassin
 {
@@ -26,6 +26,7 @@ namespace Yassin
 	private:
 		Window m_Window;
 		Timer m_Timer;
+		CameraController m_CameraController;
 		std::shared_ptr<Triangle> testTriangle;
 	};
 }

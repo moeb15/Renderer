@@ -171,6 +171,11 @@ namespace Yassin
 		m_Context->RSSetViewports(1, &m_Viewport);
 	}
 
+	void RendererContext::ResizeBuffer(unsigned int width, unsigned int height)
+	{
+		m_SwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	}
+
 	void RendererContext::ClearRenderTarget(float r, float g, float b, float a)
 	{
 		float colour[] = { r,g,b,a };
