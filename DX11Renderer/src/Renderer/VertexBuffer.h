@@ -9,7 +9,7 @@ namespace Yassin
 	public:
 		template<typename V>
 		VertexBuffer(std::vector<V>& data);
-		inline void Bind(unsigned int slot) 
+		inline void Bind(unsigned int slot) const
 		{
 			RendererContext::GetDeviceContext()->IASetVertexBuffers(slot, 1, m_VertexBuffer.GetAddressOf(),
 				&m_Strides, &m_Offset);
