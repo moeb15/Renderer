@@ -2,8 +2,10 @@
 #include "Core/Window.h"
 #include "Core/Timer.h"
 
+
 namespace Yassin
 {
+	class Triangle;
 	struct ApplicationSpecification
 	{
 		wchar_t* name = L"DX11Renderer";
@@ -24,5 +26,6 @@ namespace Yassin
 	private:
 		Window m_Window;
 		Timer m_Timer;
+		std::shared_ptr<Triangle> testTriangle;
 	};
 }
