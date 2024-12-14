@@ -54,6 +54,9 @@ project "DX11Renderer"
 		"dxgi.lib"
 	}
 
+	shadermodel ("5.0")
+	shaderobjectfileoutput ("%{prj.name}/src/Shaders/CSO/%%(Filename).cso")
+
 	filter "system:windows"
 		systemversion "latest"
 	

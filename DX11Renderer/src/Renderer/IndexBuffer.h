@@ -20,7 +20,7 @@ namespace Yassin
 			RendererContext::GetDevice()->CreateBuffer(&iDesc, &iData, &m_IndexBuffer);
 			m_Count = std::size(data);
 		}
-		inline void Bind()
+		inline void Bind() const
 		{
 			RendererContext::GetDeviceContext()->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 		}
