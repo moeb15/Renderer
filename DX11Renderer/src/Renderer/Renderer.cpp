@@ -7,15 +7,42 @@ namespace Yassin
 	{
 		m_Context = std::make_unique<RendererContext>();
 		m_Context->Init(width, height, hWnd, fullscreen);
+
+		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
+
+		ShaderLibrary::Init();
+		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
 	}
 	
 	void Renderer::BeginScene(float r, float g, float b, float a)
 	{
 		m_Context->ClearRenderTarget(r, g, b, a);
+		m_Context->SetBackBufferRenderTarget();
+	}
+
+	void Renderer::SetBackBufferRenderTarget()
+	{
+		m_Context->SetBackBufferRenderTarget();
 	}
 
 	void Renderer::EndScene()
 	{
 		m_Context->SwapBuffers(true);
+	}
+
+	void Renderer::Submit(Renderable* renderable)
+	{
+		if (!renderable) return;
+		m_RenderQueue.push(renderable);
+	}
+
+	void Renderer::Render()
+	{
+		while(!m_RenderQueue.empty())
+		{
+			Renderable* rPtr = m_RenderQueue.front();
+			rPtr->Render();
+			m_RenderQueue.pop();
+		}
 	}
 }

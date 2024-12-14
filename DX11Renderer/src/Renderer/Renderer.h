@@ -6,6 +6,9 @@
 #include <DirectXMath.h>
 #include <memory>
 #include "Renderer/RendererContext.h"
+#include "Renderer/Renderable.h"
+#include "Renderer/ShaderLibrary.h"
+#include <queue>
 
 namespace Yassin
 {
@@ -14,9 +17,14 @@ namespace Yassin
 	public:
 		void Init(int width, int height, HWND hWnd, bool fullscreen = true);
 		void BeginScene(float r, float g, float b, float a);
+		void SetBackBufferRenderTarget();
 		void EndScene();
+		void Submit(Renderable* renderable);
+		void Render();
 
 	private:
+		std::unique_ptr<ShaderLibrary> m_ShaderLibrary;
 		std::unique_ptr<RendererContext> m_Context;
+		std::queue<Renderable*> m_RenderQueue;
 	};
 }
