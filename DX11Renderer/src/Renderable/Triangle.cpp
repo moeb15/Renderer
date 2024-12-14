@@ -16,7 +16,7 @@ namespace Yassin
 
     static std::vector<unsigned long> iData = { 0,1,2 };
 
-    Triangle::Triangle(std::string shader, DirectX::XMMATRIX world, DirectX::XMMATRIX view, DirectX::XMMATRIX proj) :
+    Triangle::Triangle(std::string shader, DirectX::XMMATRIX world) :
         m_Topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST),
         m_VertexBuffer(vData),
         m_IndexBuffer(iData)
@@ -33,16 +33,18 @@ namespace Yassin
         m_InputLayout = std::shared_ptr<InputLayout>(new InputLayout(m_VertexShader->GetBlob(), ied, std::size(ied)));
         m_TransformBuffer = std::shared_ptr<TransformBuffer>(new TransformBuffer());
         m_TransformBuffer->SetWorld(DirectX::XMMatrixTranspose(world));
-        m_TransformBuffer->SetView(DirectX::XMMatrixTranspose(view));
-        m_TransformBuffer->SetProjection(DirectX::XMMatrixTranspose(proj));
+
+        DirectX::XMStoreFloat4x4(&m_WorldTransform, world);
     }
 
-    void Triangle::Render() const
+    void Triangle::Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const
     {
         m_VertexBuffer.Bind(0);
         m_IndexBuffer.Bind();
         m_Topology.Bind();
         
+        m_TransformBuffer->SetView(DirectX::XMMatrixTranspose(view));
+        m_TransformBuffer->SetProjection(DirectX::XMMatrixTranspose(projection));
         m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
         m_TransformBuffer->SetTransformBuffer();
 

@@ -7,9 +7,8 @@ namespace Yassin
 	class Triangle : public Renderable
 	{
 	public:
-		Triangle(std::string shader, 
-			DirectX::XMMATRIX world, DirectX::XMMATRIX view, DirectX::XMMATRIX proj);
-		void Render() const override;
+		Triangle(std::string shader, DirectX::XMMATRIX world);
+		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const override;
 	
 	private:
 		Topology m_Topology;
@@ -19,5 +18,6 @@ namespace Yassin
 		PixelShader* m_PixelShader;
 		std::shared_ptr<InputLayout> m_InputLayout;
 		std::shared_ptr<TransformBuffer> m_TransformBuffer;
+		DirectX::XMFLOAT4X4 m_WorldTransform;
 	};
 }

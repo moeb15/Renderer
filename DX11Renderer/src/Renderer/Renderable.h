@@ -22,6 +22,6 @@ namespace Yassin
 		//virtual InputLayout* GetInputLayout() const = 0;
 		//virtual TransformBuffer* GetTransformBuffer() const = 0;
 
-		virtual void Render() const = 0;
+		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const = 0;
 	};
 }

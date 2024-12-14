@@ -8,6 +8,7 @@
 #include "Renderer/RendererContext.h"
 #include "Renderer/Renderable.h"
 #include "Renderer/ShaderLibrary.h"
+#include "Renderer/Camera.h"
 #include <queue>
 
 namespace Yassin
@@ -18,9 +19,10 @@ namespace Yassin
 		void Init(int width, int height, HWND hWnd, bool fullscreen = true);
 		void BeginScene(float r, float g, float b, float a);
 		void SetBackBufferRenderTarget();
+		void ResizeBuffer(unsigned int width, unsigned int height);
 		void EndScene();
 		void Submit(Renderable* renderable);
-		void Render();
+		void Render(Camera& camera);
 
 	private:
 		std::unique_ptr<ShaderLibrary> m_ShaderLibrary;

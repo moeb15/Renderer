@@ -25,6 +25,11 @@ namespace Yassin
 		m_Context->SetBackBufferRenderTarget();
 	}
 
+	void Renderer::ResizeBuffer(unsigned int width, unsigned int height)
+	{
+		m_Context->ResizeBuffer(width, height);
+	}
+
 	void Renderer::EndScene()
 	{
 		m_Context->SwapBuffers(true);
@@ -36,12 +41,19 @@ namespace Yassin
 		m_RenderQueue.push(renderable);
 	}
 
-	void Renderer::Render()
+	void Renderer::Render(Camera& camera)
 	{
 		while(!m_RenderQueue.empty())
 		{
 			Renderable* rPtr = m_RenderQueue.front();
-			rPtr->Render();
+
+			DirectX::XMMATRIX view;
+			DirectX::XMMATRIX proj;
+
+			camera.GetViewMatrix(view);
+			camera.GetProjectionMatrix(proj);
+
+			rPtr->Render(view, proj);
 			m_RenderQueue.pop();
 		}
 	}
