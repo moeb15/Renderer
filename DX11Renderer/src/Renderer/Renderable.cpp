@@ -2,7 +2,5 @@
 
 namespace Yassin
 {
-	void Renderable::Render()
-	{
-	}
+
 }
