@@ -9,6 +9,10 @@ namespace Yassin
 		friend class Window;
 
 	private:
+		struct RawDelta
+		{
+			int x, y;
+		};
 		class MouseEvent
 		{
 		public:
@@ -21,6 +25,7 @@ namespace Yassin
 				WheelUp,
 				WheelDown,
 				Move,
+				MoveRaw,
 				Enter,
 				Leave,
 				Invalid
@@ -74,6 +79,12 @@ namespace Yassin
 			{
 				return m_Type == Type::Move;
 			}
+
+			bool MouseMoveRaw() const
+			{
+				return m_Type == Type::MoveRaw;
+			}
+
 
 			bool MouseEnter() const
 			{
@@ -172,10 +183,10 @@ namespace Yassin
 		};
 
 	public:
-		Input() = default;
+		Input();
 
 		// Key Event
-		bool IsKeyDown(unsigned char keycode) const;
+		static bool IsKeyDown(unsigned char keycode);
 		KeyEvent ReadKey();
 		bool IsKeyEmpty() const;
 		void FlushKey();
@@ -192,7 +203,8 @@ namespace Yassin
 		bool IsAutoRepeateEnabled() const;
 
 		// Mouse event
-		std::pair<int, int> GetPos() const { return std::pair<int, int>(m_MouseX, m_MouseY); }
+		static std::pair<int, int> GetPos() { return std::pair<int, int>(s_Instance->m_MouseX, s_Instance->m_MouseY); }
+		static std::pair<long, long> GetPosRaw();
 		int GetPosY() const { return m_MouseY; }
 		int GetPosX() const { return m_MouseX; }
 		bool LMBPressed() const { return lmbPress; }
@@ -200,11 +212,16 @@ namespace Yassin
 		bool IsInWindow() const { return inWindow; }
 		MouseEvent ReadMouse();
 		bool IsEmpty() const { return m_MouseBuffer.empty(); }
-
+		void ProcessRawMouseMove(bool flag) 
+		{ 
+			m_ProcessRaw = flag; 
+		}
+		static bool ShouldProcessRawMouseMove() { return s_Instance->m_ProcessRaw; }
 		void FlushMouse();
 
 	private:
 		void OnMouseMove(int x, int y);
+		void OnMouseMoveRaw(long x, long y);
 		void OnMouseLeave();
 		void OnMouseEnter();
 		void OnLMBPressed(int x, int y);
@@ -225,6 +242,8 @@ namespace Yassin
 		static void TrimBuffer(std::queue<T>& buffer);
 
 	private:
+		static Input* s_Instance;
+
 		static constexpr unsigned int nKeys = 256;
 		static constexpr unsigned int bufferSize = 16;
 		bool autoRepeat = false;
@@ -233,12 +252,16 @@ namespace Yassin
 		std::queue<char> m_CharBuffer;
 
 		int m_MouseX;
+		long m_MouseXRaw = 0;
 		int m_MouseY;
+		long m_MouseYRaw = 0;
+		bool m_ProcessRaw = false;
 		bool inWindow = false;
 		bool lmbPress = false;
 		bool rmbPress = false;
 		int wheelDeltaCarry = 0;
 		std::queue<MouseEvent> m_MouseBuffer;
+		std::queue<RawDelta> m_RawDeltas;
 	};
 
 	template<typename T>

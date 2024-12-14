@@ -63,11 +63,43 @@ namespace Yassin
 		}
 
 		BOOL res = ShowWindow(m_HWND, SW_SHOW);
+
 		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+		ImGui::StyleColorsDark();
+
+		ImGuiStyle& style = ImGui::GetStyle();
+		if(io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
 		ImGui_ImplWin32_Init(m_HWND);
 
 		m_Renderer = std::make_unique<Renderer>();
 		m_Renderer->Init(m_Width, m_Height, m_HWND, m_Fullscreen);
+
+		static bool raw_input_initialized = false;
+		if(!raw_input_initialized)
+		{
+			RAWINPUTDEVICE rid;
+			rid.usUsagePage = 0x01;
+			rid.usUsage = 0x02;
+			rid.dwFlags = 0;
+			rid.hwndTarget = 0;
+
+			if(!RegisterRawInputDevices(&rid, 1, sizeof(rid)))
+			{
+				DWORD error = GetLastError();
+				return;
+			}
+			raw_input_initialized = true;
+		}
 	}
 
 	std::optional<int> Window::ProcessMessages()
@@ -228,6 +260,35 @@ namespace Yassin
 				const POINTS pt = MAKEPOINTS(lParam);
 				const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 				m_Input.OnWheelDelta(pt.x, pt.y, delta);
+				break;
+			}
+
+			case WM_INPUT:
+			{
+				UINT dataSize = 0;
+				GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam),
+					RID_INPUT,
+					NULL,
+					&dataSize,
+					sizeof(RAWINPUTHEADER));
+
+				if(dataSize > 0)
+				{
+					std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>(dataSize);
+					if(GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam),
+						RID_INPUT,
+						rawData.get(),
+						&dataSize,
+						sizeof(RAWINPUTHEADER)) == dataSize)
+					{
+						RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawData.get());
+						if(raw->header.dwType == RIM_TYPEMOUSE)
+						{ 
+							m_Input.ProcessRawMouseMove(true);
+							m_Input.OnMouseMoveRaw(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+						}
+					}
+				}
 				break;
 			}
 		}

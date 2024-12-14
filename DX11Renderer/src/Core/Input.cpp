@@ -1,12 +1,20 @@
 #include "Input.h"
 #include <Windows.h>
+#include <assert.h>
 
 namespace Yassin
 {
+	Input* Input::s_Instance = nullptr;
 
-	bool Input::IsKeyDown(unsigned char keycode) const
+	Input::Input()
 	{
-		return m_KeyStates[keycode];
+		assert(s_Instance == nullptr);
+		s_Instance = this;
+	}
+
+	bool Input::IsKeyDown(unsigned char keycode)
+	{
+		return s_Instance->m_KeyStates[keycode];
 	}
 
 	Input::KeyEvent Input::ReadKey()
@@ -72,6 +80,17 @@ namespace Yassin
 		return autoRepeat;
 	}
 
+	std::pair<long, long> Input::GetPosRaw()
+	{
+		if(s_Instance->m_RawDeltas.size() > 0)
+		{
+			RawDelta rD = s_Instance->m_RawDeltas.front();
+			s_Instance->m_RawDeltas.pop();
+			return std::pair<long, long>(rD.x, rD.y);
+		}
+		return std::pair<long, long>(0, 0);
+	}
+
 	Input::MouseEvent Input::ReadMouse()
 	{
 		if (m_MouseBuffer.size() > 0)
@@ -86,6 +105,7 @@ namespace Yassin
 	void Input::FlushMouse()
 	{
 		m_MouseBuffer = std::queue<MouseEvent>();
+		m_RawDeltas = std::queue<RawDelta>();
 	}
 
 	void Input::OnMouseMove(int x, int y)
@@ -95,6 +115,17 @@ namespace Yassin
 		MouseEvent e(MouseEvent::Type::Move, lmbPress, rmbPress, x, y);
 		m_MouseBuffer.push(e);
 		TrimBuffer<MouseEvent>(m_MouseBuffer);
+	}
+
+	void Input::OnMouseMoveRaw(long x, long y)
+	{
+		m_MouseXRaw = x;
+		m_MouseYRaw = y;
+		RawDelta rD;
+		rD.x = x;
+		rD.y = y;
+		m_RawDeltas.push(rD);
+		TrimBuffer<RawDelta>(m_RawDeltas);
 	}
 
 	void Input::OnMouseLeave()
