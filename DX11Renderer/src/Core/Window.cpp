@@ -102,6 +102,13 @@ namespace Yassin
 		}
 	}
 
+	void Window::ToggleCursor()
+	{
+		SetCursorPos(m_Width / 2, m_Height / 2);
+		m_CursorVisible = !m_CursorVisible;
+		ShowCursor(m_CursorVisible);
+	}
+
 	std::optional<int> Window::ProcessMessages()
 	{
 		MSG msg;
@@ -158,6 +165,11 @@ namespace Yassin
 					PostQuitMessage(0);
 					return 0;
 				}
+				if(wParam == VK_F1)
+				{
+					m_Input.ToggleProcessRawMouseMove();
+					ToggleCursor();
+				}
 
 				m_Input.OnKeyPressed(static_cast<unsigned char>(wParam));
 				break;
@@ -185,7 +197,7 @@ namespace Yassin
 
 			case WM_MOUSEMOVE:
 			{
-				if (ImGui::GetIO().WantCaptureMouse) break;
+				if (ImGui::GetIO().WantCaptureMouse && m_CursorVisible) break;
 				const POINTS pt = MAKEPOINTS(lParam);
 
 				// in client region -> log move, and log enter + capture mouse
@@ -284,7 +296,6 @@ namespace Yassin
 						RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawData.get());
 						if(raw->header.dwType == RIM_TYPEMOUSE)
 						{ 
-							m_Input.ProcessRawMouseMove(true);
 							m_Input.OnMouseMoveRaw(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 						}
 					}

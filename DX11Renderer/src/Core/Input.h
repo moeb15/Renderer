@@ -212,9 +212,9 @@ namespace Yassin
 		bool IsInWindow() const { return inWindow; }
 		MouseEvent ReadMouse();
 		bool IsEmpty() const { return m_MouseBuffer.empty(); }
-		void ProcessRawMouseMove(bool flag) 
+		void ToggleProcessRawMouseMove() 
 		{ 
-			m_ProcessRaw = flag; 
+			m_ProcessRaw = !m_ProcessRaw; 
 		}
 		static bool ShouldProcessRawMouseMove() { return s_Instance->m_ProcessRaw; }
 		void FlushMouse();

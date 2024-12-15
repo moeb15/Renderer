@@ -15,6 +15,7 @@ namespace Yassin
 		~Window();
 		
 		void Init();
+		void ToggleCursor();
 
 		inline Renderer& GetRenderer() { return *m_Renderer; }
 		inline Input& GetInput() { return m_Input; }
@@ -35,5 +36,6 @@ namespace Yassin
 		std::unique_ptr<Renderer> m_Renderer;
 		bool m_Fullscreen;
 		Input m_Input;
+		BOOL m_CursorVisible = TRUE;
 	};
 }
