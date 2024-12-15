@@ -15,22 +15,30 @@ namespace Yassin
 	{
 		if(Input::IsKeyDown('A'))
 		{
-			m_Position.x += m_CameraMoveSpeed * dt;
+			m_Position.x -= m_Camera.GetRightVector().x * m_CameraMoveSpeed * dt;
+			m_Position.y -= m_Camera.GetRightVector().y * m_CameraMoveSpeed * dt;
+			m_Position.z -= m_Camera.GetRightVector().z * m_CameraMoveSpeed * dt;
 			m_Camera.SetPosition(m_Position.x, m_Position.y, m_Position.z);
 		}
 		if(Input::IsKeyDown('D'))
 		{
-			m_Position.x -= m_CameraMoveSpeed * dt;
+			m_Position.x += m_Camera.GetRightVector().x * m_CameraMoveSpeed * dt;
+			m_Position.y += m_Camera.GetRightVector().y * m_CameraMoveSpeed * dt;
+			m_Position.z += m_Camera.GetRightVector().z * m_CameraMoveSpeed * dt;
 			m_Camera.SetPosition(m_Position.x, m_Position.y, m_Position.z);
 		}
 		if(Input::IsKeyDown('W'))
 		{
-			m_Position.z += m_CameraMoveSpeed * dt;
+			m_Position.x += m_Camera.GetForwardVector().x * m_CameraMoveSpeed * dt;
+			m_Position.y += m_Camera.GetForwardVector().y * m_CameraMoveSpeed * dt;
+			m_Position.z += m_Camera.GetForwardVector().z * m_CameraMoveSpeed * dt;
 			m_Camera.SetPosition(m_Position.x, m_Position.y, m_Position.z);
 		}
 		if(Input::IsKeyDown('S'))
 		{
-			m_Position.z -= m_CameraMoveSpeed * dt;
+			m_Position.x -= m_Camera.GetForwardVector().x * m_CameraMoveSpeed * dt;
+			m_Position.y -= m_Camera.GetForwardVector().y * m_CameraMoveSpeed * dt;
+			m_Position.z -= m_Camera.GetForwardVector().z * m_CameraMoveSpeed * dt;
 			m_Camera.SetPosition(m_Position.x, m_Position.y, m_Position.z);
 		}
 

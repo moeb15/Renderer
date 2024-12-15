@@ -32,6 +32,10 @@ namespace Yassin
 		inline void GetViewMatrix(DirectX::XMMATRIX& matrix) { matrix = DirectX::XMLoadFloat4x4(&m_ViewMatrix); }
 		inline void GetProjectionMatrix(DirectX::XMMATRIX& matrix) { matrix = DirectX::XMLoadFloat4x4(&m_ProjectionMatrix); }
 
+		inline const DirectX::XMFLOAT3& GetRightVector() const { return m_Right; }
+		inline const DirectX::XMFLOAT3& GetForwardVector() const { return m_Forward; }
+		inline const DirectX::XMFLOAT3& GetUpVector() const { return m_Up; }
+
 	private:
 		void UpdateView();
 
@@ -40,6 +44,10 @@ namespace Yassin
 		float m_Yaw;
 		float m_Pitch;
 		float m_Roll;
+		DirectX::XMFLOAT3 m_Forward;
+		DirectX::XMFLOAT3 m_Right;
+		DirectX::XMFLOAT3 m_Up;
+
 		DirectX::XMFLOAT4X4 m_ViewMatrix;
 		DirectX::XMFLOAT4X4 m_ProjectionMatrix;
 	};

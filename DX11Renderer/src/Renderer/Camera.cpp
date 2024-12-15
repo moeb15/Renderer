@@ -7,7 +7,10 @@ namespace Yassin
 		m_Position(0.0f, 0.0f, 0.0f),
 		m_Yaw(0.0f),
 		m_Pitch(0.0f),
-		m_Roll(0.0f)
+		m_Roll(0.0f),
+		m_Forward(0.0f, 0.0f, 1.0f),
+		m_Right(1.0f, 0.0f, 0.0f),
+		m_Up(0.0f, 1.0f, 0.0f)
 	{
 		DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
 			DirectX::XMConvertToRadians(FOV),
@@ -53,8 +56,14 @@ namespace Yassin
 
 		lookAtVec = DirectX::XMVector3TransformCoord(lookAtVec, rotMat);
 		upVec = DirectX::XMVector3TransformCoord(upVec, rotMat);
-		lookAtVec = DirectX::XMVectorAdd(posVec, lookAtVec);
 
+		DirectX::XMStoreFloat3(&m_Up, upVec);
+		DirectX::XMStoreFloat3(&m_Forward, lookAtVec);
+
+		DirectX::XMVECTOR right = DirectX::XMVector3Cross(upVec, lookAtVec);
+		DirectX::XMStoreFloat3(&m_Right, right);
+
+		lookAtVec = DirectX::XMVectorAdd(posVec, lookAtVec);
 		DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(posVec, lookAtVec, upVec);
 		DirectX::XMStoreFloat4x4(&m_ViewMatrix, view);
 	}
