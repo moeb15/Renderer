@@ -6,6 +6,8 @@
 #include "Renderer/InputLayout.h"
 #include "Renderer/Topology.h"
 #include "Renderer/ConstantBuffer.h"
+#include "Renderer/Texture.h"
+#include "Renderer/Sampler.h"
 
 #include "Renderer/ShaderLibrary.h"
 
@@ -14,14 +16,25 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		//virtual VertexBuffer* GetVertexBuffer() const = 0;
-		//virtual IndexBuffer* GetIndexBuffer() const = 0;
-		//virtual VertexShader* GetVertexShader() const = 0;
-		//virtual PixelShader* GetPixelShader() const = 0;
-		//virtual Topology* GetTopology() const = 0;
-		//virtual InputLayout* GetInputLayout() const = 0;
-		//virtual TransformBuffer* GetTransformBuffer() const = 0;
+		enum class ObjectType
+		{
+			Geometry,
+			Light,
+		};
 
+		enum class ObjectVisibility
+		{
+			Opaque,
+			Transparent,
+		};
+	public:
 		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const = 0;
+
+		const ObjectType& GetObjectType() const { return m_ObjectType; }
+		const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
+
+	protected:
+		ObjectType m_ObjectType = ObjectType::Geometry;
+		ObjectVisibility m_ObjectVisibility = ObjectVisibility::Opaque;
 	};
 }
