@@ -10,6 +10,10 @@ namespace Yassin
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
+		m_TextureLibrary = std::make_unique<TextureLibrary>();
+
+		TextureLibrary::Init();
+		TextureLibrary::Add("Stone", "src/Assets/Textures/stone.png", TextureType::Tex2D);
 
 		ShaderLibrary::Init();
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
