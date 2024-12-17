@@ -78,7 +78,7 @@ namespace Yassin
 		inline void SetProjection(DirectX::XMMATRIX proj) { m_MatrixBuffer.projection = proj; }
 		inline void SetWorld(DirectX::XMMATRIX world) { m_MatrixBuffer.world = world; }
 
-		inline DirectX::XMMATRIX GetWorld() const { return m_MatrixBuffer.world; }
+		inline DirectX::XMMATRIX& GetWorld() { return m_MatrixBuffer.world; }
 		inline DirectX::XMMATRIX GetView() const { return m_MatrixBuffer.view; }
 		inline DirectX::XMMATRIX GetProjection() const { return m_MatrixBuffer.projection; }
 

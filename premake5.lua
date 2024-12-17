@@ -52,7 +52,8 @@ project "DX11Renderer"
 	{
 		"d3d11.lib",
 		"d3dcompiler.lib",
-		"dxgi.lib"
+		"dxgi.lib",
+		"dxguid.lib"
 	}
 
 	-- Custom HLSL Compilation Step

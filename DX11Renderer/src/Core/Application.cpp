@@ -13,7 +13,8 @@ namespace Yassin
 		m_Window.Init();
 
 		DirectX::XMMATRIX world = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-		testTriangle = std::make_shared<Triangle>("Test Shader", world);
+		testTriangle = std::make_shared<Triangle>("Texture Shader", world);
+		testTriangle->Translate(0.f, 0.f, 5.f);
 	}
 	
 	Application::~Application()
@@ -46,8 +47,8 @@ namespace Yassin
 
 		bool static showDemo = true;
 
-		ImGui::ShowDemoWindow(&showDemo);
-
+		//ImGui::ShowDemoWindow(&showDemo);
+		//testTriangle->Rotate(0, 0, dt);
 		m_Window.GetRenderer().Submit(testTriangle.get());
 
 		m_Window.GetRenderer().Render(m_CameraController.GetCamera());
