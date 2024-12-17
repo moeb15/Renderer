@@ -76,11 +76,11 @@ namespace Yassin
 	public:
 		inline void SetView(DirectX::XMMATRIX view) { m_MatrixBuffer.view = view; }
 		inline void SetProjection(DirectX::XMMATRIX proj) { m_MatrixBuffer.projection = proj; }
-		inline void SetWorld(DirectX::XMMATRIX world) { m_MatrixBuffer.world = world; }
+		inline void SetWorld(DirectX::XMMATRIX& world) { m_MatrixBuffer.world = world; }
 
 		inline DirectX::XMMATRIX& GetWorld() { return m_MatrixBuffer.world; }
-		inline DirectX::XMMATRIX GetView() const { return m_MatrixBuffer.view; }
-		inline DirectX::XMMATRIX GetProjection() const { return m_MatrixBuffer.projection; }
+		inline const DirectX::XMMATRIX& GetView() const { return m_MatrixBuffer.view; }
+		inline const DirectX::XMMATRIX& GetProjection() const { return m_MatrixBuffer.projection; }
 
 		inline MatrixBuffer GetMatrixBuffer() const { return m_MatrixBuffer; }
 

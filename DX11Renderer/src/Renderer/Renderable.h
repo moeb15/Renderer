@@ -13,6 +13,7 @@
 
 namespace Yassin
 {
+	class MaterialInstance;
 	class Renderable
 	{
 	public:
@@ -49,7 +50,7 @@ namespace Yassin
 
 			DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
 			DirectX::XMMATRIX rotation = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-			world = DirectX::XMMatrixMultiply(world, rotation);
+			world = DirectX::XMMatrixMultiply(rotation, world);
 			world = DirectX::XMMatrixTranspose(world);
 		}
 
@@ -62,7 +63,8 @@ namespace Yassin
 		}
 
 	protected:
-		std::shared_ptr<TransformBuffer> m_TransformBuffer;
+		std::unique_ptr<TransformBuffer> m_TransformBuffer;
+		std::unique_ptr<MaterialInstance> m_Material;
 		ObjectType m_ObjectType = ObjectType::Geometry;
 		ObjectVisibility m_ObjectVisibility = ObjectVisibility::Opaque;
 	};

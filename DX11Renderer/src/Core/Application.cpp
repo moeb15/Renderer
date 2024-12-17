@@ -12,9 +12,16 @@ namespace Yassin
 	{
 		m_Window.Init();
 
-		DirectX::XMMATRIX world = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-		testTriangle = std::make_shared<Triangle>("Texture Shader", world);
-		testTriangle->Translate(0.f, 0.f, 5.f);
+		DirectX::XMMATRIX world;
+		for(int i = 0; i < 10000; i++)
+		{
+			float x, y, z;
+			x = (i % 2) == 0 ? i : -i;
+			y = (i % 2) == 0 ? -i : i;
+			z = 10 * sin(i);
+			world = DirectX::XMMatrixTranslation(x, y, z);;
+			triangles.push_back(std::make_unique<Triangle>("Texture Material", world));
+		}
 	}
 	
 	Application::~Application()
@@ -49,7 +56,8 @@ namespace Yassin
 
 		//ImGui::ShowDemoWindow(&showDemo);
 		//testTriangle->Rotate(0, 0, dt);
-		m_Window.GetRenderer().Submit(testTriangle.get());
+		for(int i = 0; i < triangles.size(); i++)
+			m_Window.GetRenderer().Submit(triangles[i].get());
 
 		m_Window.GetRenderer().Render(m_CameraController.GetCamera());
 

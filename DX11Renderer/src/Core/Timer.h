@@ -12,6 +12,7 @@ namespace Yassin
 		* Elapsed time per frame
 		*/
 		float Tick();
+
 		/*
 		* Elapsed time since last Tick() invocation
 		*/

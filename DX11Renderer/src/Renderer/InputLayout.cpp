@@ -9,7 +9,11 @@ namespace Yassin
 		if(FAILED(hr))
 		{
 			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create input layout", L"Error", MB_OK);
+			m_IED = nullptr;
+			m_Size = 0;
 			return;
 		}
+		m_IED = ied;
+		m_Size = size;
 	}
 }

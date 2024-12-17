@@ -27,6 +27,6 @@ namespace Yassin
 		Window m_Window;
 		Timer m_Timer;
 		CameraController m_CameraController;
-		std::shared_ptr<Triangle> testTriangle;
+		std::vector<std::unique_ptr<Triangle>> triangles;
 	};
 }
