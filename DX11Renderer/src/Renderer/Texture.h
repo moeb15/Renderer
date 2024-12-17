@@ -6,9 +6,16 @@ namespace Yassin
 	class Texture2D
 	{
 	public:
-		Texture2D(const char* textureFile);
+		Texture2D() = default;
+
+		void Init(const char* textureFile);
 
 		inline ID3D11ShaderResourceView* GetTexture() { return m_SRV.Get(); }
+
+		void Bind(unsigned int slot)
+		{
+			RendererContext::GetDeviceContext()->PSSetShaderResources(slot, 1, m_SRV.GetAddressOf());
+		}
 
 		inline int GetWidth() const { return m_Width; }
 		inline int GetHeight() const { return m_Height; }

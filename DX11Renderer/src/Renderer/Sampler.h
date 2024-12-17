@@ -3,25 +3,25 @@
 
 namespace Yassin
 {
+	enum class FilterType
+	{
+		Anisotropic,
+		Bilinear,
+		Point,
+	};
+
+	enum class AddressType
+	{
+		Clamp,
+		Mirror,
+		Wrap
+	};
 	class Sampler
 	{
 	public:
-		enum class FilterType
-		{
-			Anisotropic,
-			Bilinear,
-			Point,
-		};
+		Sampler() = default;
 
-		enum class AddressType
-		{
-			Clamp,
-			Mirror,
-			Wrap
-		};
-
-	public:
-		Sampler(FilterType fType, AddressType aType);
+		void Init(FilterType fType, AddressType aType);
 
 		inline void Bind(unsigned int slot) 
 		{

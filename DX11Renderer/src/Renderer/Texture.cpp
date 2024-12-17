@@ -5,11 +5,11 @@
 
 namespace Yassin
 {
-	Texture2D::Texture2D(const char* textureFile)
+	void Texture2D::Init(const char* textureFile)
 	{
 		HRESULT hr;
 		unsigned char* imageData = stbi_load(textureFile, &m_Width, &m_Height, &m_Channels, 4);
-		if(!imageData)
+		if (!imageData)
 		{
 			size_t len = 128;
 			wchar_t wTexFile[128];
@@ -20,8 +20,8 @@ namespace Yassin
 			return;
 		}
 
-		unsigned int rowPitch = m_Width * 4;
-		
+		unsigned int rowPitch = m_Width * m_Channels;
+
 		D3D11_TEXTURE2D_DESC tDesc = {};
 		tDesc.Height = m_Height;
 		tDesc.Width = m_Width;
@@ -37,10 +37,18 @@ namespace Yassin
 		tData.pSysMem = imageData;
 		tData.SysMemPitch = rowPitch;
 
+		hr = RendererContext::GetDevice()->CreateTexture2D(&tDesc, nullptr, &m_Texture);
+		if (FAILED(hr))
+		{
+			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create texture", L"Texture2D", MB_OK);
+			return;
+		}
+
 		RendererContext::GetDeviceContext()->UpdateSubresource(m_Texture.Get(), 0, nullptr, imageData, rowPitch, 0);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = tDesc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = -1;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 
