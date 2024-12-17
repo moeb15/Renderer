@@ -9,6 +9,7 @@
 #include "Renderer/Renderable.h"
 #include "Renderer/ShaderLibrary.h"
 #include "Renderer/Camera.h"
+#include "Renderer/MaterialSystem.h"
 #include <queue>
 
 namespace Yassin
@@ -25,6 +26,7 @@ namespace Yassin
 		void Render(Camera& camera);
 
 	private:
+		std::unique_ptr<MaterialSystem> m_MaterialSystem;
 		std::unique_ptr<ShaderLibrary> m_ShaderLibrary;
 		std::unique_ptr<RendererContext> m_Context;
 		std::queue<Renderable*> m_RenderQueue;

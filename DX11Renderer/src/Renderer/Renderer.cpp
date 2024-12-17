@@ -9,9 +9,14 @@ namespace Yassin
 		m_Context->Init(width, height, hWnd, fullscreen);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
+		m_MaterialSystem = std::make_unique<MaterialSystem>();
 
 		ShaderLibrary::Init();
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
+		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
+
+		MaterialSystem::Init();
+		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
 	}
 	
 	void Renderer::BeginScene(float r, float g, float b, float a)
