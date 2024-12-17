@@ -22,13 +22,11 @@ project "DX11Renderer"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-	shadermodel ("5.0")
-	shaderobjectfileoutput ("%{prj.name}/src/Shaders/CSO/%%(Filename).cso")
-
 	files
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/src/Shaders/HLSL/**.hlsl",
 		"vendor/imgui/imconfig.h",
 		"vendor/imgui/imgui.h",
 		"vendor/imgui/imgui.cpp",
@@ -56,6 +54,29 @@ project "DX11Renderer"
 		"d3dcompiler.lib",
 		"dxgi.lib"
 	}
+
+	-- Custom HLSL Compilation Step
+	filter "files:**Shaders/HLSL/**VS.hlsl"
+		buildcommands
+		{
+			"echo Compiling Vertex Shader: %(FullPath)",
+			"fxc /T vs_5_0 /Fo \"%(ProjectDir)src/Shaders/CSO/%(Filename).cso\" /nologo \"%(FullPath)\""
+		}
+		buildoutputs 
+		{
+			"%{prj.name}/src/Shaders/CSO/%(Filename).cso"
+		}
+		
+	filter "files:**Shaders/HLSL/**PS.hlsl"
+		buildcommands
+		{
+			"echo Compiling Pixel Shader: %(FullPath)",
+			"fxc /T ps_5_0 /Fo \"%(ProjectDir)src/Shaders/CSO/%(Filename).cso\" /nologo \"%(FullPath)\""
+		}
+		buildoutputs 
+		{
+			"%{prj.name}/src/Shaders/CSO/%(Filename).cso"
+		}
 
 	filter "system:windows"
 		systemversion "latest"
