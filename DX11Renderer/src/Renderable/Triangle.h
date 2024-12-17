@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/Renderable.h"
+#include "Renderer/MaterialInstance.h"
 #include <string>
 
 namespace Yassin
@@ -12,12 +13,13 @@ namespace Yassin
 	
 	private:
 		Topology m_Topology;
+		std::shared_ptr<MaterialInstance> m_Material;
 		VertexBuffer m_VertexBuffer;
 		IndexBuffer m_IndexBuffer;
 		VertexShader* m_VertexShader;
 		PixelShader* m_PixelShader;
 		std::shared_ptr<InputLayout> m_InputLayout;
-		std::shared_ptr<TransformBuffer> m_TransformBuffer;
-		DirectX::XMFLOAT4X4 m_WorldTransform;
+		std::shared_ptr<Texture2D> m_Texture;
+		std::shared_ptr<Sampler> m_Sampler;
 	};
 }
