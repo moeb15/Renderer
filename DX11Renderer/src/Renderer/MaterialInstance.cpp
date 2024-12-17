@@ -1,5 +1,6 @@
 #include "Renderer/MaterialInstance.h"
 #include "MaterialInstance.h"
+#include "Renderer/TextureLibrary.h"
 
 
 namespace Yassin
@@ -14,31 +15,30 @@ namespace Yassin
 
 		for(const TextureMetaData& tData : material->GetTextures())
 		{
-			std::shared_ptr<Texture2D> texture = std::make_shared<Texture2D>();
-			m_Textures.emplace(std::pair<unsigned int, std::shared_ptr<Texture2D>>(tData.slot, std::move(texture)));
+			m_Textures.emplace(tData.slot, nullptr);
 		}
 
 		for(const SamplerMetaData& sData : material->GetSamplers())
 		{
-			std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>();
-			m_Samplers.emplace(std::pair<unsigned int, std::shared_ptr<Sampler>>(sData.slot, std::move(sampler)));
+			std::unique_ptr<Sampler> sampler = std::make_unique<Sampler>();
+			m_Samplers.emplace(std::pair<unsigned int, std::unique_ptr<Sampler>>(sData.slot, std::move(sampler)));
 		}
 
 		m_VertexShader = material->GetVertexShader();
 		m_PixelShader = material->GetPixelShader();
 	}
 
-	void MaterialInstance::SetTexture(unsigned int slot, const char* textureFile)
+	void MaterialInstance::SetTexture(unsigned int slot, const std::string& texture)
 	{
 		if (m_Textures.find(slot) == m_Textures.end()) return;
-
-		m_Textures.find(slot)->second->Init(textureFile);
+		// TODO : switch based off TextureType
+		m_Textures.find(slot)->second = TextureLibrary::GetTexture2D(texture);
 	}
 
 	void MaterialInstance::SetSampler(unsigned int slot, FilterType fType, AddressType aType)
 	{
 		if (m_Samplers.find(slot) == m_Samplers.end()) return;
-
+		
 		m_Samplers.find(slot)->second->Init(fType, aType);
 	}
 

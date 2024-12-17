@@ -13,14 +13,17 @@ namespace Yassin
 
 		MaterialInstance(Material* material);
 
-		void SetTexture(unsigned int slot, const char* textureFile);
+		void SetTexture(unsigned int slot, const std::string& texture);
 		void SetSampler(unsigned int slot, FilterType fType, AddressType aType);
+
+		VertexShader* GetVertexShader() { return m_VertexShader; }
+		PixelShader* GetPixelShader() { return m_PixelShader; }
 
 		void BindMaterial();
 
 	private:
-		std::unordered_map<unsigned int, std::shared_ptr<Texture2D>> m_Textures;
-		std::unordered_map<unsigned int, std::shared_ptr<Sampler>> m_Samplers;
+		std::unordered_map<unsigned int, Texture2D*> m_Textures;
+		std::unordered_map<unsigned int, std::unique_ptr<Sampler>> m_Samplers;
 		VertexShader* m_VertexShader;
 		PixelShader* m_PixelShader;
 	};
