@@ -18,5 +18,13 @@ namespace Yassin
 			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create vertex shader", shaderFile, MB_OK);
 			return;
 		}
+		// TODO: Generalize input layout
+		const D3D11_INPUT_ELEMENT_DESC ied[] =
+		{
+			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
+
+		m_InputLayout = std::make_unique<InputLayout>(m_Blob.Get(), ied, std::size(ied));
 	}
 }
