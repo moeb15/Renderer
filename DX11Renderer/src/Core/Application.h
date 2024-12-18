@@ -28,5 +28,7 @@ namespace Yassin
 		Timer m_Timer;
 		CameraController m_CameraController;
 		std::vector<std::unique_ptr<Triangle>> triangles;
+		char m_GPUName[128];
+		int m_GPUMem;
 	};
 }

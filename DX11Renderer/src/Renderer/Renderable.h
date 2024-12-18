@@ -14,20 +14,21 @@
 namespace Yassin
 {
 	class MaterialInstance;
+	
+	enum class ObjectType
+	{
+		Geometry,
+		Light,
+	};
+
+	enum class ObjectVisibility
+	{
+		Opaque,
+		Transparent,
+	};
+
 	class Renderable
 	{
-	public:
-		enum class ObjectType
-		{
-			Geometry,
-			Light,
-		};
-
-		enum class ObjectVisibility
-		{
-			Opaque,
-			Transparent,
-		};
 	public:
 		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const = 0;
 

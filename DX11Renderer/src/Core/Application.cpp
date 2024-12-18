@@ -13,7 +13,7 @@ namespace Yassin
 		m_Window.Init();
 
 		DirectX::XMMATRIX world;
-		for(int i = 0; i < 10000; i++)
+		for(int i = 0; i < 1000; i++)
 		{
 			float x, y, z;
 			x = (i % 2) == 0 ? i : -i;
@@ -22,6 +22,8 @@ namespace Yassin
 			world = DirectX::XMMatrixTranslation(x, y, z);;
 			triangles.push_back(std::make_unique<Triangle>("Texture Material", world));
 		}
+
+		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
 	
 	Application::~Application()
@@ -56,6 +58,14 @@ namespace Yassin
 
 		//ImGui::ShowDemoWindow(&showDemo);
 		//testTriangle->Rotate(0, 0, dt);
+		if(ImGui::Begin("Statistics"))
+		{
+			ImGui::Text("FPS : %f", ImGui::GetIO().Framerate);
+			ImGui::Text("Renderer : %s", m_GPUName);
+			ImGui::Text("VRAM : %i", m_GPUMem);
+		}
+		ImGui::End();
+
 		for(int i = 0; i < triangles.size(); i++)
 			m_Window.GetRenderer().Submit(triangles[i].get());
 
