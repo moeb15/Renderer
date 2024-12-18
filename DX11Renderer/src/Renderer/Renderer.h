@@ -31,6 +31,7 @@ namespace Yassin
 		std::unique_ptr<MaterialSystem> m_MaterialSystem;
 		std::unique_ptr<ShaderLibrary> m_ShaderLibrary;
 		std::unique_ptr<RendererContext> m_Context;
-		std::queue<Renderable*> m_RenderQueue;
+		std::queue<Renderable*> m_OpaqueRenderQueue;
+		std::queue<Renderable*> m_TransparentRenderQueue;
 	};
 }

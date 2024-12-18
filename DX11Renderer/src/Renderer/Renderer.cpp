@@ -47,14 +47,21 @@ namespace Yassin
 	void Renderer::Submit(Renderable* renderable)
 	{
 		if (!renderable) return;
-		m_RenderQueue.push(renderable);
+		if(renderable->GetObjectVisibility() == ObjectVisibility::Transparent)
+		{
+			m_TransparentRenderQueue.push(renderable);
+		}
+		else
+		{
+			m_OpaqueRenderQueue.push(renderable);
+		}
 	}
 
 	void Renderer::Render(Camera& camera)
 	{
-		while(!m_RenderQueue.empty())
+		while(!m_TransparentRenderQueue.empty())
 		{
-			Renderable* rPtr = m_RenderQueue.front();
+			Renderable* rPtr = m_TransparentRenderQueue.front();
 
 			DirectX::XMMATRIX view;
 			DirectX::XMMATRIX proj;
@@ -63,7 +70,21 @@ namespace Yassin
 			camera.GetProjectionMatrix(proj);
 
 			rPtr->Render(view, proj);
-			m_RenderQueue.pop();
+			m_TransparentRenderQueue.pop();
+		}
+
+		while(!m_OpaqueRenderQueue.empty())
+		{
+			Renderable* rPtr = m_OpaqueRenderQueue.front();
+
+			DirectX::XMMATRIX view;
+			DirectX::XMMATRIX proj;
+
+			camera.GetViewMatrix(view);
+			camera.GetProjectionMatrix(proj);
+
+			rPtr->Render(view, proj);
+			m_OpaqueRenderQueue.pop();
 		}
 	}
 }
