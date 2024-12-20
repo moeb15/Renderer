@@ -1,8 +1,7 @@
 cbuffer MatrixBuffer
 {
-    matrix world;
-    matrix view;
-    matrix proj;
+    row_major matrix world;
+    row_major matrix viewProj;
 };
 
 struct VSIn
@@ -21,8 +20,7 @@ VSOut main(VSIn input)
     VSOut vso;
     
     vso.position = mul(float4(input.position.xyz, 1.0f), world);
-    vso.position = mul(vso.position, view);
-    vso.position = mul(vso.position, proj);
+    vso.position = mul(vso.position, viewProj);
     
     vso.color = input.position;
     vso.color.w = 1.0f;
