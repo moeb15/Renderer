@@ -148,7 +148,10 @@ namespace Yassin
 
 	Material* MaterialSystem::Get(const std::string& name)
 	{
-		if (s_Instance->m_Materials.find(name) == s_Instance->m_Materials.end()) return nullptr;
+		if (s_Instance->m_Materials.find(name) == s_Instance->m_Materials.end())
+		{
+			return s_Instance->m_Materials.find("Error Material")->second.get();
+		}
 		const auto& kvPair = s_Instance->m_Materials.find(name);
 		return kvPair->second.get();
 	}

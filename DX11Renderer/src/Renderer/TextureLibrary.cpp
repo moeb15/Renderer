@@ -17,6 +17,7 @@ namespace Yassin
 
 	void TextureLibrary::Add(const std::string& name, const std::string& textureFile, TextureType type)
 	{
+		bool success;
 		switch(type)
 		{
 			case TextureType::Tex1D: 
@@ -26,7 +27,9 @@ namespace Yassin
 				if (s_Instance->m_Texture2DMap.find(name) != s_Instance->m_Texture2DMap.end()) return;
 
 				std::unique_ptr<Texture2D> tex2D = std::make_unique<Texture2D>();
-				tex2D->Init(textureFile.c_str());
+				success = tex2D->Init(textureFile.c_str());
+				if (!success) return;
+
 				s_Instance->m_Texture2DMap.emplace(name, std::move(tex2D));
 				break;
 		}
@@ -34,7 +37,11 @@ namespace Yassin
 
 	Texture2D* TextureLibrary::GetTexture2D(const std::string& name)
 	{
-		if (s_Instance->m_Texture2DMap.find(name) == s_Instance->m_Texture2DMap.end()) return nullptr;
+		if (s_Instance->m_Texture2DMap.find(name) == s_Instance->m_Texture2DMap.end()) 
+		{
+			// return missing texture instead
+			return s_Instance->m_Texture2DMap.find("Missing Texture")->second.get();
+		}
 
 		return s_Instance->m_Texture2DMap.find(name)->second.get();
 	}
