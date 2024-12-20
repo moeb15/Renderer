@@ -7,8 +7,7 @@ namespace Yassin
 	struct MatrixBuffer
 	{
 		DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
-		DirectX::XMMATRIX view = DirectX::XMMatrixIdentity();
-		DirectX::XMMATRIX projection = DirectX::XMMatrixIdentity();
+		DirectX::XMMATRIX viewProj = DirectX::XMMatrixIdentity();
 	};
 
 	template<typename C>
@@ -74,13 +73,11 @@ namespace Yassin
 	class TransformBuffer : public ConstantBuffer<MatrixBuffer>
 	{
 	public:
-		inline void SetView(DirectX::XMMATRIX view) { m_MatrixBuffer.view = view; }
-		inline void SetProjection(DirectX::XMMATRIX proj) { m_MatrixBuffer.projection = proj; }
 		inline void SetWorld(DirectX::XMMATRIX& world) { m_MatrixBuffer.world = world; }
+		inline void SetViewProjection(DirectX::XMMATRIX& viewProj) { m_MatrixBuffer.viewProj = viewProj; }
 
 		inline DirectX::XMMATRIX& GetWorld() { return m_MatrixBuffer.world; }
-		inline const DirectX::XMMATRIX& GetView() const { return m_MatrixBuffer.view; }
-		inline const DirectX::XMMATRIX& GetProjection() const { return m_MatrixBuffer.projection; }
+		inline const DirectX::XMMATRIX& GetViewProjection() const { return m_MatrixBuffer.viewProj; }
 
 		inline MatrixBuffer GetMatrixBuffer() const { return m_MatrixBuffer; }
 
