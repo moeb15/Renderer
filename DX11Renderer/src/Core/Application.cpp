@@ -2,26 +2,23 @@
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
-#include "Renderable/Triangle.h"
 
 namespace Yassin
 {
 	Application::Application(const ApplicationSpecification& appSpec) :
 		m_Window(appSpec.width, appSpec.height, appSpec.name),
-		m_CameraController(45.f, appSpec.width / appSpec.height)
+		m_CameraController(75.f, (float)appSpec.width / (float)appSpec.height)
 	{
 		m_Window.Init();
 
 		DirectX::XMMATRIX world;
-		for(int i = 0; i < 1000; i++)
-		{
-			float x, y, z;
-			x = (i % 2) == 0 ? i : -i;
-			y = (i % 2) == 0 ? -i : i;
-			z = 10 * sin(i);
-			world = DirectX::XMMatrixTranslation(x, y, z);;
-			triangles.push_back(std::make_unique<Triangle>("Texture Material", world));
-		}
+
+		world = DirectX::XMMatrixTranslation(0.f, 0.f, 5.f);
+		box = std::make_unique<Box>("Depth Material", world);
+
+		//world = DirectX::XMMatrixRotationX(DirectX::XMConvertToRadians(90.f));
+		world = DirectX::XMMatrixTranslation(37.5f, -0.5f, -30.f);
+		plane = std::make_unique<Plane>("Depth Material", world, 100, 100, 25.f, 25.f);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -66,8 +63,8 @@ namespace Yassin
 		}
 		ImGui::End();
 
-		for(int i = 0; i < triangles.size(); i++)
-			m_Window.GetRenderer().Submit(triangles[i].get());
+		m_Window.GetRenderer().Submit(box.get());
+		m_Window.GetRenderer().Submit(plane.get());
 
 		m_Window.GetRenderer().Render(m_CameraController.GetCamera());
 

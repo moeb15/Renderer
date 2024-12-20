@@ -8,7 +8,7 @@ namespace Yassin
 	public:
 		Texture2D() = default;
 
-		void Init(const char* textureFile);
+		bool Init(const char* textureFile);
 
 		inline ID3D11ShaderResourceView* GetTexture() { return m_SRV.Get(); }
 

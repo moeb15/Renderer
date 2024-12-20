@@ -13,14 +13,18 @@ namespace Yassin
 		m_TextureLibrary = std::make_unique<TextureLibrary>();
 
 		TextureLibrary::Init();
+		TextureLibrary::Add("Missing Texture", "src/Assets/Textures/ErrorTexture.png", TextureType::Tex2D);
 		TextureLibrary::Add("Stone", "src/Assets/Textures/stone.png", TextureType::Tex2D);
 
 		ShaderLibrary::Init();
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
 		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
+		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
 
 		MaterialSystem::Init();
+		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
 		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
+		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
 	}
 	
 	void Renderer::BeginScene(float r, float g, float b, float a)

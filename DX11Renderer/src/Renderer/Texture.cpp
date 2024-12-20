@@ -5,7 +5,7 @@
 
 namespace Yassin
 {
-	void Texture2D::Init(const char* textureFile)
+	bool Texture2D::Init(const char* textureFile)
 	{
 		HRESULT hr;
 		unsigned char* imageData = stbi_load(textureFile, &m_Width, &m_Height, &m_Channels, 4);
@@ -17,7 +17,7 @@ namespace Yassin
 			MessageBox(RendererContext::GetWindowHandle(), L"Invalid texture file", wTexFile, MB_OK);
 			delete[] wTexFile;
 
-			return;
+			return false;
 		}
 
 		unsigned int rowPitch = m_Width * m_Channels;
@@ -41,7 +41,7 @@ namespace Yassin
 		if (FAILED(hr))
 		{
 			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create texture", L"Texture2D", MB_OK);
-			return;
+			return false;
 		}
 
 		RendererContext::GetDeviceContext()->UpdateSubresource(m_Texture.Get(), 0, nullptr, imageData, rowPitch, 0);
@@ -56,9 +56,11 @@ namespace Yassin
 		if (FAILED(hr))
 		{
 			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create shader resource view", L"Texture2D", MB_OK);
-			return;
+			return false;
 		}
 
 		RendererContext::GetDeviceContext()->GenerateMips(m_SRV.Get());
+
+		return true;
 	}
 }

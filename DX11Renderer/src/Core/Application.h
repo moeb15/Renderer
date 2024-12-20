@@ -2,10 +2,10 @@
 #include "Core/Window.h"
 #include "Core/Timer.h"
 #include "Renderer/CameraController.h"
+#include "Renderable/RenderablePrimitives.h"
 
 namespace Yassin
 {
-	class Triangle;
 	struct ApplicationSpecification
 	{
 		wchar_t* name = L"DX11Renderer";
@@ -27,7 +27,8 @@ namespace Yassin
 		Window m_Window;
 		Timer m_Timer;
 		CameraController m_CameraController;
-		std::vector<std::unique_ptr<Triangle>> triangles;
+		std::unique_ptr<Box> box;
+		std::unique_ptr<Plane> plane;
 		char m_GPUName[128];
 		int m_GPUMem;
 	};
