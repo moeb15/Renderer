@@ -10,7 +10,7 @@ namespace Yassin
 		
 		void OnUpdate(float dt);
 
-		Camera& GetCamera() { return m_Camera; }
+		inline Camera& GetCamera() { return m_Camera; }
 
 	private:
 		float m_FOV;

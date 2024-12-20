@@ -13,7 +13,7 @@ namespace Yassin
 			RendererContext::GetDeviceContext()->PSSetShader(m_PixelShader.Get(), nullptr, 0);
 		}
 
-		ID3DBlob* GetBlob() const { return m_Blob.Get(); }
+		inline ID3DBlob* GetBlob() const { return m_Blob.Get(); }
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader;

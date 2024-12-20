@@ -12,7 +12,7 @@ namespace Yassin
 
 		inline ID3D11ShaderResourceView* GetTexture() { return m_SRV.Get(); }
 
-		void Bind(unsigned int slot)
+		inline void Bind(unsigned int slot)
 		{
 			RendererContext::GetDeviceContext()->PSSetShaderResources(slot, 1, m_SRV.GetAddressOf());
 		}

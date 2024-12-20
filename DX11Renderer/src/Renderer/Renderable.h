@@ -32,36 +32,12 @@ namespace Yassin
 	public:
 		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const = 0;
 
-		const ObjectType& GetObjectType() const { return m_ObjectType; }
-		const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
+		inline const ObjectType& GetObjectType() const { return m_ObjectType; }
+		inline const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
 
-		void Translate(float x, float y, float z)
-		{
-			DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
-			DirectX::XMMATRIX translation = DirectX::XMMatrixTranslation(x, y, z);
-			world = DirectX::XMMatrixMultiply(translation, world);
-			world = DirectX::XMMatrixTranspose(world);
-		}
-
-		void Rotate(float yaw, float pitch, float roll)
-		{
-			yaw = DirectX::XMConvertToRadians(yaw);
-			pitch = DirectX::XMConvertToRadians(pitch);
-			roll = DirectX::XMConvertToRadians(roll);
-
-			DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
-			DirectX::XMMATRIX rotation = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-			world = DirectX::XMMatrixMultiply(rotation, world);
-			world = DirectX::XMMatrixTranspose(world);
-		}
-
-		void Scale(float x, float y, float z)
-		{
-			DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
-			DirectX::XMMATRIX scale = DirectX::XMMatrixScaling(x, y, z);
-			world = DirectX::XMMatrixMultiply(scale, world);
-			world = DirectX::XMMatrixTranspose(world);
-		}
+		void Translate(float x, float y, float z);
+		void Rotate(float yaw, float pitch, float roll);
+		void Scale(float x, float y, float z);
 
 	protected:
 		std::unique_ptr<TransformBuffer> m_TransformBuffer;

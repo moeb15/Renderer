@@ -42,37 +42,37 @@ namespace Yassin
 	class Material
 	{
 	public:
-		void AddCBuffer(const CBufferMetaData& cbuffer)
+		inline void AddCBuffer(const CBufferMetaData& cbuffer)
 		{
 			m_CbufferMetaData.push_back(cbuffer);
 		}
 
-		void AddTexture(LPCSTR name, unsigned int slot)
+		inline void AddTexture(LPCSTR name, unsigned int slot)
 		{
 			m_TextureMetaData.push_back({ name, slot });
 		}
 
-		void AddSampler(LPCSTR name, unsigned int slot)
+		inline void AddSampler(LPCSTR name, unsigned int slot)
 		{
 			m_SamplerMetaData.push_back({ name, slot });
 		}
 
-		const std::vector<CBufferMetaData>& GetCBuffers() { return m_CbufferMetaData; }
-		const std::vector<TextureMetaData>& GetTextures() { return m_TextureMetaData; }
-		const std::vector<SamplerMetaData>& GetSamplers() { return m_SamplerMetaData; }
+		inline const std::vector<CBufferMetaData>& GetCBuffers() { return m_CbufferMetaData; }
+		inline const std::vector<TextureMetaData>& GetTextures() { return m_TextureMetaData; }
+		inline const std::vector<SamplerMetaData>& GetSamplers() { return m_SamplerMetaData; }
 
-		void SetVertexShader(VertexShader* vert)
+		inline void SetVertexShader(VertexShader* vert)
 		{
 			m_VertexShader = vert;
 		}
 
-		void SetPixelShader(PixelShader* pixel)
+		inline void SetPixelShader(PixelShader* pixel)
 		{
 			m_PixelShader = pixel;
 		}
 
-		VertexShader* GetVertexShader() const { return m_VertexShader; }
-		PixelShader* GetPixelShader() const { return m_PixelShader; }
+		inline VertexShader* GetVertexShader() const { return m_VertexShader; }
+		inline PixelShader* GetPixelShader() const { return m_PixelShader; }
 
 	private:
 		std::vector<CBufferMetaData> m_CbufferMetaData;
