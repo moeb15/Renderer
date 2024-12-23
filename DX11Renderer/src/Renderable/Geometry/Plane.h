@@ -13,12 +13,13 @@ namespace Yassin
 
 		void GeneratePlane();
 
-		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const override;
+		virtual void Render(DirectX::XMMATRIX& viewProj) const override;
+		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
+		virtual void UpdateShadowMap(ID3D11ShaderResourceView* srv) const override;
+		virtual void UnbindSRV() const override;
 
 	private:
 		Topology m_Topology;
-		std::shared_ptr<VertexBuffer> m_VertexBuffer;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		int m_Width;
 		int m_Height;
 		float m_X;

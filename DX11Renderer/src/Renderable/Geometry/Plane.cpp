@@ -1,5 +1,6 @@
 #include "Renderable/Geometry/Plane.h"
 #include "Renderer/MaterialSystem.h"
+#include "Plane.h"
 
 namespace Yassin
 {
@@ -16,8 +17,9 @@ namespace Yassin
 		m_TransformBuffer->SetWorld(world);
 
 		m_Material = std::make_unique<MaterialInstance>(MaterialSystem::Get(material));
-		m_Material->SetTexture(0, "");
-		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Wrap);
+		m_Material->SetTexture(TextureSlot::BaseTexture, "");
+		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
+		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 	}
 
 	void Plane::GeneratePlane()
@@ -71,22 +73,38 @@ namespace Yassin
 			}
 		}
 
-		m_VertexBuffer = std::make_shared<VertexBuffer>(vData);
-		m_IndexBuffer = std::make_shared<IndexBuffer>(indices);
+		m_VertexBuffer = std::make_unique<VertexBuffer>(vData);
+		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
 	}
 
-	void Plane::Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const
+	void Plane::Render(DirectX::XMMATRIX& viewProj) const
 	{
 		m_VertexBuffer->Bind(0);
 		m_IndexBuffer->Bind();
 		m_Topology.Bind();
 
-		m_TransformBuffer->SetViewProjection(DirectX::XMMatrixMultiply(view, projection));
+		m_TransformBuffer->SetViewProjection(viewProj);
 		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
 		m_TransformBuffer->SetTransformBuffer();
 
 		m_Material->BindMaterial();
 
 		RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
+	}
+
+	void Yassin::Plane::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
+	{
+		m_Material->UpdateLightBuffers(lPos, lProps);
+	}
+
+	void Plane::UpdateShadowMap(ID3D11ShaderResourceView* srv) const
+	{
+		m_Material->SetShadowMap(TextureSlot::DepthMapTexture, srv);
+	}
+
+	void Plane::UnbindSRV() const
+	{
+		ID3D11ShaderResourceView* nullSRV = { nullptr };
+		RendererContext::GetDeviceContext()->PSSetShaderResources(1, 1, &nullSRV);
 	}
 }

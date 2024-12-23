@@ -1,5 +1,6 @@
 #include "Renderable/Geometry/Box.h"
 #include "Renderer/MaterialSystem.h"
+#include "Box.h"
 
 
 namespace Yassin
@@ -67,29 +68,46 @@ namespace Yassin
 			20, 21, 22, 20, 22, 23
 		};
 
-		m_VertexBuffer = std::make_shared<VertexBuffer>(vData);
-		m_IndexBuffer = std::make_shared<IndexBuffer>(indices);
+		m_VertexBuffer = std::make_unique<VertexBuffer>(vData);
+		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
 
 		m_TransformBuffer = std::make_unique<TransformBuffer>();
 		m_TransformBuffer->SetWorld(world);
 
 		m_Material = std::make_unique<MaterialInstance>(MaterialSystem::Get(material));
-		m_Material->SetTexture(0, "Stone");
-		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Wrap);
+		m_Material->SetTexture(TextureSlot::BaseTexture, "Stone");
+		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
+		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 	}
 
-	void Box::Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const
+	void Box::Render(DirectX::XMMATRIX& viewProj) const
 	{
 		m_VertexBuffer->Bind(0);
 		m_IndexBuffer->Bind();
 		m_Topology.Bind();
 
-		m_TransformBuffer->SetViewProjection(DirectX::XMMatrixMultiply(view, projection));
+		m_TransformBuffer->SetViewProjection(viewProj);
 		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
 		m_TransformBuffer->SetTransformBuffer();
 
 		m_Material->BindMaterial();
 
 		RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
+	}
+
+	void Yassin::Box::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
+	{
+		m_Material->UpdateLightBuffers(lPos, lProps);
+	}
+
+	void Box::UpdateShadowMap(ID3D11ShaderResourceView* srv) const
+	{
+		m_Material->SetShadowMap(TextureSlot::DepthMapTexture, srv);
+	}
+
+	void Box::UnbindSRV() const
+	{
+		ID3D11ShaderResourceView* nullSRV = { nullptr };
+		RendererContext::GetDeviceContext()->PSSetShaderResources(1, 1, &nullSRV);
 	}
 }

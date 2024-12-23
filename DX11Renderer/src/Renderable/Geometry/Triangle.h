@@ -10,11 +10,10 @@ namespace Yassin
 	{
 	public:
 		Triangle(std::string material, DirectX::XMMATRIX world);
-		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const override;
-	
+		virtual void Render(DirectX::XMMATRIX& viewProj) const override;
+		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
+
 	private:
 		Topology m_Topology;
-		std::shared_ptr<VertexBuffer> m_VertexBuffer;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 	};
 }
