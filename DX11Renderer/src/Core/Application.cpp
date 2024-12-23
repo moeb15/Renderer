@@ -11,14 +11,16 @@ namespace Yassin
 	{
 		m_Window.Init();
 
+		light = std::make_unique<PointLight>(90.f, 0.1f, 1000.f);
+		light->SetPosition(37.f, 10.f, 3.f);
+
 		DirectX::XMMATRIX world;
 
 		world = DirectX::XMMatrixTranslation(0.f, 0.f, 5.f);
-		box = std::make_unique<Box>("Depth Material", world);
+		box = std::make_unique<Box>("Shadow Map Material", world);
 
-		//world = DirectX::XMMatrixRotationX(DirectX::XMConvertToRadians(90.f));
 		world = DirectX::XMMatrixTranslation(37.5f, -0.5f, -30.f);
-		plane = std::make_unique<Plane>("Depth Material", world, 100, 100, 25.f, 25.f);
+		plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -53,20 +55,44 @@ namespace Yassin
 
 		bool static showDemo = true;
 
-		//ImGui::ShowDemoWindow(&showDemo);
-		//testTriangle->Rotate(0, 0, dt);
-		if(ImGui::Begin("Statistics"))
+		DirectX::XMMATRIX lView;
+		DirectX::XMMATRIX lProj;
+
+		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
+		light->GetView(lView);
+		light->GetProjection(lProj);
+
+		if(ImGui::Begin("Light Position"))
 		{
+			ImGui::SliderFloat("X", &lightPosition.x, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("Y", &lightPosition.y, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("Z", &lightPosition.z, -50.f, 50.f, "%.1f");
+			
+			ImGui::Text("Statistics");
 			ImGui::Text("FPS : %f", ImGui::GetIO().Framerate);
 			ImGui::Text("Renderer : %s", m_GPUName);
 			ImGui::Text("VRAM : %i", m_GPUMem);
 		}
 		ImGui::End();
 
+		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
+
+		box->UpdateLighting(
+			{ DirectX::XMMatrixMultiply(lView, lProj), light->GetPosition() },
+			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
+			light->GetSpecularPower() });
+
+		box->Rotate(dt * 10.f, 0.0f, 0.0f);
+
+		plane->UpdateLighting(
+			{ DirectX::XMMatrixMultiply(lView, lProj), light->GetPosition() },
+			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
+			light->GetSpecularPower() });
+
 		m_Window.GetRenderer().Submit(box.get());
 		m_Window.GetRenderer().Submit(plane.get());
 
-		m_Window.GetRenderer().Render(m_CameraController.GetCamera());
+		m_Window.GetRenderer().Render(m_CameraController.GetCamera(), DirectX::XMMatrixMultiply(lView, lProj));
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

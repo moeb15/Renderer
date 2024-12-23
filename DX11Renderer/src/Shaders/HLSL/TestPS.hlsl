@@ -6,5 +6,5 @@ struct PSIn
 
 float4 main(PSIn input) : SV_TARGET
 {
-    return input.color;
+    return saturate(input.color + 0.15f);
 }
