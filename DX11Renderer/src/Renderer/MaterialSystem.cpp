@@ -56,8 +56,19 @@ namespace Yassin
 		pVertexRef->GetDesc(&vertexShaderDesc);
 		pPixelRef->GetDesc(&pixelShaderDesc);
 
+		// Will set a flag in Material when more than 1 CBuffers are present in VS or PS shader,
+		// signifying that LightPositionBuffer and LightPropertiesBuffer are present, each at 
+		// slots 1 and 0 respectively 
+
+		newMaterial->SetLightFlag(pixelShaderDesc.ConstantBuffers >= 1);
+
 		// iterate over constant buffers, slot 0 is reserved for transform buffer
-		for(int i = 1; i < vertexShaderDesc.ConstantBuffers; i++)
+		// UPDATE : Going to avoid iterating over constant buffers for now, will just have
+		// the same constant buffers available in each shader for the sake of consistency,
+		// only iterating over shader resources and samplers, may change in the future 
+		// which is why the following is only commented out instead of removed
+
+		/*for (int i = 1; i < vertexShaderDesc.ConstantBuffers; i++)
 		{
 			D3D11_SHADER_BUFFER_DESC bufferDesc = {};
 			ID3D11ShaderReflectionConstantBuffer* cBuffer = pVertexRef->GetConstantBufferByIndex(i);
@@ -118,7 +129,7 @@ namespace Yassin
 				cBufferData.variables.push_back(cbufVar);
 			}
 			newMaterial->AddCBuffer(cBufferData);
-		}
+		}*/
 
 		// iterate over shader resources
 		for(int i = 0; i < pixelShaderDesc.BoundResources; i++)
