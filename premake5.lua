@@ -56,6 +56,12 @@ project "DX11Renderer"
 		"dxguid.lib"
 	}
 
+	postbuildcommands
+	{
+		"{COPYDIR} \"%(ProjectDir)src/Assets\" %[%{!cfg.targetdir}/src/Assets]",
+		"{COPYDIR} \"%(ProjectDir)src/Shaders/CSO\" %[%{!cfg.targetdir}/src/Shaders/CSO]"
+	}
+
 	-- Custom HLSL Compilation Step
 	filter "files:**Shaders/HLSL/**VS.hlsl"
 		buildcommands
