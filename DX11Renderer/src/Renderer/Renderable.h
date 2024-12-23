@@ -30,7 +30,15 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		virtual void Render(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) const = 0;
+		virtual void Render(DirectX::XMMATRIX& viewProj) const = 0;
+		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const = 0;
+		virtual void UpdateShadowMap(ID3D11ShaderResourceView* srv) const {}
+		virtual void UnbindSRV() const {}
+
+		inline MaterialInstance* GetMaterialInstance() const { return m_Material.get(); }
+		inline VertexBuffer* GetVertexBuffer() const { return m_VertexBuffer.get(); }
+		inline IndexBuffer* GetIndexBuffer() const { return m_IndexBuffer.get(); }
+		inline TransformBuffer* GetTransformBuffer() { return m_TransformBuffer.get(); }
 
 		inline const ObjectType& GetObjectType() const { return m_ObjectType; }
 		inline const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
@@ -42,6 +50,8 @@ namespace Yassin
 	protected:
 		std::unique_ptr<TransformBuffer> m_TransformBuffer;
 		std::unique_ptr<MaterialInstance> m_Material;
+		std::unique_ptr<VertexBuffer> m_VertexBuffer;
+		std::unique_ptr<IndexBuffer> m_IndexBuffer;
 		ObjectType m_ObjectType = ObjectType::Geometry;
 		ObjectVisibility m_ObjectVisibility = ObjectVisibility::Opaque;
 	};
