@@ -10,6 +10,22 @@ namespace Yassin
 		DirectX::XMMATRIX viewProj = DirectX::XMMatrixIdentity();
 	};
 
+	struct LightPositionBuffer
+	{
+		DirectX::XMMATRIX lightViewProj = DirectX::XMMatrixIdentity();
+		DirectX::XMFLOAT3 lightPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+	};
+
+	struct LightPropertiesBuffer
+	{
+		DirectX::XMFLOAT4 ambientColor = DirectX::XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+		DirectX::XMFLOAT4 diffuseColor = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		DirectX::XMFLOAT4 specularColor = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);;
+		float specularPower = 32.f;
+		float bias = 0.0022f;
+		DirectX::XMFLOAT2 padding;
+	};
+
 	template<typename C>
 	class ConstantBuffer
 	{
@@ -56,7 +72,7 @@ namespace Yassin
 				MessageBox(RendererContext::GetWindowHandle(), L"Vertex shader constant buffer at slot 0 reserved for TransformBuffer", L"Error", MB_OK);
 				return;
 			}
-			RendererContext::GetDeviceContext()->VSSetConstantBuffers(slot, 1, m_ConstantBuffer.Get());
+			RendererContext::GetDeviceContext()->VSSetConstantBuffers(slot, 1, m_ConstantBuffer.GetAddressOf());
 		}
 	};
 
@@ -66,7 +82,7 @@ namespace Yassin
 	public:
 		inline void Bind(unsigned int slot)
 		{
-			RendererContext::GetDeviceContext()->PSSetConstantBuffers(slot, 1, m_ConstantBuffer.Get());
+			RendererContext::GetDeviceContext()->PSSetConstantBuffers(slot, 1, m_ConstantBuffer.GetAddressOf());
 		}
 	};
 
@@ -88,5 +104,17 @@ namespace Yassin
 
 	private:
 		MatrixBuffer m_MatrixBuffer;
+	};
+
+	class LightPosBuffer : public VertexConstantBuffer<LightPositionBuffer> 
+	{
+	private:
+		LightPositionBuffer m_LightPositionBuffer;
+	};
+
+	class LightPropsBuffer : public PixelConstantBuffer<LightPropertiesBuffer>
+	{
+	private:
+		LightPropertiesBuffer m_LightPropertiesBuffer;
 	};
 }
