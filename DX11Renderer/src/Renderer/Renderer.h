@@ -11,6 +11,7 @@
 #include "Renderer/Camera.h"
 #include "Renderer/MaterialSystem.h"
 #include "Renderer/TextureLibrary.h"
+#include "Renderer/RenderToTexture.h"
 #include <queue>
 
 namespace Yassin
@@ -24,14 +25,19 @@ namespace Yassin
 		void ResizeBuffer(unsigned int width, unsigned int height);
 		void EndScene();
 		void Submit(Renderable* renderable);
-		void Render(Camera& camera);
+		void Render(Camera& camera, DirectX::XMMATRIX& lightViewProj);
+
+	private:
+		void DepthPass(DirectX::XMMATRIX& lightViewProj);
 
 	private:
 		std::unique_ptr<TextureLibrary> m_TextureLibrary;
 		std::unique_ptr<MaterialSystem> m_MaterialSystem;
 		std::unique_ptr<ShaderLibrary> m_ShaderLibrary;
 		std::unique_ptr<RendererContext> m_Context;
+		std::unique_ptr<RenderToTexture> m_DepthPass;
 		std::queue<Renderable*> m_OpaqueRenderQueue;
 		std::queue<Renderable*> m_TransparentRenderQueue;
+		std::queue<Renderable*> m_DepthRenderQueue;
 	};
 }
