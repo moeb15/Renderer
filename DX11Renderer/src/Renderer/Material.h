@@ -11,7 +11,9 @@ namespace Yassin
 		VS,
 	};
 
-	struct CBufferVariableData
+	// See changes in MaterialSystem.cpp as to why CBuffers have been removed
+	// from Material.h
+	/*struct CBufferVariableData
 	{
 		LPCSTR name;
 		D3D_SHADER_VARIABLE_TYPE type;
@@ -25,7 +27,7 @@ namespace Yassin
 		unsigned int size;
 		unsigned int slot;
 		std::vector<CBufferVariableData> variables;
-	};
+	};*/
 
 	struct TextureMetaData
 	{
@@ -42,10 +44,9 @@ namespace Yassin
 	class Material
 	{
 	public:
-		inline void AddCBuffer(const CBufferMetaData& cbuffer)
-		{
-			m_CbufferMetaData.push_back(cbuffer);
-		}
+		inline void SetLightFlag(bool flag) { m_LightFlag = flag; }
+
+		inline bool IsIlluminated() const { return m_LightFlag; }
 
 		inline void AddTexture(LPCSTR name, unsigned int slot)
 		{
@@ -57,7 +58,7 @@ namespace Yassin
 			m_SamplerMetaData.push_back({ name, slot });
 		}
 
-		inline const std::vector<CBufferMetaData>& GetCBuffers() { return m_CbufferMetaData; }
+		//inline const std::vector<CBufferMetaData>& GetCBuffers() { return m_CbufferMetaData; }
 		inline const std::vector<TextureMetaData>& GetTextures() { return m_TextureMetaData; }
 		inline const std::vector<SamplerMetaData>& GetSamplers() { return m_SamplerMetaData; }
 
@@ -75,10 +76,10 @@ namespace Yassin
 		inline PixelShader* GetPixelShader() const { return m_PixelShader; }
 
 	private:
-		std::vector<CBufferMetaData> m_CbufferMetaData;
+		//std::vector<CBufferMetaData> m_CbufferMetaData;
+		bool m_LightFlag = false;
 		std::vector<TextureMetaData> m_TextureMetaData;
 		std::vector<SamplerMetaData> m_SamplerMetaData;
-
 		VertexShader* m_VertexShader;
 		PixelShader* m_PixelShader;
 	};
