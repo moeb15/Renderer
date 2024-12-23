@@ -137,6 +137,32 @@ namespace Yassin
 
 		m_Context->RSSetState(m_SolidRS.Get());
 
+		D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+		dsDesc.DepthEnable = true;
+		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+		dsDesc.StencilEnable = true;
+		dsDesc.StencilReadMask = 0xFF;
+		dsDesc.StencilWriteMask = 0xFF;
+
+		// Stencil operations if pixel is front-facing
+		dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		// Stencil operations if pixel is back-facing
+		dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+		dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		hr = m_Device->CreateDepthStencilState(&dsDesc, &m_DepthStencilState);
+		if (FAILED(hr)) return;
+
+		m_Context->OMSetDepthStencilState(m_DepthStencilState.Get(), 1);
+
 		m_Viewport.Width = width;
 		m_Viewport.Height = height;
 		m_Viewport.MinDepth = 0.0f;
@@ -145,6 +171,7 @@ namespace Yassin
 		m_Viewport.TopLeftY = 0.0f;
 
 		m_Context->RSSetViewports(1, &m_Viewport);
+		m_Context->OMSetRenderTargets(1, m_RenderTarget.GetAddressOf(), m_DepthStencil.Get());
 
 		ImGui_ImplDX11_Init(m_Device.Get(), m_Context.Get());
 	}
@@ -163,12 +190,12 @@ namespace Yassin
 
 	void RendererContext::SetBackBufferRenderTarget()
 	{
-		m_Context->OMSetRenderTargets(1, m_RenderTarget.GetAddressOf(), m_DepthStencil.Get());
+		s_Instance->m_Context->OMSetRenderTargets(1, s_Instance->m_RenderTarget.GetAddressOf(), s_Instance->m_DepthStencil.Get());
 	}
 
 	void RendererContext::ResetViewport()
 	{
-		m_Context->RSSetViewports(1, &m_Viewport);
+		s_Instance->m_Context->RSSetViewports(1, &s_Instance->m_Viewport);
 	}
 
 	void RendererContext::ResizeBuffer(unsigned int width, unsigned int height)

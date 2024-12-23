@@ -19,8 +19,8 @@ namespace Yassin
 		static ID3D11DeviceContext* GetDeviceContext() { return s_Instance->m_Context.Get(); }
 		static HWND GetWindowHandle() { return s_Instance->m_HWND; }
 
-		void SetBackBufferRenderTarget();
-		void ResetViewport();
+		static void SetBackBufferRenderTarget();
+		static void ResetViewport();
 		void ResizeBuffer(unsigned int width, unsigned int height);
 
 		void ClearRenderTarget(float r, float g, float b, float a);
@@ -44,6 +44,7 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTarget;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencil;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_SolidRS;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireFrameRS;
