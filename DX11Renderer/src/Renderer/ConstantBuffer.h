@@ -22,7 +22,7 @@ namespace Yassin
 		DirectX::XMFLOAT4 diffuseColor = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		DirectX::XMFLOAT4 specularColor = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);;
 		float specularPower = 32.f;
-		float bias = 0.0022f;
+		float bias = 0.022f;
 		DirectX::XMFLOAT2 padding;
 	};
 

@@ -53,6 +53,7 @@ namespace Yassin
 		}
 
 		inline DirectX::XMFLOAT3 GetPosition() const { return m_Position; }
+		inline DirectX::XMFLOAT3 GetLookAt() const { return m_LookAt; }
 		inline DirectX::XMFLOAT4 GetDiffuseColor() const { return m_DiffuseColor; }
 		inline DirectX::XMFLOAT4 GetAmbientColor() const { return m_AmbientColor; }
 		inline DirectX::XMFLOAT4 GetSpecularColor() const { return m_SpecularColor; }

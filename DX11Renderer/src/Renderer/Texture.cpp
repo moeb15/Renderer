@@ -15,7 +15,6 @@ namespace Yassin
 			wchar_t wTexFile[128];
 			mbstowcs_s(&len, wTexFile, textureFile, len);
 			MessageBox(RendererContext::GetWindowHandle(), L"Invalid texture file", wTexFile, MB_OK);
-			delete[] wTexFile;
 
 			return false;
 		}

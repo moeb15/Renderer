@@ -113,7 +113,7 @@ namespace Yassin
 		MSG msg;
 		while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
-			if (msg.message == WM_QUIT) return msg.wParam;
+			if (msg.message == WM_QUIT) return (int)msg.wParam;
 
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -168,6 +168,10 @@ namespace Yassin
 				{
 					m_Input.ToggleProcessRawMouseMove();
 					ToggleCursor();
+				}
+				if (wParam == VK_F2)
+				{
+					RendererContext::ToggleRasterizerState();
 				}
 
 				m_Input.OnKeyPressed(static_cast<unsigned char>(wParam));

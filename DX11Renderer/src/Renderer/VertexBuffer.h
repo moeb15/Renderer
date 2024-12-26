@@ -28,7 +28,7 @@ namespace Yassin
 		D3D11_BUFFER_DESC vDesc = {};
 		vDesc.Usage = D3D11_USAGE_DEFAULT;
 		vDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vDesc.ByteWidth = sizeof(V) * std::size(data);
+		vDesc.ByteWidth = (unsigned int)(sizeof(V) * std::size(data));
 
 		D3D11_SUBRESOURCE_DATA vData = {};
 		vData.pSysMem = data.data();
