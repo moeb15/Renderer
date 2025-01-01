@@ -21,14 +21,12 @@ namespace Yassin
 	public:
 		void Init(int width, int height, HWND hWnd, bool fullscreen = true);
 		void BeginScene(float r, float g, float b, float a);
-		void SetBackBufferRenderTarget();
-		void ResizeBuffer(unsigned int width, unsigned int height);
 		void EndScene();
 		void Submit(Renderable* renderable);
 		void Render(Camera& camera, DirectX::XMMATRIX& lightViewProj);
 
 	private:
-		void DepthPass(DirectX::XMMATRIX& lightViewProj);
+		void DepthPrePass(DirectX::XMMATRIX& lightViewProj);
 
 	private:
 		std::unique_ptr<TextureLibrary> m_TextureLibrary;
@@ -39,5 +37,7 @@ namespace Yassin
 		std::queue<Renderable*> m_OpaqueRenderQueue;
 		std::queue<Renderable*> m_TransparentRenderQueue;
 		std::queue<Renderable*> m_DepthRenderQueue;
+
+		float m_BackBufferColor[4];
 	};
 }
