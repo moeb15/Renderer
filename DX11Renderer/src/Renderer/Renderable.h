@@ -10,30 +10,29 @@
 #include "Renderer/Sampler.h"
 
 #include "Renderer/ShaderLibrary.h"
+#include "Renderer/DataTypeEnums.h"
 
 namespace Yassin
 {
 	class MaterialInstance;
-	
-	enum class ObjectType
-	{
-		Geometry,
-		Light,
-	};
-
-	enum class ObjectVisibility
-	{
-		Opaque,
-		Transparent,
-	};
 
 	class Renderable
 	{
 	public:
 		virtual void Render(DirectX::XMMATRIX& viewProj) const = 0;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const = 0;
-		virtual void UpdateShadowMap(ID3D11ShaderResourceView* srv) const {}
-		virtual void UnbindSRV() const {}
+		
+		virtual void UpdateShadowMap(ID3D11ShaderResourceView* srv) const 
+		{
+			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &srv);
+		}
+		
+		virtual void UnbindSRV() const 
+		{
+			ID3D11ShaderResourceView* nullSRV = { nullptr };
+			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::BaseTexture, 1, &nullSRV);
+			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &nullSRV);
+		}
 
 		inline MaterialInstance* GetMaterialInstance() const { return m_Material.get(); }
 		inline VertexBuffer* GetVertexBuffer() const { return m_VertexBuffer.get(); }

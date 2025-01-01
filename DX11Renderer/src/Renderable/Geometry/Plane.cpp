@@ -96,15 +96,4 @@ namespace Yassin
 	{
 		m_Material->UpdateLightBuffers(lPos, lProps);
 	}
-
-	void Plane::UpdateShadowMap(ID3D11ShaderResourceView* srv) const
-	{
-		m_Material->SetShadowMap(TextureSlot::DepthMapTexture, srv);
-	}
-
-	void Plane::UnbindSRV() const
-	{
-		ID3D11ShaderResourceView* nullSRV = { nullptr };
-		RendererContext::GetDeviceContext()->PSSetShaderResources(1, 1, &nullSRV);
-	}
 }
