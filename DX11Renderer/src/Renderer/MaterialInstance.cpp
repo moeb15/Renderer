@@ -18,11 +18,25 @@ namespace Yassin
 		{
 			m_LightPosBuffer = std::make_unique<LightPosBuffer>();
 			m_LightPropsBuffer = std::make_unique<LightPropsBuffer>();
+			m_Illuminated = true;
 		}
 		else 
 		{
 			m_LightPosBuffer = nullptr;
 			m_LightPropsBuffer = nullptr;
+			m_Illuminated = false;
+		}
+
+		if(material->IsTransparent())
+		{
+			m_TransparencyBuffer = std::make_unique<TransparencyBuffer>();
+			m_TransparencyBuffer->UpdateBuffer({});
+			m_Transparent = true;
+		}
+		else
+		{
+			m_TransparencyBuffer = nullptr;
+			m_Transparent = false;
 		}
 
 		for(const TextureMetaData& tData : material->GetTextures())
@@ -56,37 +70,44 @@ namespace Yassin
 
 	void MaterialInstance::SetShadowMap(unsigned int slot, ID3D11ShaderResourceView* srv)
 	{
-		RendererContext::GetDeviceContext()->PSSetShaderResources(1, 1, &srv);
+		RendererContext::GetDeviceContext()->PSSetShaderResources(slot, 1, &srv);
 	}
 
 	void MaterialInstance::UpdateLightBuffers(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps)
 	{
-		if(m_LightPosBuffer)
+		if(m_Illuminated)
 		{
 			m_LightPosBuffer->UpdateBuffer(lPos);
 		}
 
-		if(m_LightPropsBuffer)
+		if(m_Illuminated)
 		{
 			m_LightPropsBuffer->UpdateBuffer(lProps);
 		}
 	}
 
+	void MaterialInstance::UpdateTransparencyBuffer(const BlendBuffer& tBuffer)
+	{
+		if(m_Transparent) m_TransparencyBuffer->UpdateBuffer(tBuffer);
+	}
+
 	void MaterialInstance::BindMaterial()
 	{
-		if(m_LightPosBuffer)
+		if(m_Illuminated)
 		{
 			m_LightPosBuffer->Bind(1);
 		}
 
-		if(m_LightPropsBuffer)
+		if(m_Illuminated)
 		{
 			m_LightPropsBuffer->Bind(0);
 		}
 
+		if(m_Transparent) m_TransparencyBuffer->Bind(1);
+
 		for(const auto& kvPair : m_Textures)
 		{
-			if(m_LightPropsBuffer)
+			if(m_Illuminated)
 			{
 				if (kvPair.first == TextureSlot::DepthMapTexture) continue;
 			}

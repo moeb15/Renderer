@@ -1,6 +1,6 @@
 #pragma once
-#include "Renderer/PixelShader.h"
-#include "Renderer/VertexShader.h"
+#include "Renderer/Primitives/PixelShader.h"
+#include "Renderer/Primitives/VertexShader.h"
 #include "Renderer/Material.h"
 
 namespace Yassin

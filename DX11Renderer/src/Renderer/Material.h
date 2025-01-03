@@ -45,8 +45,10 @@ namespace Yassin
 	{
 	public:
 		inline void SetLightFlag(bool flag) { m_LightFlag = flag; }
+		inline void SetTransparencyFlag(bool flag) { m_TransparencyFlag = flag; }
 
 		inline bool IsIlluminated() const { return m_LightFlag; }
+		inline bool IsTransparent() const { return m_TransparencyFlag; }
 
 		inline void AddTexture(LPCSTR name, unsigned int slot)
 		{
@@ -78,6 +80,7 @@ namespace Yassin
 	private:
 		//std::vector<CBufferMetaData> m_CbufferMetaData;
 		bool m_LightFlag = false;
+		bool m_TransparencyFlag = false;
 		std::vector<TextureMetaData> m_TextureMetaData;
 		std::vector<SamplerMetaData> m_SamplerMetaData;
 		VertexShader* m_VertexShader;

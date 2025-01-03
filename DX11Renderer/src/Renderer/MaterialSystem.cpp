@@ -60,7 +60,8 @@ namespace Yassin
 		// signifying that LightPositionBuffer and LightPropertiesBuffer are present, each at 
 		// slots 1 and 0 respectively 
 
-		newMaterial->SetLightFlag(pixelShaderDesc.ConstantBuffers >= 1);
+		newMaterial->SetLightFlag(pixelShaderDesc.ConstantBuffers >= 1 || vertexShaderDesc.ConstantBuffers > 1);
+		newMaterial->SetTransparencyFlag(pixelShaderDesc.ConstantBuffers >= 2);
 
 		// iterate over constant buffers, slot 0 is reserved for transform buffer
 		// UPDATE : Going to avoid iterating over constant buffers for now, will just have
@@ -132,7 +133,7 @@ namespace Yassin
 		}*/
 
 		// iterate over shader resources
-		for(int i = 0; i < pixelShaderDesc.BoundResources; i++)
+		for(unsigned int i = 0; i < pixelShaderDesc.BoundResources; i++)
 		{
 			D3D11_SHADER_INPUT_BIND_DESC iDesc = {};
 			pPixelRef->GetResourceBindingDesc(i, &iDesc);
