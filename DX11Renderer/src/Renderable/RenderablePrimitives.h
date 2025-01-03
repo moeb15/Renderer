@@ -4,3 +4,4 @@
 #include "Renderable/Geometry/Plane.h"
 
 #include "Renderable/Light/PointLight.h"
+#include "Renderable/Light/DirectionalLight.h"
