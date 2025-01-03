@@ -80,25 +80,6 @@ namespace Yassin
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
 
-		while(!m_TransparentRenderQueue.empty())
-		{
-			Renderable* rPtr = m_TransparentRenderQueue.front();
-
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX proj;
-
-			camera.GetViewMatrix(view);
-			camera.GetProjectionMatrix(proj);
-
-			DirectX::XMMATRIX viewProj =
-				DirectX::XMMatrixMultiply(view, proj);
-
-			rPtr->UpdateShadowMap(m_DepthPass->GetSRV());
-			rPtr->Render(viewProj);
-			rPtr->UnbindSRV();
-			m_TransparentRenderQueue.pop();
-		}
-
 		while(!m_OpaqueRenderQueue.empty())
 		{
 			Renderable* rPtr = m_OpaqueRenderQueue.front();
@@ -117,6 +98,30 @@ namespace Yassin
 			rPtr->UnbindSRV();
 			m_OpaqueRenderQueue.pop();
 		}
+
+		// Enable alpha blending for transparent objects
+		RendererContext::EnableAlphaBlending();
+
+		while (!m_TransparentRenderQueue.empty())
+		{
+			Renderable* rPtr = m_TransparentRenderQueue.front();
+
+			DirectX::XMMATRIX view;
+			DirectX::XMMATRIX proj;
+
+			camera.GetViewMatrix(view);
+			camera.GetProjectionMatrix(proj);
+
+			DirectX::XMMATRIX viewProj =
+				DirectX::XMMatrixMultiply(view, proj);
+
+			rPtr->UpdateShadowMap(m_DepthPass->GetSRV());
+			rPtr->Render(viewProj);
+			rPtr->UnbindSRV();
+			m_TransparentRenderQueue.pop();
+		}
+
+		RendererContext::DisableAlphaBlending();
 	}
 
 	void Renderer::DepthPrePass(DirectX::XMMATRIX& lightViewProj)
