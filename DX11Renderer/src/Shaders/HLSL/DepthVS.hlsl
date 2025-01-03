@@ -19,10 +19,11 @@ VSOut main(VSIn input)
 {
     VSOut vso;
     
-    vso.position = mul(float4(input.position.xyz, 1.0f), world);
+    input.position.w = 1.0f;
+    vso.position = mul(input.position, world);
     vso.position = mul(vso.position, viewProj);
     
-    vso.depthPos = mul(float4(input.position.xyz, 1.0f), world);
+    vso.depthPos = vso.position;
     
 	return vso;
 }

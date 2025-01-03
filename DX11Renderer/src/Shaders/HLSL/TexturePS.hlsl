@@ -10,6 +10,12 @@ cbuffer LightPropsBuffer
     float bias;
 };
 
+cbuffer TransparencyBuffer
+{
+    float blendAmount;
+    float3 padding;
+};
+
 struct PSIn
 {
     float4 position : SV_POSITION;
@@ -36,6 +42,8 @@ float4 main(PSIn input) : SV_TARGET
     
     finalColor *= texColor;
     finalColor = saturate(finalColor);
+    
+    finalColor.a = blendAmount;
     
     return finalColor;
 }

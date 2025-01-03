@@ -35,7 +35,7 @@ float4 main(PSIn input) : SV_TARGET
     projectedUV.x = (input.lightViewPos.x / input.lightViewPos.w + 1.0f) / 2.0f;
     projectedUV.y = (-input.lightViewPos.y / input.lightViewPos.w + 1.0f) / 2.0f;
     
-    if (saturate(projectedUV).x == projectedUV.x && saturate(projectedUV).y == projectedUV.y)
+    if ((saturate(projectedUV.x) == projectedUV.x) && (saturate(projectedUV.y) == projectedUV.y))
     {
         depthValue = depthMapTexture.Sample(clampSampler, projectedUV).r;
         
