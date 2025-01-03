@@ -23,21 +23,54 @@ namespace Yassin
 		static void ResetViewport();
 		void ResizeBuffer(unsigned int width, unsigned int height);
 
-		void ClearRenderTarget(float r, float g, float b, float a);
+		static void ClearRenderTarget(float r, float g, float b, float a);
 
-		static void GetGPUInfo(char* GPUName, int& memory)
+		static void GetGPUInfo(char* GPUName, size_t& memory)
 		{
 			strcpy_s(GPUName, 128, s_Instance->m_GPUDesc);
 			memory = s_Instance->m_GPUMem;
 		}
 
+		static void EnableSolidRS() 
+		{
+			s_Instance->m_Context->RSSetState(s_Instance->m_SolidRS.Get());
+		}
+
+		static void EnableWireframeRS()
+		{
+			s_Instance->m_Context->RSSetState(s_Instance->m_WireFrameRS.Get());
+		}
+
+		static void ToggleRasterizerState()
+		{
+			if(s_Instance->m_IsSolidRaster)
+				s_Instance->m_Context->RSSetState(s_Instance->m_WireFrameRS.Get());
+			else
+				s_Instance->m_Context->RSSetState(s_Instance->m_SolidRS.Get());
+			
+			s_Instance->m_IsSolidRaster = !s_Instance->m_IsSolidRaster;
+		}
+
+		static void EnableAlphaBlending()
+		{
+			float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			s_Instance->m_Context->OMSetBlendState(s_Instance->m_AlphaBlendEnable.Get(), blendFactor, 0xffffffff);
+		}
+
+		static void DisableAlphaBlending()
+		{
+			float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			s_Instance->m_Context->OMSetBlendState(s_Instance->m_AlphaBlendDisable.Get(), blendFactor, 0xffffffff);
+		}
+
 	private:
 		bool m_Vsync;
-		int m_GPUMem;
+		size_t m_GPUMem;
 		char m_GPUDesc[128];
 		HWND m_HWND;
 		int m_Width;
 		int m_Height;
+		bool m_IsSolidRaster = true;
 
 		Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_Context;
@@ -48,6 +81,8 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_SolidRS;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireFrameRS;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendEnable;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendDisable;
 
 		D3D11_VIEWPORT m_Viewport;
 

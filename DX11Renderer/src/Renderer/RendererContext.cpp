@@ -26,8 +26,6 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<IDXGIFactory> factory;
 		Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
 		Microsoft::WRL::ComPtr<IDXGIOutput> adapterOutput;
-		DXGI_MODE_DESC* displayModeList;
-		unsigned int numModes, numerator, denominator;
 		size_t strLength;
 		DXGI_ADAPTER_DESC adapterDesc;
 		int error;
@@ -112,7 +110,7 @@ namespace Yassin
 		D3D11_RASTERIZER_DESC rDesc = {};
 		rDesc.AntialiasedLineEnable = false;
 		rDesc.CullMode = D3D11_CULL_BACK;
-		rDesc.DepthBias = 0;
+		rDesc.DepthBias = 10;
 		rDesc.DepthBiasClamp = 0.0f;
 		rDesc.DepthClipEnable = true;
 		rDesc.FillMode = D3D11_FILL_SOLID;
@@ -163,8 +161,27 @@ namespace Yassin
 
 		m_Context->OMSetDepthStencilState(m_DepthStencilState.Get(), 1);
 
-		m_Viewport.Width = width;
-		m_Viewport.Height = height;
+		// Alpha Blending
+		D3D11_BLEND_DESC blendDesc = {};
+		blendDesc.RenderTarget[0].BlendEnable = TRUE;
+		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		hr = m_Device->CreateBlendState(&blendDesc, &m_AlphaBlendEnable);
+		if (FAILED(hr)) return;
+
+		blendDesc.RenderTarget[0].BlendEnable = FALSE;
+
+		hr = m_Device->CreateBlendState(&blendDesc, &m_AlphaBlendDisable);
+		if (FAILED(hr)) return;
+
+		m_Viewport.Width = (FLOAT)width;
+		m_Viewport.Height = (FLOAT)height;
 		m_Viewport.MinDepth = 0.0f;
 		m_Viewport.MaxDepth = 1.0f;
 		m_Viewport.TopLeftX = 0.0f;
@@ -206,7 +223,7 @@ namespace Yassin
 	void RendererContext::ClearRenderTarget(float r, float g, float b, float a)
 	{
 		float colour[] = { r,g,b,a };
-		m_Context->ClearRenderTargetView(m_RenderTarget.Get(), colour);
-		m_Context->ClearDepthStencilView(m_DepthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		s_Instance->m_Context->ClearRenderTargetView(s_Instance->m_RenderTarget.Get(), colour);
+		s_Instance->m_Context->ClearDepthStencilView(s_Instance->m_DepthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 }
