@@ -1,6 +1,6 @@
 #pragma once
-#include "Renderer/VertexShader.h"
-#include "Renderer/PixelShader.h"
+#include "Renderer/Primitives/VertexShader.h"
+#include "Renderer/Primitives/PixelShader.h"
 #include <string>
 #include <utility>
 #include <unordered_map>

@@ -26,6 +26,12 @@ namespace Yassin
 		DirectX::XMFLOAT2 padding;
 	};
 
+	struct BlendBuffer
+	{
+		float blendAmount = 1.0f;
+		DirectX::XMFLOAT3 padding;
+	};
+
 	template<typename C>
 	class ConstantBuffer
 	{
@@ -116,5 +122,11 @@ namespace Yassin
 	{
 	private:
 		LightPropertiesBuffer m_LightPropertiesBuffer;
+	};
+
+	class TransparencyBuffer : public PixelConstantBuffer<BlendBuffer>
+	{
+	private:
+		BlendBuffer m_TransparencyBuffer;
 	};
 }

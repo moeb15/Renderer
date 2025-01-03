@@ -1,13 +1,13 @@
 #pragma once
-#include "Renderer/VertexBuffer.h"
-#include "Renderer/IndexBuffer.h"
-#include "Renderer/VertexShader.h"
-#include "Renderer/PixelShader.h"
-#include "Renderer/InputLayout.h"
-#include "Renderer/Topology.h"
-#include "Renderer/ConstantBuffer.h"
-#include "Renderer/Texture.h"
-#include "Renderer/Sampler.h"
+#include "Renderer/Primitives/VertexBuffer.h"
+#include "Renderer/Primitives/IndexBuffer.h"
+#include "Renderer/Primitives/VertexShader.h"
+#include "Renderer/Primitives/PixelShader.h"
+#include "Renderer/Primitives/InputLayout.h"
+#include "Renderer/Primitives/Topology.h"
+#include "Renderer/Primitives/ConstantBuffer.h"
+#include "Renderer/Primitives/Texture.h"
+#include "Renderer/Primitives/Sampler.h"
 
 #include "Renderer/ShaderLibrary.h"
 #include "Renderer/DataTypeEnums.h"
@@ -22,6 +22,8 @@ namespace Yassin
 		virtual void Render(DirectX::XMMATRIX& viewProj) const = 0;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const = 0;
 		
+		virtual void UpdateTransparency(float blendAmount = 1.0f);
+
 		virtual void UpdateShadowMap(ID3D11ShaderResourceView* srv) const 
 		{
 			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &srv);
@@ -41,6 +43,9 @@ namespace Yassin
 
 		inline const ObjectType& GetObjectType() const { return m_ObjectType; }
 		inline const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
+		
+		void SetObjectVisiblity(ObjectVisibility visibility) { m_ObjectVisibility = visibility; }
+		void SetObjectType(ObjectType objectType) { m_ObjectType = objectType; }
 
 		void Translate(float x, float y, float z);
 		void Rotate(float yaw, float pitch, float roll);

@@ -1,7 +1,13 @@
 #include "Renderer/Renderable.h"
+#include "Renderer/MaterialInstance.h"
 
 namespace Yassin
 {
+    void Renderable::UpdateTransparency(float blendAmount)
+    {
+        if (m_ObjectVisibility == ObjectVisibility::Transparent) m_Material->UpdateTransparencyBuffer({ blendAmount });
+    }
+
     void Renderable::Translate(float x, float y, float z)
     {
         DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();

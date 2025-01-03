@@ -28,9 +28,10 @@ namespace Yassin
 		Timer m_Timer;
 		CameraController m_CameraController;
 		std::unique_ptr<Box> box;
+		std::unique_ptr<Box> transparentBox;
 		std::unique_ptr<Plane> plane;
 		std::unique_ptr<PointLight> light;
 		char m_GPUName[128];
-		int m_GPUMem;
+		size_t m_GPUMem;
 	};
 }

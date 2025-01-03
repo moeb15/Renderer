@@ -11,16 +11,27 @@ namespace Yassin
 	{
 		m_Window.Init();
 
-		light = std::make_unique<PointLight>(90.f, 0.1f, 1000.f);
-		light->SetPosition(37.f, 10.f, 3.f);
+		light = std::make_unique<PointLight>(90.f, 1.f, 100.f);
+		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
+		light->SetPosition(0.0f, 10.f, 0.f);
+		light->SetLookAt(0.0f, 0.0f, 0.0f);
 
 		DirectX::XMMATRIX world;
+		DirectX::XMMATRIX rot;
 
-		world = DirectX::XMMatrixTranslation(0.f, 0.f, 5.f);
-		box = std::make_unique<Box>("Shadow Map Material", world);
+		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
+		box = std::make_unique<Box>("Texture Material", world);
+		
+		world = DirectX::XMMatrixTranslation(1.5f, 0.f, 2.f);
+		transparentBox = std::make_unique<Box>("Texture Material", world);
+		transparentBox->SetObjectVisiblity(ObjectVisibility::Transparent);
+		transparentBox->UpdateTransparency(0.1f);
 
+		world = DirectX::XMMatrixIdentity();
+		rot = DirectX::XMMatrixRotationZ(DirectX::XMConvertToRadians(90.f));
 		world = DirectX::XMMatrixTranslation(37.5f, -0.5f, -30.f);
-		plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
+		//world = DirectX::XMMatrixMultiply(rot, world);
+		plane = std::make_unique<Plane>("Texture Material", world, 100, 100, 25.f, 25.f);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -46,8 +57,7 @@ namespace Yassin
 		float dt = m_Timer.Tick();
 		m_CameraController.OnUpdate(dt);
 
-
-		m_Window.GetRenderer().BeginScene(0.2f, 0.2f, 0.2f, 1.0f);
+		m_Window.GetRenderer().BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -57,16 +67,21 @@ namespace Yassin
 
 		DirectX::XMMATRIX lView;
 		DirectX::XMMATRIX lProj;
+		DirectX::XMMATRIX lViewProj;
 
 		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
-		light->GetView(lView);
-		light->GetProjection(lProj);
+		DirectX::XMFLOAT3 lightLookAt = light->GetLookAt();
 
 		if(ImGui::Begin("Light Position"))
 		{
 			ImGui::SliderFloat("X", &lightPosition.x, -50.f, 50.f, "%.1f");
 			ImGui::SliderFloat("Y", &lightPosition.y, -50.f, 50.f, "%.1f");
 			ImGui::SliderFloat("Z", &lightPosition.z, -50.f, 50.f, "%.1f");
+
+			ImGui::Text("Light LookAt");
+			ImGui::SliderFloat("L_X", &lightLookAt.x, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("L_Y", &lightLookAt.y, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("L_Z", &lightLookAt.z, -50.f, 50.f, "%.1f");
 			
 			ImGui::Text("Statistics");
 			ImGui::Text("FPS : %f", ImGui::GetIO().Framerate);
@@ -76,23 +91,36 @@ namespace Yassin
 		ImGui::End();
 
 		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
+		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
+
+		light->GetView(lView);
+		light->GetProjection(lProj);
+
+		lViewProj = DirectX::XMMatrixMultiply(lView, lProj);
 
 		box->UpdateLighting(
-			{ DirectX::XMMatrixMultiply(lView, lProj), light->GetPosition() },
+			{ lViewProj, light->GetPosition() },
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
 
 		box->Rotate(dt * 10.f, 0.0f, 0.0f);
 
 		plane->UpdateLighting(
-			{ DirectX::XMMatrixMultiply(lView, lProj), light->GetPosition() },
+			{ lViewProj, light->GetPosition() },
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
+
+		transparentBox->UpdateLighting(
+			{ lViewProj, light->GetPosition() },
+			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
+			light->GetSpecularPower() });
+
+		m_Window.GetRenderer().Submit(transparentBox.get());
 
 		m_Window.GetRenderer().Submit(box.get());
 		m_Window.GetRenderer().Submit(plane.get());
 
-		m_Window.GetRenderer().Render(m_CameraController.GetCamera(), DirectX::XMMatrixMultiply(lView, lProj));
+		m_Window.GetRenderer().Render(m_CameraController.GetCamera(), lViewProj);
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
