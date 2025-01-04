@@ -24,18 +24,6 @@ namespace Yassin
 		
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
 
-		virtual void UpdateShadowMap(ID3D11ShaderResourceView* srv) const 
-		{
-			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &srv);
-		}
-		
-		virtual void UnbindSRV() const 
-		{
-			ID3D11ShaderResourceView* nullSRV = { nullptr };
-			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::BaseTexture, 1, &nullSRV);
-			RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &nullSRV);
-		}
-
 		inline MaterialInstance* GetMaterialInstance() const { return m_Material.get(); }
 		inline VertexBuffer* GetVertexBuffer() const { return m_VertexBuffer.get(); }
 		inline IndexBuffer* GetIndexBuffer() const { return m_IndexBuffer.get(); }
