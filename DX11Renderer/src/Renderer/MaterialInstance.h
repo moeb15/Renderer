@@ -15,7 +15,7 @@ namespace Yassin
 
 		void SetTexture(unsigned int slot, const std::string& texture);
 		void SetSampler(unsigned int slot, FilterType fType, AddressType aType);
-		void SetShadowMap(unsigned int slot, ID3D11ShaderResourceView* srv);
+		void SetShadowMap(ID3D11ShaderResourceView* srv);
 
 		inline bool IsIlluminated() const { return m_Illuminated; }
 
@@ -26,6 +26,7 @@ namespace Yassin
 		inline PixelShader* GetPixelShader() { return m_PixelShader; }
 
 		void BindMaterial();
+		void UnbindShaderResources();
 
 	private:
 		std::unordered_map<unsigned int, Texture2D*> m_Textures;

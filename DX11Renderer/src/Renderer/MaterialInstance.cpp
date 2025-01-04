@@ -68,9 +68,9 @@ namespace Yassin
 		m_Samplers.find(slot)->second->Init(fType, aType);
 	}
 
-	void MaterialInstance::SetShadowMap(unsigned int slot, ID3D11ShaderResourceView* srv)
+	void MaterialInstance::SetShadowMap(ID3D11ShaderResourceView* srv)
 	{
-		RendererContext::GetDeviceContext()->PSSetShaderResources(slot, 1, &srv);
+		RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &srv);
 	}
 
 	void MaterialInstance::UpdateLightBuffers(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps)
@@ -93,17 +93,9 @@ namespace Yassin
 
 	void MaterialInstance::BindMaterial()
 	{
-		if(m_Illuminated)
-		{
-			m_LightPosBuffer->Bind(1);
-		}
-
-		if(m_Illuminated)
-		{
-			m_LightPropsBuffer->Bind(0);
-		}
-
-		if(m_Transparent) m_TransparencyBuffer->Bind(1);
+		if(m_Illuminated) m_LightPosBuffer->Bind(VSBufferSlot::LightPosition);
+		if(m_Illuminated) m_LightPropsBuffer->Bind(PSBufferSlot::LightProperties);
+		if(m_Transparent) m_TransparencyBuffer->Bind(PSBufferSlot::Transparency);
 
 		for(const auto& kvPair : m_Textures)
 		{
@@ -114,12 +106,18 @@ namespace Yassin
 			kvPair.second->Bind(kvPair.first);
 		}
 
-		for(const auto& kvPair : m_Samplers)
-		{
-			kvPair.second->Bind(kvPair.first);
-		}
+		for(const auto& kvPair : m_Samplers) kvPair.second->Bind(kvPair.first);
 
 		m_VertexShader->Bind();
 		m_PixelShader->Bind();
+	}
+
+	void MaterialInstance::UnbindShaderResources()
+	{
+		ID3D11ShaderResourceView* nullSRV = { nullptr };
+		for(const auto& kvPair : m_Textures)
+		{
+			RendererContext::GetDeviceContext()->PSSetShaderResources(kvPair.first, 1, &nullSRV);
+		}
 	}
 }
