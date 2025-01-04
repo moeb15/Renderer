@@ -12,6 +12,12 @@ cbuffer LightBuffer
     float bias;
 };
 
+cbuffer TransparencyBuffer
+{
+    float blendAmount;
+    float3 padding;
+};
+
 struct PSIn
 {
     float4 position : SV_POSITION;
@@ -40,20 +46,25 @@ float4 main(PSIn input) : SV_TARGET
         depthValue = depthMapTexture.Sample(clampSampler, projectedUV).r;
         
         lightDepthValue = input.lightViewPos.z / input.lightViewPos.w;
-        lightDepthValue = lightDepthValue - bias;
+        lightDepthValue -= bias;
         
         if (lightDepthValue < depthValue)
         {
             lightIntensity = saturate(dot(input.normal, input.lightPos));
             
-            finalColor += (diffuseColor * lightIntensity);
-            finalColor = saturate(finalColor);
+            if (lightIntensity > 0.0f)
+            {
+                finalColor += (diffuseColor * lightIntensity);
+                finalColor = saturate(finalColor);
+            }
         }
     }
     
     texColor = baseTexture.Sample(wrapSampler, input.uv);
     
     finalColor *= texColor;
+    
+    finalColor.a = blendAmount;
     
     return finalColor;
 }

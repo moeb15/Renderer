@@ -8,6 +8,18 @@ namespace Yassin
 		DepthMapTexture,
 	};
 
+	enum VSBufferSlot
+	{
+		Matrix = 0,
+		LightPosition,
+	};
+
+	enum PSBufferSlot
+	{
+		LightProperties = 0,
+		Transparency,
+	};
+
 	enum class ObjectType
 	{
 		Geometry,

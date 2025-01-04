@@ -13,25 +13,25 @@ namespace Yassin
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
-		light->SetPosition(0.0f, 10.f, 0.f);
+		light->SetPosition(0.0f, 10.f, 10.f);
 		light->SetLookAt(0.0f, 0.0f, 0.0f);
 
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX rot;
 
 		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
-		box = std::make_unique<Box>("Texture Material", world);
+		box = std::make_unique<Box>("Shadow Map Material", world);
 		
 		world = DirectX::XMMatrixTranslation(1.5f, 0.f, 2.f);
-		transparentBox = std::make_unique<Box>("Texture Material", world);
+		transparentBox = std::make_unique<Box>("Shadow Map Material", world);
 		transparentBox->SetObjectVisiblity(ObjectVisibility::Transparent);
-		transparentBox->UpdateTransparency(0.1f);
+		transparentBox->UpdateTransparency(0.5f);
 
 		world = DirectX::XMMatrixIdentity();
 		rot = DirectX::XMMatrixRotationZ(DirectX::XMConvertToRadians(90.f));
 		world = DirectX::XMMatrixTranslation(37.5f, -0.5f, -30.f);
 		//world = DirectX::XMMatrixMultiply(rot, world);
-		plane = std::make_unique<Plane>("Texture Material", world, 100, 100, 25.f, 25.f);
+		plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}

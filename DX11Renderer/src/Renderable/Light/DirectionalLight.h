@@ -12,7 +12,8 @@ namespace Yassin
 			m_SpecularColor(1.f, 1.f, 1.f, 1.0f),
 			m_SpecularPower(32.f),
 			m_Position(0.f, 10.f, 0.f),
-			m_LookAt(0.f, 0.f, 0.f)
+			m_LookAt(0.f, 0.f, 0.f),
+			m_Direction(0.0f, -1.0f, 0.0f)
 		{
 			DirectX::XMMATRIX proj = DirectX::XMMatrixOrthographicLH(
 				size,
@@ -46,14 +47,13 @@ namespace Yassin
 			UpdateView();
 		}
 
-		inline void SetLookAt(float x, float y, float z)
+		inline void SetDirection(float x, float y, float z)
 		{
-			m_LookAt = DirectX::XMFLOAT3(x, y, z);
-			UpdateView();
+			m_Direction = DirectX::XMFLOAT3(x, y, z);
 		}
 
 		inline DirectX::XMFLOAT3 GetPosition() const { return m_Position; }
-		inline DirectX::XMFLOAT3 GetLookAt() const { return m_LookAt; }
+		inline DirectX::XMFLOAT3 GetDirection() const { return m_Direction; }
 		inline DirectX::XMFLOAT4 GetDiffuseColor() const { return m_DiffuseColor; }
 		inline DirectX::XMFLOAT4 GetAmbientColor() const { return m_AmbientColor; }
 		inline DirectX::XMFLOAT4 GetSpecularColor() const { return m_SpecularColor; }
@@ -72,6 +72,7 @@ namespace Yassin
 		float m_SpecularPower;
 
 		DirectX::XMFLOAT3 m_Position;
+		DirectX::XMFLOAT3 m_Direction;
 		DirectX::XMFLOAT3 m_LookAt;
 		DirectX::XMFLOAT4X4 m_ViewMatrix;
 		DirectX::XMFLOAT4X4 m_ProjectionMatrix;

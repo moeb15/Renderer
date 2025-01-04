@@ -10,7 +10,7 @@ namespace Yassin
 		m_Context->Init(width, height, hWnd, fullscreen);
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
-		m_DepthPass->Init(2048, 2048, 1.f, 100.f);
+		m_DepthPass->Init(1024, 1024, 1.f, 100.f);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -93,9 +93,9 @@ namespace Yassin
 			DirectX::XMMATRIX viewProj =
 				DirectX::XMMatrixMultiply(view, proj);
 
-			rPtr->UpdateShadowMap(m_DepthPass->GetSRV());
+			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(viewProj);
-			rPtr->UnbindSRV();
+			rPtr->GetMaterialInstance()->UnbindShaderResources();
 			m_OpaqueRenderQueue.pop();
 		}
 
@@ -115,9 +115,9 @@ namespace Yassin
 			DirectX::XMMATRIX viewProj =
 				DirectX::XMMatrixMultiply(view, proj);
 
-			rPtr->UpdateShadowMap(m_DepthPass->GetSRV());
+			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(viewProj);
-			rPtr->UnbindSRV();
+			rPtr->GetMaterialInstance()->UnbindShaderResources();
 			m_TransparentRenderQueue.pop();
 		}
 

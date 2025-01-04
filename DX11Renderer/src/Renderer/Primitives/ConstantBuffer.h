@@ -14,6 +14,7 @@ namespace Yassin
 	{
 		DirectX::XMMATRIX lightViewProj = DirectX::XMMatrixIdentity();
 		DirectX::XMFLOAT3 lightPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+		float padding;
 	};
 
 	struct LightPropertiesBuffer
