@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/RendererContext.h"
+#include "Renderer/DataTypeEnums.h"
 
 namespace Yassin
 {
@@ -7,7 +8,7 @@ namespace Yassin
 	{
 	public:
 		void Init(unsigned int renderWidth, unsigned int renderHeight,
-			float sNear, float sFar);
+			float sNear, float sFar, RenderTargetType type);
 
 		void SetRenderTarget();
 		void ClearRenderTarget(float r, float g, float b, float a);
@@ -33,6 +34,9 @@ namespace Yassin
 
 		DirectX::XMFLOAT4X4 m_ProjMatrix;
 		DirectX::XMFLOAT4X4 m_OrthoMatrix;
+
+		RenderTargetType m_Type;
+		unsigned int m_ClearFlags;
 	};
 }
 

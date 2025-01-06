@@ -3,10 +3,20 @@
 
 namespace Yassin
 {
-	void RenderToTexture::Init(unsigned int renderWidth, unsigned int renderHeight, float sNear, float sFar)
+	void RenderToTexture::Init(unsigned int renderWidth, unsigned int renderHeight, float sNear, float sFar, RenderTargetType type)
 	{
 		m_Width = renderWidth;
 		m_Height = renderHeight;
+		m_Type = type;
+
+		if(type == RenderTargetType::DepthMap)
+		{
+			m_ClearFlags = D3D11_CLEAR_DEPTH;
+		}
+		else
+		{
+			m_ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL;
+		}
 
 		HRESULT hr;
 		D3D11_TEXTURE2D_DESC tDesc = {};
@@ -90,7 +100,7 @@ namespace Yassin
 		m_VP.TopLeftY = 0;
 
 		DirectX::XMMATRIX proj =
-			DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(75.f), (float)renderWidth / (float)renderHeight, sNear, sFar);
+			DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(90.f), (float)renderWidth / (float)renderHeight, sNear, sFar);
 		DirectX::XMStoreFloat4x4(&m_ProjMatrix, proj);
 
 		DirectX::XMMATRIX ortho =
@@ -101,13 +111,13 @@ namespace Yassin
 	void RenderToTexture::SetRenderTarget()
 	{
 		RendererContext::GetDeviceContext()->OMSetRenderTargets(1, m_RTV.GetAddressOf(), m_DSV.Get());
+		RendererContext::GetDeviceContext()->RSSetViewports(1, &m_VP);
 	}
 	
 	void RenderToTexture::ClearRenderTarget(float r, float g, float b, float a)
 	{
 		float color[] = { r,g,b,a };
 		RendererContext::GetDeviceContext()->ClearRenderTargetView(m_RTV.Get(), color);
-		RendererContext::GetDeviceContext()->ClearDepthStencilView(m_DSV.Get(), 
-			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		RendererContext::GetDeviceContext()->ClearDepthStencilView(m_DSV.Get(), m_ClearFlags, 1.0f, 0);
 	}
 }
