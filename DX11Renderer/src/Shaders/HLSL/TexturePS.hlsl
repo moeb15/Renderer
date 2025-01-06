@@ -8,6 +8,7 @@ cbuffer LightPropsBuffer
     float4 specularColor;
     float specularPower;
     float bias;
+    float2 padding2;
 };
 
 cbuffer TransparencyBuffer

@@ -8,6 +8,7 @@ cbuffer LightBuffer
 {
     row_major matrix lightViewProj;
     float3 lightPosition;
+    float padding;
 };
 
 struct VSIn

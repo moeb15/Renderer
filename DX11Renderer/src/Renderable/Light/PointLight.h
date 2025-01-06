@@ -6,7 +6,7 @@ namespace Yassin
 	class PointLight
 	{
 	public:
-		PointLight(float FOV, float sNear, float sFar) :
+		PointLight(float FOV, float aspectRatio, float sNear, float sFar) :
 			m_AmbientColor(0.1f, 0.1f, 0.1f, 1.0f),
 			m_DiffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
 			m_SpecularColor(1.f, 1.f, 1.f, 1.0f),
@@ -16,7 +16,7 @@ namespace Yassin
 		{
 			DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
 				DirectX::XMConvertToRadians(FOV),
-				1.f,
+				aspectRatio,
 				sNear,
 				sFar);
 			DirectX::XMStoreFloat4x4(&m_ProjectionMatrix, proj);

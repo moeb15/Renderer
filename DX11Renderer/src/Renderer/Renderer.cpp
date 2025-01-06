@@ -10,7 +10,7 @@ namespace Yassin
 		m_Context->Init(width, height, hWnd, fullscreen);
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
-		m_DepthPass->Init(1024, 1024, 1.f, 100.f);
+		m_DepthPass->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -40,9 +40,6 @@ namespace Yassin
 		m_BackBufferColor[1] = g;
 		m_BackBufferColor[2] = b;
 		m_BackBufferColor[3] = a;
-
-		//m_Context->ClearRenderTarget(r, g, b, a);
-		//m_Context->SetBackBufferRenderTarget();
 	}
 
 	void Renderer::EndScene()
