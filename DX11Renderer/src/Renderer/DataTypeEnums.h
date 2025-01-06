@@ -31,4 +31,10 @@ namespace Yassin
 		Opaque,
 		Transparent,
 	};
+
+	enum RenderTargetType
+	{
+		DepthMap,
+		DepthStencil,
+	};
 }
