@@ -1,6 +1,5 @@
 #include "Renderable/Geometry/Triangle.h"
-#include "Renderer/MaterialSystem.h"
-#include "Triangle.h"
+#include "Renderer/Resources/MaterialSystem.h"
 
 
 namespace Yassin

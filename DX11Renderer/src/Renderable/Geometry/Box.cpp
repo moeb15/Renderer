@@ -1,6 +1,5 @@
 #include "Renderable/Geometry/Box.h"
-#include "Renderer/MaterialSystem.h"
-#include "Box.h"
+#include "Renderer/Resources/MaterialSystem.h"
 
 
 namespace Yassin

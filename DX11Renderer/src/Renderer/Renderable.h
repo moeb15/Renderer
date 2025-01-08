@@ -9,7 +9,7 @@
 #include "Renderer/Primitives/Texture.h"
 #include "Renderer/Primitives/Sampler.h"
 
-#include "Renderer/ShaderLibrary.h"
+#include "Renderer/Resources/ShaderLibrary.h"
 #include "Renderer/DataTypeEnums.h"
 
 namespace Yassin

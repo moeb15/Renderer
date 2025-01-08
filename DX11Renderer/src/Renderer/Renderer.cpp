@@ -1,5 +1,5 @@
 #include "Renderer/Renderer.h"
-#include "Renderer/MaterialInstance.h"
+#include "Renderer/Resources/MaterialInstance.h"
 #include <backends/imgui_impl_dx11.h>
 
 namespace Yassin

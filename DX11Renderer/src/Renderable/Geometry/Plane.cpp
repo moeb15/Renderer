@@ -1,6 +1,5 @@
 #include "Renderable/Geometry/Plane.h"
-#include "Renderer/MaterialSystem.h"
-#include "Plane.h"
+#include "Renderer/Resources/MaterialSystem.h"
 
 namespace Yassin
 {

@@ -7,10 +7,10 @@
 #include <memory>
 #include "Renderer/RendererContext.h"
 #include "Renderer/Renderable.h"
-#include "Renderer/ShaderLibrary.h"
+#include "Renderer/Resources/ShaderLibrary.h"
 #include "Renderer/Camera.h"
-#include "Renderer/MaterialSystem.h"
-#include "Renderer/TextureLibrary.h"
+#include "Renderer/Resources/MaterialSystem.h"
+#include "Renderer/Resources/TextureLibrary.h"
 #include "Renderer/RenderToTexture.h"
 #include <queue>
 
