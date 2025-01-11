@@ -1,0 +1,35 @@
+cbuffer MatrixBuffer
+{
+    matrix world;
+    matrix viewProj;
+};
+
+struct VSIn
+{
+    float4 position : POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+};
+
+struct VSOut
+{
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+};
+
+VSOut main(VSIn input)
+{
+    VSOut vso;
+    
+    input.position.w = 1.0f;
+    vso.position = mul(input.position, world);
+    vso.position = mul(vso.position, viewProj);
+    
+    vso.uv = input.uv;
+    
+    vso.normal = mul(input.normal, (float3x3) world);
+    vso.normal = normalize(vso.normal);
+    
+	return vso;
+}
