@@ -27,6 +27,8 @@ namespace Yassin
 		void Submit(Renderable* renderable);
 		void Render(Camera& camera, DirectX::XMMATRIX& lightViewProj);
 
+		inline void TogglePostProcessing() { m_PostProcessingEnabled = !m_PostProcessingEnabled; }
+
 	private:
 		void DepthPrePass(DirectX::XMMATRIX& lightViewProj);
 		void RenderSceneToTexture(Camera& camera);
@@ -39,11 +41,15 @@ namespace Yassin
 		std::unique_ptr<RenderToTexture> m_DepthPass;
 		std::unique_ptr<RenderToTexture> m_SceneTexture;
 		Blur m_BlurEffect;
+		OrthoWindow m_FullScreenWindow;
+		Sampler m_PostProcessSampler;
+
 		std::queue<Renderable*> m_OpaqueRenderQueue;
 		std::queue<Renderable*> m_TransparentRenderQueue;
 		std::queue<Renderable*> m_DepthRenderQueue;
 		std::deque<Renderable*> m_Renderables;
 
 		float m_BackBufferColor[4];
+		bool m_PostProcessingEnabled;
 	};
 }

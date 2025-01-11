@@ -6,6 +6,7 @@ namespace Yassin
 {
 	void Renderer::Init(int width, int height, HWND hWnd, bool fullscreen)
 	{
+
 		m_Context = std::make_unique<RendererContext>();
 		m_Context->Init(width, height, hWnd, fullscreen);
 
@@ -14,6 +15,12 @@ namespace Yassin
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
 		m_DepthPass->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
+
+		m_PostProcessingEnabled = false;
+
+		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Clamp);
+
+		m_FullScreenWindow.Init(width, height);
 
 		m_BlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::BoxBlur);
 
@@ -85,13 +92,42 @@ namespace Yassin
 
 		RenderSceneToTexture(camera);
 
-		m_BlurEffect.BlurScene(camera, m_SceneTexture.get());
-
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
 			m_BackBufferColor[1],
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
+
+		if (m_PostProcessingEnabled)
+		{
+			RendererContext::DisableZBuffer();
+
+			m_BlurEffect.BlurScene(camera, m_SceneTexture.get());
+			std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Unlit Texture Shader");
+
+			DirectX::XMMATRIX view;
+			DirectX::XMMATRIX proj;
+			DirectX::XMMATRIX viewProj;
+
+			camera.GetDefaultView(view);
+			m_SceneTexture->GetOrthoMatrix(proj);
+
+			viewProj = DirectX::XMMatrixMultiply(view, proj);
+
+			m_FullScreenWindow.Render(viewProj);
+			textureShader.second->SetTexture(0, m_SceneTexture->GetSRV());
+			m_PostProcessSampler.Bind(0);
+			textureShader.first->Bind();
+			textureShader.second->Bind();
+			RendererContext::GetDeviceContext()->DrawIndexed(6, 0, 0);
+
+			ID3D11ShaderResourceView* nullSRV = { nullptr };
+			RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
+			
+			RendererContext::EnableZBuffer();
+
+			return;
+		}
 
 		while(!m_OpaqueRenderQueue.empty())
 		{
