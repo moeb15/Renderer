@@ -10,8 +10,12 @@ namespace Yassin
 	{
 		switch(type)
 		{
-			case BlurType::Gaussian: 
+			case BlurType::GaussianBlur: 
 				m_BlurShaderName = "Gaussian Blur Shader"; 
+				break;
+
+			case BlurType::BoxBlur:
+				m_BlurShaderName = "Box Blur Shader";
 				break;
 
 			default:

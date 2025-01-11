@@ -40,6 +40,7 @@ namespace Yassin
 
 	enum BlurType
 	{
-		Gaussian,
+		GaussianBlur = 0,
+		BoxBlur,
 	};
 }

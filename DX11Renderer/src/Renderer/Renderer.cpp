@@ -15,7 +15,7 @@ namespace Yassin
 		m_DepthPass = std::make_unique<RenderToTexture>();
 		m_DepthPass->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
 
-		m_BlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::Gaussian);
+		m_BlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::BoxBlur);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -32,7 +32,8 @@ namespace Yassin
 		ShaderLibrary::Add("Unlit Texture Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/UnlitTexturePS.cso");
 		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
 		ShaderLibrary::Add("Shadow Map Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
-		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/GaussianBlurVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
+		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/DefaultVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
+		ShaderLibrary::Add("Box Blur Shader", L"src/Shaders/CSO/DefaultVS.cso", L"src/Shaders/CSO/BoxBlurPS.cso");
 
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
@@ -83,6 +84,8 @@ namespace Yassin
 		DepthPrePass(lightViewProj);
 
 		RenderSceneToTexture(camera);
+
+		m_BlurEffect.BlurScene(camera, m_SceneTexture.get());
 
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
