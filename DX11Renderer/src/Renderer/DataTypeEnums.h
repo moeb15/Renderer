@@ -38,9 +38,9 @@ namespace Yassin
 		DepthStencil,
 	};
 
-	enum BlurType
+	enum class BlurType
 	{
-		GaussianBlur = 0,
+		GaussianBlur,
 		BoxBlur,
 	};
 }

@@ -17,6 +17,7 @@ namespace Yassin
 			unsigned int rHeight, BlurType type);
 
 		void BlurScene(Camera& camera, RenderToTexture* renderTex);
+		void ChangeBlurType(BlurType type);
 
 	private:
 		RenderToTexture m_DownSampleTex1;

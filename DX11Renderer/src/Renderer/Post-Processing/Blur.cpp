@@ -127,4 +127,22 @@ namespace Yassin
 		RendererContext::SetBackBufferRenderTarget();
 		RendererContext::ResetViewport();
 	}
+
+	void Blur::ChangeBlurType(BlurType type)
+	{
+		switch (type)
+		{
+		case BlurType::GaussianBlur:
+			m_BlurShaderName = "Gaussian Blur Shader";
+			break;
+
+		case BlurType::BoxBlur:
+			m_BlurShaderName = "Box Blur Shader";
+			break;
+
+		default:
+			m_BlurShaderName = "Gaussian Blur Shader";
+			break;
+		}
+	}
 }
