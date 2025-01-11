@@ -173,6 +173,11 @@ namespace Yassin
 				{
 					RendererContext::ToggleRasterizerState();
 				}
+				if (wParam == VK_F3)
+				{
+					m_Renderer->TogglePostProcessing();
+				}
+
 
 				m_Input.OnKeyPressed(static_cast<unsigned char>(wParam));
 				break;
