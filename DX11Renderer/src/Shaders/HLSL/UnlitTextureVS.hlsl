@@ -4,7 +4,6 @@ cbuffer MatrixBuffer
     row_major matrix viewProj;
 };
 
-
 struct VSIn
 {
     float4 position : POSITION;
@@ -25,6 +24,7 @@ VSOut main(VSIn input)
     
     vso.position = mul(float4(input.position.xyz, 1.0f), world);
     vso.position = mul(vso.position, viewProj);
+    vso.position.z = 0.0f;
     
     vso.uv = input.uv;
     

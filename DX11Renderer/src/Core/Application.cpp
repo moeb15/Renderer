@@ -13,7 +13,7 @@ namespace Yassin
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
-		light->SetPosition(0.0f, 10.f, 10.f);
+		light->SetPosition(0.0f, 3.f, -1.f);
 		light->SetLookAt(0.0f, 0.0f, 0.0f);
 
 		DirectX::XMMATRIX world;
