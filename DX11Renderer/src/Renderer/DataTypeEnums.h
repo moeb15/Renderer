@@ -37,4 +37,9 @@ namespace Yassin
 		DepthMap,
 		DepthStencil,
 	};
+
+	enum BlurType
+	{
+		Gaussian,
+	};
 }
