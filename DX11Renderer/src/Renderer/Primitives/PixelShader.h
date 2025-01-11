@@ -13,6 +13,11 @@ namespace Yassin
 			RendererContext::GetDeviceContext()->PSSetShader(m_PixelShader.Get(), nullptr, 0);
 		}
 
+		inline void SetTexture(unsigned int slot, ID3D11ShaderResourceView* texture)
+		{
+			RendererContext::GetDeviceContext()->PSSetShaderResources(slot, 1, &texture);
+		}
+
 		inline ID3DBlob* GetBlob() const { return m_Blob.Get(); }
 
 	private:
