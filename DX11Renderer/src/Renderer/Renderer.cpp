@@ -9,8 +9,13 @@ namespace Yassin
 		m_Context = std::make_unique<RendererContext>();
 		m_Context->Init(width, height, hWnd, fullscreen);
 
+		m_SceneTexture = std::make_unique<RenderToTexture>();
+		m_SceneTexture->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthStencil);
+
 		m_DepthPass = std::make_unique<RenderToTexture>();
 		m_DepthPass->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
+
+		m_BlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::Gaussian);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -24,8 +29,10 @@ namespace Yassin
 		ShaderLibrary::Init();
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
 		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
+		ShaderLibrary::Add("Unlit Texture Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/UnlitTexturePS.cso");
 		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
 		ShaderLibrary::Add("Shadow Map Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
+		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/GaussianBlurVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
 
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
@@ -59,10 +66,14 @@ namespace Yassin
 		if(renderable->GetObjectVisibility() == ObjectVisibility::Transparent)
 		{
 			m_TransparentRenderQueue.push(renderable);
+			if(std::find(m_Renderables.begin(), m_Renderables.end(), renderable) == m_Renderables.end())
+				m_Renderables.push_back(renderable);
 		}
 		else
 		{
 			m_OpaqueRenderQueue.push(renderable);
+			if (std::find(m_Renderables.begin(), m_Renderables.end(), renderable) == m_Renderables.end())
+				m_Renderables.push_front(renderable);
 		}
 	}
 
@@ -70,6 +81,8 @@ namespace Yassin
 	{
 		// Depth pre-pass
 		DepthPrePass(lightViewProj);
+
+		RenderSceneToTexture(camera);
 
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
@@ -146,6 +159,36 @@ namespace Yassin
 			RendererContext::GetDeviceContext()->DrawIndexed(rPtr->GetIndexBuffer()->GetIndexCount(), 0, 0);
 			m_DepthRenderQueue.pop();
 		}
+
+		RendererContext::SetBackBufferRenderTarget();
+		RendererContext::ResetViewport();
+	}
+
+	void Renderer::RenderSceneToTexture(Camera& camera)
+	{
+		m_SceneTexture->SetRenderTarget();
+		m_SceneTexture->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
+
+		RendererContext::EnableAlphaBlending();
+		
+		for(int i = 0; i < m_Renderables.size(); i++)
+		{
+			Renderable* rPtr = m_Renderables[i];
+			DirectX::XMMATRIX view;
+			DirectX::XMMATRIX proj;
+
+			camera.GetViewMatrix(view);
+			camera.GetProjectionMatrix(proj);
+
+			DirectX::XMMATRIX viewProj =
+				DirectX::XMMatrixMultiply(view, proj);
+
+			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
+			rPtr->Render(viewProj);
+			rPtr->GetMaterialInstance()->UnbindShaderResources();
+		}
+
+		RendererContext::DisableAlphaBlending();
 
 		RendererContext::SetBackBufferRenderTarget();
 		RendererContext::ResetViewport();

@@ -12,7 +12,9 @@
 #include "Renderer/Resources/MaterialSystem.h"
 #include "Renderer/Resources/TextureLibrary.h"
 #include "Renderer/RenderToTexture.h"
+#include "Renderer/Post-Processing/Blur.h"
 #include <queue>
+#include <deque>
 
 namespace Yassin
 {
@@ -27,6 +29,7 @@ namespace Yassin
 
 	private:
 		void DepthPrePass(DirectX::XMMATRIX& lightViewProj);
+		void RenderSceneToTexture(Camera& camera);
 
 	private:
 		std::unique_ptr<TextureLibrary> m_TextureLibrary;
@@ -34,9 +37,12 @@ namespace Yassin
 		std::unique_ptr<ShaderLibrary> m_ShaderLibrary;
 		std::unique_ptr<RendererContext> m_Context;
 		std::unique_ptr<RenderToTexture> m_DepthPass;
+		std::unique_ptr<RenderToTexture> m_SceneTexture;
+		Blur m_BlurEffect;
 		std::queue<Renderable*> m_OpaqueRenderQueue;
 		std::queue<Renderable*> m_TransparentRenderQueue;
 		std::queue<Renderable*> m_DepthRenderQueue;
+		std::deque<Renderable*> m_Renderables;
 
 		float m_BackBufferColor[4];
 	};
