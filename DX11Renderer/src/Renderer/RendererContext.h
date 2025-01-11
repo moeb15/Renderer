@@ -31,6 +31,9 @@ namespace Yassin
 			memory = s_Instance->m_GPUMem;
 		}
 
+		static unsigned int GetWidth() { return (unsigned int)s_Instance->m_Width; }
+		static unsigned int GetHeight() { return (unsigned int)s_Instance->m_Height; }
+
 		static void EnableSolidRS() 
 		{
 			s_Instance->m_Context->RSSetState(s_Instance->m_SolidRS.Get());
@@ -63,6 +66,16 @@ namespace Yassin
 			s_Instance->m_Context->OMSetBlendState(s_Instance->m_AlphaBlendDisable.Get(), blendFactor, 0xffffffff);
 		}
 
+		static void EnableZBuffer()
+		{
+			s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_DepthStencilState.Get(), 0);
+		}
+
+		static void DisableZBuffer()
+		{
+			s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_2DState.Get(), 0);
+		}
+
 	private:
 		bool m_Vsync;
 		size_t m_GPUMem;
@@ -78,6 +91,7 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTarget;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_2DState;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_SolidRS;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_WireFrameRS;

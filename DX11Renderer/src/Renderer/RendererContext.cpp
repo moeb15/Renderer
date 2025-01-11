@@ -159,6 +159,11 @@ namespace Yassin
 		hr = m_Device->CreateDepthStencilState(&dsDesc, &m_DepthStencilState);
 		if (FAILED(hr)) return;
 
+		dsDesc.DepthEnable = false;
+
+		hr = m_Device->CreateDepthStencilState(&dsDesc, &m_2DState);
+		if (FAILED(hr)) return;
+
 		m_Context->OMSetDepthStencilState(m_DepthStencilState.Get(), 1);
 
 		// Alpha Blending
