@@ -33,6 +33,14 @@ namespace Yassin
 		DirectX::XMFLOAT3 padding;
 	};
 
+	struct ScreenPropertiesBuffer 
+	{
+		float screenWidth = 1920.f;
+		float screenHeight = 1080.f;
+		float blurType = 0.0f;
+		float padding;
+	};
+
 	template<typename C>
 	class ConstantBuffer
 	{
@@ -113,21 +121,23 @@ namespace Yassin
 		MatrixBuffer m_MatrixBuffer;
 	};
 
-	class LightPosBuffer : public VertexConstantBuffer<LightPositionBuffer> 
-	{
-	private:
-		LightPositionBuffer m_LightPositionBuffer;
-	};
+	class LightPosBuffer : public VertexConstantBuffer<LightPositionBuffer> {};
 
-	class LightPropsBuffer : public PixelConstantBuffer<LightPropertiesBuffer>
-	{
-	private:
-		LightPropertiesBuffer m_LightPropertiesBuffer;
-	};
+	class LightPropsBuffer : public PixelConstantBuffer<LightPropertiesBuffer> {};
 
-	class TransparencyBuffer : public PixelConstantBuffer<BlendBuffer>
+	class TransparencyBuffer : public PixelConstantBuffer<BlendBuffer> {};
+
+	class ScreenBuffer : public PixelConstantBuffer<ScreenPropertiesBuffer> 
 	{
+	public:
+		void SetHorizontalBlur() { m_ScreenProps.blurType = 0.0f; }
+		void SetVerticalBlur() { m_ScreenProps.blurType = 1.0f; }
+		
+		void Update()
+		{
+			UpdateBuffer(m_ScreenProps);
+		}
 	private:
-		BlendBuffer m_TransparencyBuffer;
+		ScreenPropertiesBuffer m_ScreenProps;
 	};
 }
