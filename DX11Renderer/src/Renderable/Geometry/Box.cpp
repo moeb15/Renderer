@@ -4,7 +4,7 @@
 
 namespace Yassin
 {
-	Box::Box(std::string material, DirectX::XMMATRIX world) :
+	Box::Box(std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions) :
 		m_Topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
 	{
 		std::vector<Vertex> vData =
@@ -67,7 +67,9 @@ namespace Yassin
 			20, 21, 22, 20, 22, 23
 		};
 
-		m_VertexBuffer = std::make_unique<VertexBuffer>(vData);
+		if (instancePositions) m_InstancedDraw = true;
+
+		m_VertexBuffer = std::make_unique<VertexBuffer>(vData, instancePositions);
 		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
 
 		m_TransformBuffer = std::make_unique<TransformBuffer>();
@@ -91,10 +93,14 @@ namespace Yassin
 
 		m_Material->BindMaterial();
 
-		RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
+		if(!m_InstancedDraw)
+			RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
+		else
+			RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(),
+				(unsigned int)m_VertexBuffer->GetInstanceCount(), 0, 0, 0);
 	}
 
-	void Yassin::Box::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
+	void Box::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
 	{
 		m_Material->UpdateLightBuffers(lPos, lProps);
 	}

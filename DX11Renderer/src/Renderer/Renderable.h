@@ -46,5 +46,6 @@ namespace Yassin
 		std::unique_ptr<IndexBuffer> m_IndexBuffer;
 		ObjectType m_ObjectType = ObjectType::Geometry;
 		ObjectVisibility m_ObjectVisibility = ObjectVisibility::Opaque;
+		bool m_InstancedDraw = false;
 	};
 }

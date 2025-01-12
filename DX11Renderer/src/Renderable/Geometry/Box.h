@@ -9,7 +9,7 @@ namespace Yassin
 	class Box : public Renderable
 	{
 	public:
-		Box(std::string material, DirectX::XMMATRIX world);
+		Box(std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions = nullptr);
 		virtual void Render(DirectX::XMMATRIX& viewProj) const override;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
 
