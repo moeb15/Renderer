@@ -184,18 +184,11 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_DepthRenderQueue.front();
 
-			rPtr->GetVertexBuffer()->Bind(0);
-			rPtr->GetIndexBuffer()->Bind();
-
-			rPtr->GetTransformBuffer()->SetViewProjection(lightViewProj);
-			rPtr->GetTransformBuffer()->UpdateBuffer(rPtr->GetTransformBuffer()->GetMatrixBuffer());
-			rPtr->GetTransformBuffer()->SetTransformBuffer();
-
-			RendererContext::GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
 
-			RendererContext::GetDeviceContext()->DrawIndexed(rPtr->GetIndexBuffer()->GetIndexCount(), 0, 0);
+			rPtr->Render(lightViewProj, true);
+			
 			m_DepthRenderQueue.pop();
 		}
 
