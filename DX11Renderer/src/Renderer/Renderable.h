@@ -19,7 +19,7 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		virtual void Render(DirectX::XMMATRIX& viewProj) const = 0;
+		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false) const = 0;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const = 0;
 		
 		virtual void UpdateTransparency(float blendAmount = 1.0f);

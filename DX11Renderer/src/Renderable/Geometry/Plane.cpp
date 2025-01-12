@@ -76,7 +76,7 @@ namespace Yassin
 		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
 	}
 
-	void Plane::Render(DirectX::XMMATRIX& viewProj) const
+	void Plane::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
 	{
 		m_VertexBuffer->Bind(0);
 		m_IndexBuffer->Bind();
@@ -86,7 +86,8 @@ namespace Yassin
 		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
 		m_TransformBuffer->SetTransformBuffer();
 
-		m_Material->BindMaterial();
+		if(!bIgnoreMaterial)
+			m_Material->BindMaterial();
 
 		RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
 	}

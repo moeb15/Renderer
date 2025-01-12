@@ -10,7 +10,7 @@ namespace Yassin
 	{
 	public:
 		Triangle(std::string material, DirectX::XMMATRIX world);
-		virtual void Render(DirectX::XMMATRIX& viewProj) const override;
+		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const override;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
 
 	private:

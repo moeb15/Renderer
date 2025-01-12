@@ -81,7 +81,7 @@ namespace Yassin
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 	}
 
-	void Box::Render(DirectX::XMMATRIX& viewProj) const
+	void Box::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
 	{
 		m_VertexBuffer->Bind(0);
 		m_IndexBuffer->Bind();
@@ -91,7 +91,8 @@ namespace Yassin
 		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
 		m_TransformBuffer->SetTransformBuffer();
 
-		m_Material->BindMaterial();
+		if(!bIgnoreMaterial)
+			m_Material->BindMaterial();
 
 		if(!m_InstancedDraw)
 			RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
