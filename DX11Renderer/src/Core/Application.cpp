@@ -19,8 +19,14 @@ namespace Yassin
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX rot;
 
+		std::vector<InstancePosition> boxPositions =
+		{
+			{{0.0f, 0.0f, 0.0f}},
+			{{-1.5f, 0.0f, 1.5f}}
+		};
+
 		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
-		box = std::make_unique<Box>("Shadow Map Material", world);
+		box = std::make_unique<Box>("Shadow Map Material", world, &boxPositions);
 		
 		world = DirectX::XMMatrixTranslation(1.5f, 0.f, 2.f);
 		transparentBox = std::make_unique<Box>("Shadow Map Material", world);
