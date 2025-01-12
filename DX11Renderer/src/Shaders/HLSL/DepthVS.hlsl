@@ -7,6 +7,9 @@ cbuffer MatrixBuffer
 struct VSIn
 {
     float4 position : POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 instancePosition : INSTANCEPOS;
 };
 
 struct VSOut
@@ -20,6 +23,10 @@ VSOut main(VSIn input)
     VSOut vso;
     
     input.position.w = 1.0f;
+    input.position.x += input.instancePosition.x;
+    input.position.y += input.instancePosition.y;
+    input.position.z += input.instancePosition.z;
+    
     vso.position = mul(input.position, world);
     vso.position = mul(vso.position, viewProj);
     

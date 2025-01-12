@@ -22,7 +22,7 @@ namespace Yassin
 		std::vector<InstancePosition> boxPositions =
 		{
 			{{0.0f, 0.0f, 0.0f}},
-			{{-1.5f, 0.0f, 1.5f}}
+			{{-4.f, 0.0f, 0.0f}}
 		};
 
 		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
@@ -109,7 +109,7 @@ namespace Yassin
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
 
-		box->Rotate(dt * 10.f, 0.0f, 0.0f);
+		//box->Rotate(dt * 10.f, 0.0f, 0.0f);
 
 		plane->UpdateLighting(
 			{ lViewProj, light->GetPosition() },
