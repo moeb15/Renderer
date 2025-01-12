@@ -90,8 +90,6 @@ namespace Yassin
 		// Depth pre-pass
 		DepthPrePass(lightViewProj);
 
-		RenderSceneToTexture(camera);
-
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
 			m_BackBufferColor[1],
@@ -100,6 +98,8 @@ namespace Yassin
 
 		if (m_PostProcessingEnabled)
 		{
+			RenderSceneToTexture(camera);
+
 			RendererContext::DisableZBuffer();
 
 			m_BlurEffect.BlurScene(camera, m_SceneTexture.get());
