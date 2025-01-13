@@ -3,6 +3,31 @@
 
 namespace Yassin
 {
+    void Renderable::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
+    {
+        m_VertexBuffer->Bind(0);
+        m_IndexBuffer->Bind();
+        m_Topology.Bind();
+
+        m_TransformBuffer->SetViewProjection(viewProj);
+        m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
+        m_TransformBuffer->SetTransformBuffer();
+
+        if (!bIgnoreMaterial)
+            m_Material->BindMaterial();
+
+        if (!m_InstancedDraw)
+            RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
+        else
+            RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(),
+                (unsigned int)m_VertexBuffer->GetInstanceCount(), 0, 0, 0);
+    }
+
+    void Renderable::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
+    {
+        m_Material->UpdateLightBuffers(lPos, lProps);
+    }
+
     void Renderable::UpdateTransparency(float blendAmount)
     {
         if (m_ObjectVisibility == ObjectVisibility::Transparent) m_Material->UpdateTransparencyBuffer({ blendAmount });

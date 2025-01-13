@@ -9,7 +9,11 @@ namespace Yassin
 			position(pos), 
 			uv(tex),
 			normal(norm) {}
-		Vertex() {}
+
+		Vertex() :
+			position(0.0f, 0.0f, 0.0f),
+			uv(0.0f, 0.0f),
+			normal(0.0f, 0.0f, 0.0f) {}
 
 		DirectX::XMFLOAT3 position;
 		DirectX::XMFLOAT2 uv;

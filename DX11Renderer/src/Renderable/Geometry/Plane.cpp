@@ -4,7 +4,6 @@
 namespace Yassin
 {
 	Plane::Plane(std::string material, DirectX::XMMATRIX world, int width, int height, float dimX, float dimY) :
-		m_Topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST),
 		m_Width(width),
 		m_Height(height),
 		m_X(dimX),
@@ -74,26 +73,5 @@ namespace Yassin
 
 		m_VertexBuffer = std::make_unique<VertexBuffer>(vData);
 		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
-	}
-
-	void Plane::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
-	{
-		m_VertexBuffer->Bind(0);
-		m_IndexBuffer->Bind();
-		m_Topology.Bind();
-
-		m_TransformBuffer->SetViewProjection(viewProj);
-		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
-		m_TransformBuffer->SetTransformBuffer();
-
-		if(!bIgnoreMaterial)
-			m_Material->BindMaterial();
-
-		RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
-	}
-
-	void Yassin::Plane::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
-	{
-		m_Material->UpdateLightBuffers(lPos, lProps);
 	}
 }

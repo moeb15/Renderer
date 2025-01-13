@@ -12,8 +12,7 @@ namespace Yassin
 
     static std::vector<unsigned long> iData = { 0,1,2 };
 
-    Triangle::Triangle(std::string material, DirectX::XMMATRIX world) :
-        m_Topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
+    Triangle::Triangle(std::string material, DirectX::XMMATRIX world)
     { 
         m_VertexBuffer = std::make_unique<VertexBuffer>(vData);
         m_IndexBuffer = std::make_unique<IndexBuffer>(iData);
@@ -24,26 +23,5 @@ namespace Yassin
 
         m_TransformBuffer = std::make_unique<TransformBuffer>();
         m_TransformBuffer->SetWorld(world);
-    }
-
-    void Triangle::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
-    {
-        m_VertexBuffer->Bind(0);
-        m_IndexBuffer->Bind();
-        m_Topology.Bind();
-        
-        m_TransformBuffer->SetViewProjection(viewProj);
-        m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
-        m_TransformBuffer->SetTransformBuffer();
-
-        if(!bIgnoreMaterial)
-            m_Material->BindMaterial();
-
-        RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
-    }
-
-    void Yassin::Triangle::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
-    {
-        m_Material->UpdateLightBuffers(lPos, lProps);
     }
 }

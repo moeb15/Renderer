@@ -19,8 +19,8 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false) const = 0;
-		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const = 0;
+		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false) const;
+		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
 		
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
 
@@ -44,6 +44,7 @@ namespace Yassin
 		std::unique_ptr<MaterialInstance> m_Material;
 		std::unique_ptr<VertexBuffer> m_VertexBuffer;
 		std::unique_ptr<IndexBuffer> m_IndexBuffer;
+		Topology m_Topology;
 		ObjectType m_ObjectType = ObjectType::Geometry;
 		ObjectVisibility m_ObjectVisibility = ObjectVisibility::Opaque;
 		bool m_InstancedDraw = false;

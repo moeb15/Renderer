@@ -4,8 +4,7 @@
 
 namespace Yassin
 {
-	Box::Box(std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions) :
-		m_Topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
+	Box::Box(std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
 	{
 		std::vector<Vertex> vData =
 		{
@@ -79,30 +78,5 @@ namespace Yassin
 		m_Material->SetTexture(TextureSlot::BaseTexture, "Stone");
 		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
-	}
-
-	void Box::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
-	{
-		m_VertexBuffer->Bind(0);
-		m_IndexBuffer->Bind();
-		m_Topology.Bind();
-
-		m_TransformBuffer->SetViewProjection(viewProj);
-		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
-		m_TransformBuffer->SetTransformBuffer();
-
-		if(!bIgnoreMaterial)
-			m_Material->BindMaterial();
-
-		if(!m_InstancedDraw)
-			RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
-		else
-			RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(),
-				(unsigned int)m_VertexBuffer->GetInstanceCount(), 0, 0, 0);
-	}
-
-	void Box::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
-	{
-		m_Material->UpdateLightBuffers(lPos, lProps);
 	}
 }

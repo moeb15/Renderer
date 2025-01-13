@@ -10,14 +10,9 @@ namespace Yassin
 	{
 	public:
 		Plane(std::string material, DirectX::XMMATRIX world, int width, int height, float dimX, float dimY);
-
 		void GeneratePlane();
 
-		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const override;
-		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
-
 	private:
-		Topology m_Topology;
 		int m_Width;
 		int m_Height;
 		float m_X;
