@@ -42,7 +42,7 @@ namespace Yassin
 
 		world = DirectX::XMMatrixIdentity();
 		world = DirectX::XMMatrixTranslation(-2.f, 1.0f, 5.0f);
-		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/suzanne.obj", world);
+		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/suzanne.obj", world, &boxPositions);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}

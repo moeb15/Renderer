@@ -49,5 +49,7 @@ namespace Yassin
 
 		m_Material = std::make_unique<MaterialInstance>(MaterialSystem::Get(material));
 		m_Material->SetTexture(TextureSlot::BaseTexture, "ErrorTexture");
+		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
+		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 	}
 }
