@@ -41,6 +41,11 @@ namespace Yassin
 		float padding;
 	};
 
+	struct FlatColorBufferType
+	{
+		DirectX::XMFLOAT4 color = DirectX::XMFLOAT4(0.5f, 0.0f, 0.0f, 1.0f);
+	};
+
 	template<typename C>
 	class ConstantBuffer
 	{
@@ -126,6 +131,8 @@ namespace Yassin
 	class LightPropsBuffer : public PixelConstantBuffer<LightPropertiesBuffer> {};
 
 	class TransparencyBuffer : public PixelConstantBuffer<BlendBuffer> {};
+
+	class FlatColorBuffer : public PixelConstantBuffer<FlatColorBufferType> {};
 
 	class ScreenBuffer : public PixelConstantBuffer<ScreenPropertiesBuffer> 
 	{
