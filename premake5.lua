@@ -12,6 +12,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["stb"] = "vendor/stb"
 IncludeDir["imgui"] = "vendor/imgui"
+IncludeDir["assimp"] = "vendor/assimp/include"
 
 project "DX11Renderer"
 	location "DX11Renderer"
@@ -37,14 +38,20 @@ project "DX11Renderer"
 		"vendor/imgui/imstb_rectpack.h",
 		"vendor/imgui/imstb_textedit.h",
 		"vendor/imgui/imstb_truetype.h",
-		"vendor/imgui/imgui_demo.cpp"
+		"vendor/imgui/imgui_demo.cpp",
+		"vendor/assimp/**.h",
+		"vendor/assimp/**.hpp",
+		"vendor/assimp/**.cpp",
+		"vendor/assimp/**.c",
+		"vendor/assimp/**.inl",
 	}
 
 	includedirs
 	{
 		"%{prj.name}/src",
 		IncludeDir["stb"],
-		IncludeDir["imgui"]
+		IncludeDir["imgui"],
+		IncludeDir["assimp"]
 	}
 
 
@@ -53,13 +60,15 @@ project "DX11Renderer"
 		"d3d11.lib",
 		"d3dcompiler.lib",
 		"dxgi.lib",
-		"dxguid.lib"
+		"dxguid.lib",
+		"%{wks.location}/vendor/assimp/lib/assimp-vc143-mt.lib"
 	}
 
 	postbuildcommands
 	{
 		"{COPYDIR} \"%(ProjectDir)src/Assets\" %[%{!cfg.targetdir}/src/Assets]",
-		"{COPYDIR} \"%(ProjectDir)src/Shaders/CSO\" %[%{!cfg.targetdir}/src/Shaders/CSO]"
+		"{COPYDIR} \"%(ProjectDir)src/Shaders/CSO\" %[%{!cfg.targetdir}/src/Shaders/CSO]",
+		"{COPYDIR} %[%{!wks.location}vendor/assimp/bin] %[%{!cfg.targetdir}/]"
 	}
 
 	-- Custom HLSL Compilation Step
