@@ -39,6 +39,11 @@ namespace Yassin
 		//world = DirectX::XMMatrixMultiply(rot, world);
 		plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
 
+
+		world = DirectX::XMMatrixIdentity();
+		world = DirectX::XMMatrixTranslation(-2.f, 1.0f, 5.0f);
+		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/suzanne.obj", world);
+
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
 	
@@ -120,6 +125,13 @@ namespace Yassin
 			{ lViewProj, light->GetPosition() },
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
+
+		testModel->UpdateLighting(
+			{ lViewProj, light->GetPosition() },
+			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
+			light->GetSpecularPower() });
+
+		m_Window.GetRenderer().Submit(testModel.get());
 
 		m_Window.GetRenderer().Submit(transparentBox.get());
 
