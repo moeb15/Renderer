@@ -10,46 +10,128 @@ namespace Yassin
 	Model::Model(std::string material, const std::string& modelFile, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
 	{
 		Assimp::Importer importer;
-		const aiScene* pModel = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
-		const aiMesh* pMesh = pModel->mMeshes[0];
+		const aiScene* pScene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+		if (!pScene) return;
+		m_RootTransform = pScene->mRootNode->mTransformation;
+		ProcessNode(pScene->mRootNode, pScene, material, world, instancePositions);
+	}
 
-		std::vector<Vertex> vData;
-		for(unsigned int i = 0; i < pMesh->mNumVertices; i++)
+	void Model::ProcessNode(aiNode* node, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
+	{
+		for(unsigned int i = 0; i < node->mNumMeshes; i++)
+		{
+			aiMesh* pMesh = scene->mMeshes[node->mMeshes[i]];
+			ProcessMesh(node, pMesh, scene, material, world, instancePositions);
+		}
+
+		for(unsigned int i = 0; i < node->mNumChildren; i++)
+		{
+			ProcessNode(node->mChildren[i], scene, material, world, instancePositions);
+		}
+	}
+
+	void Model::ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
+	{
+		std::vector<Vertex> vData = {};
+		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vertex v;
-			v.position = *reinterpret_cast<DirectX::XMFLOAT3*>(&pMesh->mVertices[i]);
-			if (pMesh->mTextureCoords[0] != nullptr) 
+			aiVector3D transformedPos = node->mTransformation * mesh->mVertices[i];
+			v.position = *reinterpret_cast<DirectX::XMFLOAT3*>(&transformedPos);
+			v.normal = *reinterpret_cast<DirectX::XMFLOAT3*>(&mesh->mNormals[i]);
+
+			if (mesh->mTextureCoords[0])
 			{
-				v.uv.x = reinterpret_cast<DirectX::XMFLOAT3*>(pMesh->mTextureCoords[0])->x;
-				v.uv.y = reinterpret_cast<DirectX::XMFLOAT3*>(pMesh->mTextureCoords[0])->y;
+				v.uv.x = (float)mesh->mTextureCoords[0]->x;
+				v.uv.y = (float)mesh->mTextureCoords[0]->y;
 			}
-			v.normal = *reinterpret_cast<DirectX::XMFLOAT3*>(&pMesh->mNormals[i]);
+			else
+			{
+				v.uv = DirectX::XMFLOAT2(0.0f, 0.0f);
+			}
 
 			vData.push_back(v);
 		}
 
-		std::vector<unsigned long> indices;
-		indices.reserve(pMesh->mNumFaces * 3);
-		for(unsigned int i = 0 ; i < pMesh->mNumFaces; i++)
+		std::vector<unsigned long> indices = {};
+		indices.reserve(mesh->mNumFaces * 3);
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 		{
-			const auto& face = pMesh->mFaces[i];
+			const auto& face = mesh->mFaces[i];
 			assert(face.mNumIndices == 3);
 			indices.push_back(face.mIndices[0]);
 			indices.push_back(face.mIndices[1]);
 			indices.push_back(face.mIndices[2]);
 		}
 
-		m_InstancedDraw = instancePositions != nullptr;
+		m_Meshes.push_back(std::make_unique<Mesh>(material, world, vData, indices, instancePositions));
+	}
 
-		m_VertexBuffer = std::make_unique<VertexBuffer>(vData, instancePositions);
-		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
+	void Model::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
+	{
+		for(int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->Render(viewProj, bIgnoreMaterial);
+		}
+	}
 
-		m_TransformBuffer = std::make_unique<TransformBuffer>();
-		m_TransformBuffer->SetWorld(world);
+	void Model::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->UpdateLighting(lPos, lProps);
+		}
+	}
 
-		m_Material = std::make_unique<MaterialInstance>(MaterialSystem::Get(material));
-		m_Material->SetTexture(TextureSlot::BaseTexture, "ErrorTexture");
-		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
-		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
+	MaterialInstance* Model::GetMaterialInstance(unsigned int meshIdx) const
+	{
+		if (meshIdx > m_Meshes.size() - 1) return nullptr;
+
+		return m_Meshes[meshIdx]->GetMaterialInstance();
+	}
+
+	VertexBuffer* Model::GetVertexBuffer(unsigned int meshIdx) const
+	{
+		if (meshIdx > m_Meshes.size() - 1) return nullptr;
+	
+		return m_Meshes[meshIdx]->GetVertexBuffer();
+	}
+	
+	IndexBuffer* Model::GetIndexBuffer(unsigned int meshIdx) const
+	{
+		if (meshIdx > m_Meshes.size() - 1) return nullptr;
+
+		return m_Meshes[meshIdx]->GetIndexBuffer();
+	}
+	
+	TransformBuffer* Model::GetTransformBuffer(unsigned int meshIdx)
+	{
+		if (meshIdx > m_Meshes.size() - 1) return nullptr;
+
+		return m_Meshes[meshIdx]->GetTransformBuffer();
+	}
+
+	void Model::Translate(float x, float y, float z)
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->Translate(x, y, z);
+		}
+	}
+
+	void Model::Rotate(float yaw, float pitch, float roll)
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->Rotate(yaw, pitch, roll);
+		}
+	}
+
+	void Model::Scale(float x, float y, float z)
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->Scale(x, y, z);
+		}
 	}
 }
