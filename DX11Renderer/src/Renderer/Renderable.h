@@ -24,10 +24,10 @@ namespace Yassin
 		
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
 
-		inline MaterialInstance* GetMaterialInstance() const { return m_Material.get(); }
-		inline VertexBuffer* GetVertexBuffer() const { return m_VertexBuffer.get(); }
-		inline IndexBuffer* GetIndexBuffer() const { return m_IndexBuffer.get(); }
-		inline TransformBuffer* GetTransformBuffer() { return m_TransformBuffer.get(); }
+		virtual MaterialInstance* GetMaterialInstance(unsigned int meshIdx = 0) const { return m_Material.get(); }
+		virtual VertexBuffer* GetVertexBuffer(unsigned int meshIdx = 0) const { return m_VertexBuffer.get(); }
+		virtual IndexBuffer* GetIndexBuffer(unsigned int meshIdx = 0) const { return m_IndexBuffer.get(); }
+		virtual TransformBuffer* GetTransformBuffer(unsigned int meshIdx = 0) { return m_TransformBuffer.get(); }
 
 		inline const ObjectType& GetObjectType() const { return m_ObjectType; }
 		inline const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
@@ -35,9 +35,9 @@ namespace Yassin
 		void SetObjectVisiblity(ObjectVisibility visibility) { m_ObjectVisibility = visibility; }
 		void SetObjectType(ObjectType objectType) { m_ObjectType = objectType; }
 
-		void Translate(float x, float y, float z);
-		void Rotate(float yaw, float pitch, float roll);
-		void Scale(float x, float y, float z);
+		virtual void Translate(float x, float y, float z);
+		virtual void Rotate(float yaw, float pitch, float roll);
+		virtual void Scale(float x, float y, float z);
 
 	protected:
 		std::unique_ptr<TransformBuffer> m_TransformBuffer;
