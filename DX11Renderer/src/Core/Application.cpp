@@ -13,7 +13,7 @@ namespace Yassin
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
-		light->SetPosition(0.0f, 3.f, -1.f);
+		light->SetPosition(0.0f, 20.f, -6.f);
 		light->SetLookAt(0.0f, 0.0f, 0.0f);
 
 		DirectX::XMMATRIX world;
@@ -41,8 +41,7 @@ namespace Yassin
 
 
 		world = DirectX::XMMatrixIdentity();
-		world = DirectX::XMMatrixTranslation(-2.f, 1.0f, 5.0f);
-		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/suzanne.obj", world, &boxPositions);
+		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/nanosuit.obj", world);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -115,6 +114,8 @@ namespace Yassin
 			light->GetSpecularPower() });
 
 		//box->Rotate(dt * 10.f, 0.0f, 0.0f);
+		
+		testModel->Rotate(dt * 10.f, 0.0f, 0.0f);
 
 		plane->UpdateLighting(
 			{ lViewProj, light->GetPosition() },
