@@ -5,6 +5,8 @@ namespace Yassin
 	enum TextureSlot
 	{
 		BaseTexture = 0,
+		NormalTexture,
+		RoughnessTexture,
 		DepthMapTexture,
 	};
 

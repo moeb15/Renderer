@@ -11,6 +11,9 @@ namespace Yassin
 	{
 		m_Window.Init();
 
+		sun = std::make_unique<DirectionalLight>(1000.f, 0.1f, 1000.f);
+		sun->SetDirection(0.0f, 0.0f, -1.f);
+
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
 		light->SetPosition(0.0f, 10.f, -6.f);
@@ -45,7 +48,7 @@ namespace Yassin
 		world = DirectX::XMMatrixScaling(0.5f, 0.5f, 0.5f);
 		translate = DirectX::XMMatrixTranslation(0.0f, -0.5f, 0.f);
 		world = DirectX::XMMatrixMultiply(world, translate);
-		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/nanosuit.obj", world, &boxPositions);
+		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/Nanosuit/nanosuit.obj", world, &boxPositions);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -114,6 +117,9 @@ namespace Yassin
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
 
+		testModel->UpdateCameraPosition({ m_CameraController.GetCamera().GetPosition() });
+		testModel->UpdateLightDirection({ sun->GetDirection() });
+
 		m_Window.GetRenderer().Submit(testModel.get());
 
 		//m_Window.GetRenderer().Submit(transparentBox.get());
@@ -139,6 +145,7 @@ namespace Yassin
 	{
 		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
 		DirectX::XMFLOAT3 lightLookAt = light->GetLookAt();
+		DirectX::XMFLOAT3 lightDir = sun->GetDirection();
 
 		if (ImGui::Begin("Settings"))
 		{
@@ -154,8 +161,17 @@ namespace Yassin
 				ImGui::Checkbox("Box Blur", &m_Window.GetRenderer().BoxBlurEnabled());
 			}
 
-			ImGui::Dummy(ImVec2(0.0f, 2.0f));
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
+			ImGui::Text("Directional Light Settings");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::SliderFloat("X-Dir", &lightDir.x, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("Y-Dir", &lightDir.y, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("Z-Dir", &lightDir.z, -50.f, 50.f, "%.1f");
+
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+			ImGui::Text("Point Light Settings");
 			ImGui::Text("Light Position");
 			ImGui::Dummy(ImVec2(0.0f, 1.0f));
 			ImGui::SliderFloat("X", &lightPosition.x, -50.f, 50.f, "%.1f");
@@ -168,7 +184,7 @@ namespace Yassin
 			ImGui::SliderFloat("L_Y", &lightLookAt.y, -50.f, 50.f, "%.1f");
 			ImGui::SliderFloat("L_Z", &lightLookAt.z, -50.f, 50.f, "%.1f");
 
-			ImGui::Dummy(ImVec2(0.0f, 2.0f));
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
 			ImGui::Text("Statistics");
 			ImGui::Dummy(ImVec2(0.0f, 1.0f));
@@ -180,5 +196,6 @@ namespace Yassin
 
 		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
 		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
+		sun->SetDirection(lightDir.x, lightDir.y, lightDir.z);
 	}
 }

@@ -33,6 +33,7 @@ namespace Yassin
 		std::unique_ptr<Plane> plane;
 		std::unique_ptr<Model> testModel;
 		std::unique_ptr<PointLight> light;
+		std::unique_ptr<DirectionalLight> sun;
 		char m_GPUName[128];
 		size_t m_GPUMem;
 	};

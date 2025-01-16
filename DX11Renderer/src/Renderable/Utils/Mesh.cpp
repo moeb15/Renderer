@@ -15,7 +15,7 @@ namespace Yassin
 
 		m_Material = std::make_unique<MaterialInstance>(MaterialSystem::Get(material));
 		// TODO properly fetch textures from model
-		m_Material->SetTexture(TextureSlot::BaseTexture, "Stone");
+		m_Material->SetTexture(TextureSlot::BaseTexture, "");
 		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 	}
