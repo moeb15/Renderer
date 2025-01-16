@@ -17,7 +17,7 @@ namespace Yassin
 		m_RootTransform = pScene->mRootNode->mTransformation;
 		size_t lastSlash = modelFile.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-		m_ModelDirectory = modelFile.substr(0, lastSlash);
+		m_ModelDirectory = modelFile.substr(0, lastSlash) + "Textures/";
 		ProcessNode(pScene->mRootNode, pScene, material, world, instancePositions);
 	}
 
@@ -80,6 +80,7 @@ namespace Yassin
 		std::string roughnessTex;
 		diffuseTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_DIFFUSE, scene);
 		normalTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_NORMALS, scene);
+		if (normalTex == "") normalTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_HEIGHT, scene);
 		roughnessTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_SPECULAR, scene);
 
 		m_Meshes.push_back(std::make_unique<Mesh>(material, world, vData, indices, instancePositions));
