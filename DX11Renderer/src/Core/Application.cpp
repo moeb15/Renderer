@@ -83,29 +83,7 @@ namespace Yassin
 		DirectX::XMMATRIX lProj;
 		DirectX::XMMATRIX lViewProj;
 
-		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
-		DirectX::XMFLOAT3 lightLookAt = light->GetLookAt();
-
-		if(ImGui::Begin("Light Position"))
-		{
-			ImGui::SliderFloat("X", &lightPosition.x, -50.f, 50.f, "%.1f");
-			ImGui::SliderFloat("Y", &lightPosition.y, -50.f, 50.f, "%.1f");
-			ImGui::SliderFloat("Z", &lightPosition.z, -50.f, 50.f, "%.1f");
-
-			ImGui::Text("Light LookAt");
-			ImGui::SliderFloat("L_X", &lightLookAt.x, -50.f, 50.f, "%.1f");
-			ImGui::SliderFloat("L_Y", &lightLookAt.y, -50.f, 50.f, "%.1f");
-			ImGui::SliderFloat("L_Z", &lightLookAt.z, -50.f, 50.f, "%.1f");
-			
-			ImGui::Text("Statistics");
-			ImGui::Text("FPS : %f", ImGui::GetIO().Framerate);
-			ImGui::Text("Renderer : %s", m_GPUName);
-			ImGui::Text("VRAM : %i", m_GPUMem);
-		}
-		ImGui::End();
-
-		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
-		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
+		SettingsGui();
 
 		light->GetView(lView);
 		light->GetProjection(lProj);
@@ -155,5 +133,52 @@ namespace Yassin
 		}
 
 		m_Window.GetRenderer().EndScene();
+	}
+
+	void Application::SettingsGui()
+	{
+		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
+		DirectX::XMFLOAT3 lightLookAt = light->GetLookAt();
+
+		if (ImGui::Begin("Settings"))
+		{
+			ImGui::Text("Post-Processing Settings");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::Checkbox("Toggle Post-Processing", &m_Window.GetRenderer().PostProcessingEnabled());
+
+			if (m_Window.GetRenderer().PostProcessingEnabled())
+			{
+				ImGui::Text("Blur");
+				ImGui::Dummy(ImVec2(0.0f, 1.0f));
+				ImGui::Checkbox("Gaussian Blur", &m_Window.GetRenderer().GaussianBlurEnabled());
+				ImGui::Checkbox("Box Blur", &m_Window.GetRenderer().BoxBlurEnabled());
+			}
+
+			ImGui::Dummy(ImVec2(0.0f, 2.0f));
+
+			ImGui::Text("Light Position");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::SliderFloat("X", &lightPosition.x, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("Y", &lightPosition.y, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("Z", &lightPosition.z, -50.f, 50.f, "%.1f");
+
+			ImGui::Text("Light LookAt");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::SliderFloat("L_X", &lightLookAt.x, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("L_Y", &lightLookAt.y, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("L_Z", &lightLookAt.z, -50.f, 50.f, "%.1f");
+
+			ImGui::Dummy(ImVec2(0.0f, 2.0f));
+
+			ImGui::Text("Statistics");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::Text("FPS : %f", ImGui::GetIO().Framerate);
+			ImGui::Text("Renderer : %s", m_GPUName);
+			ImGui::Text("VRAM : %i", m_GPUMem);
+		}
+		ImGui::End();
+
+		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
+		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
 	}
 }

@@ -22,6 +22,7 @@ namespace Yassin
 		
 	private:
 		void Frame();
+		void SettingsGui();
 
 	private:
 		Window m_Window;
