@@ -17,6 +17,8 @@ namespace Yassin
 		void SetSampler(unsigned int slot, FilterType fType, AddressType aType);
 		void SetShadowMap(ID3D11ShaderResourceView* srv);
 
+		ID3D11ShaderResourceView* GetTexture(unsigned int slot);
+
 		inline bool IsIlluminated() const { return m_Illuminated; }
 
 		void UpdateLightBuffers(const LightPositionBuffer& lPos = {}, const LightPropertiesBuffer& lProps = {});

@@ -72,6 +72,12 @@ namespace Yassin
 		RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &srv);
 	}
 
+	ID3D11ShaderResourceView* MaterialInstance::GetTexture(unsigned int slot)
+	{
+		if (m_Textures.find(slot) == m_Textures.end()) return nullptr;
+		return m_Textures.find(slot)->second->GetTexture();
+	}
+
 	void MaterialInstance::UpdateLightBuffers(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps)
 	{
 		if(m_Illuminated)
