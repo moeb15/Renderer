@@ -12,6 +12,7 @@
 #include "Renderer/Resources/MaterialSystem.h"
 #include "Renderer/Resources/TextureLibrary.h"
 #include "Renderer/RenderToTexture.h"
+#include "Renderer/GBuffer.h"
 #include "Renderer/Post-Processing/Blur.h"
 #include <queue>
 #include <deque>
@@ -28,9 +29,11 @@ namespace Yassin
 		void Render(Camera& camera, DirectX::XMMATRIX& lightViewProj);
 
 		inline void TogglePostProcessing() { m_PostProcessingEnabled = !m_PostProcessingEnabled; }
+		inline void ToggleDeferredRendering() { m_DeferredRenderingEnabled = !m_DeferredRenderingEnabled; }
 
 	private:
 		void DepthPrePass(DirectX::XMMATRIX& lightViewProj);
+		void GBufferPass(Camera& camera);
 		void RenderSceneToTexture(Camera& camera);
 
 	private:
@@ -40,16 +43,20 @@ namespace Yassin
 		std::unique_ptr<RendererContext> m_Context;
 		std::unique_ptr<RenderToTexture> m_DepthPass;
 		std::unique_ptr<RenderToTexture> m_SceneTexture;
+		std::unique_ptr<GBuffer> m_GBuffer;
 		Blur m_BlurEffect;
 		OrthoWindow m_FullScreenWindow;
 		Sampler m_PostProcessSampler;
+		Sampler m_GBufferSampler;
 
 		std::queue<Renderable*> m_OpaqueRenderQueue;
 		std::queue<Renderable*> m_TransparentRenderQueue;
 		std::queue<Renderable*> m_DepthRenderQueue;
+		std::queue<Renderable*> m_GBufferQueue;
 		std::deque<Renderable*> m_Renderables;
 
 		float m_BackBufferColor[4];
 		bool m_PostProcessingEnabled;
+		bool m_DeferredRenderingEnabled;
 	};
 }

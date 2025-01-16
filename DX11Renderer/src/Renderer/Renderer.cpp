@@ -16,9 +16,14 @@ namespace Yassin
 		m_DepthPass = std::make_unique<RenderToTexture>();
 		m_DepthPass->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
 
+		m_GBuffer = std::make_unique<GBuffer>();
+		m_GBuffer->Init(width, height, 0.1f, 1000.f);
+
 		m_PostProcessingEnabled = false;
+		m_DeferredRenderingEnabled = false;
 
 		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Clamp);
+		m_GBufferSampler.Init(FilterType::Bilinear, AddressType::Wrap);
 
 		m_FullScreenWindow.Init(width, height);
 
@@ -37,13 +42,16 @@ namespace Yassin
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
 		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
 		ShaderLibrary::Add("Unlit Texture Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/UnlitTexturePS.cso");
-		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
 		ShaderLibrary::Add("Shadow Map Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
-		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/DefaultVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
-		ShaderLibrary::Add("Box Blur Shader", L"src/Shaders/CSO/DefaultVS.cso", L"src/Shaders/CSO/BoxBlurPS.cso");
+
+		ShaderLibrary::Add("GBuffer Shader", L"src/Shaders/CSO/DeferredVS.cso", L"src/Shaders/CSO/DeferredPS.cso");
+		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
+		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
+		ShaderLibrary::Add("Box Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/BoxBlurPS.cso");
 
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
+		MaterialSystem::Add("Flat Material", ShaderLibrary::Get("Unlit Texture Shader"));
 		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
 		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
 		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Shadow Map Shader"));
@@ -80,6 +88,7 @@ namespace Yassin
 		else
 		{
 			m_OpaqueRenderQueue.push(renderable);
+			m_GBufferQueue.push(renderable);
 			if (std::find(m_Renderables.begin(), m_Renderables.end(), renderable) == m_Renderables.end())
 				m_Renderables.push_front(renderable);
 		}
@@ -95,6 +104,12 @@ namespace Yassin
 			m_BackBufferColor[1],
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
+
+		if(m_DeferredRenderingEnabled)
+		{
+			// Testing for now
+			GBufferPass(camera);
+		}
 
 		if (m_PostProcessingEnabled)
 		{
@@ -129,18 +144,18 @@ namespace Yassin
 			return;
 		}
 
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+
+		camera.GetViewMatrix(view);
+		camera.GetProjectionMatrix(proj);
+
+		DirectX::XMMATRIX viewProj =
+			DirectX::XMMatrixMultiply(view, proj);
+
 		while(!m_OpaqueRenderQueue.empty())
 		{
 			Renderable* rPtr = m_OpaqueRenderQueue.front();
-
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX proj;
-
-			camera.GetViewMatrix(view);
-			camera.GetProjectionMatrix(proj);
-
-			DirectX::XMMATRIX viewProj =
-				DirectX::XMMatrixMultiply(view, proj);
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(viewProj);
@@ -154,15 +169,6 @@ namespace Yassin
 		while (!m_TransparentRenderQueue.empty())
 		{
 			Renderable* rPtr = m_TransparentRenderQueue.front();
-
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX proj;
-
-			camera.GetViewMatrix(view);
-			camera.GetProjectionMatrix(proj);
-
-			DirectX::XMMATRIX viewProj =
-				DirectX::XMMatrixMultiply(view, proj);
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(viewProj);
@@ -196,8 +202,52 @@ namespace Yassin
 		RendererContext::ResetViewport();
 	}
 
+	void Renderer::GBufferPass(Camera& camera)
+	{
+		m_GBuffer->SetRenderTargets();
+		m_GBuffer->ClearRenderTargets(0.0f, 0.0f, 0.0f, 1.0f);
+
+		std::pair<VertexShader*, PixelShader*> gBufferShaders = ShaderLibrary::Get("GBuffer Shader");
+
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+
+		camera.GetViewMatrix(view);
+		camera.GetProjectionMatrix(proj);
+
+		DirectX::XMMATRIX viewProj =
+			DirectX::XMMatrixMultiply(view, proj);
+
+		while (!m_GBufferQueue.empty())
+		{
+			Renderable* rPtr = m_GBufferQueue.front();
+
+			gBufferShaders.second->SetTexture(TextureSlot::BaseTexture,
+				rPtr->GetMaterialInstance()->GetTexture(TextureSlot::BaseTexture));
+			m_GBufferSampler.Bind(SamplerSlot::WrapSampler);
+			gBufferShaders.first->Bind();
+			gBufferShaders.second->Bind();
+
+			rPtr->Render(viewProj, true);
+
+			m_GBufferQueue.pop();
+		}
+
+		RendererContext::SetBackBufferRenderTarget();
+		RendererContext::ResetViewport();
+	}
+
 	void Renderer::RenderSceneToTexture(Camera& camera)
 	{
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+
+		camera.GetViewMatrix(view);
+		camera.GetProjectionMatrix(proj);
+
+		DirectX::XMMATRIX viewProj =
+			DirectX::XMMatrixMultiply(view, proj);
+
 		m_SceneTexture->SetRenderTarget();
 		m_SceneTexture->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -206,14 +256,6 @@ namespace Yassin
 		for(int i = 0; i < m_Renderables.size(); i++)
 		{
 			Renderable* rPtr = m_Renderables[i];
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX proj;
-
-			camera.GetViewMatrix(view);
-			camera.GetProjectionMatrix(proj);
-
-			DirectX::XMMATRIX viewProj =
-				DirectX::XMMatrixMultiply(view, proj);
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(viewProj);
