@@ -16,6 +16,8 @@ struct VSIn
     float4 position : POSITION;
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
     float3 instancePosition : INSTANCEPOS;
 };
 

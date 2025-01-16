@@ -1,5 +1,5 @@
 Texture2D baseTexture		: register(t0);
-Texture2D depthMapTexture	: register(t1);
+Texture2D depthMapTexture	: register(t3);
 SamplerState clampSampler	: register(s0);
 SamplerState wrapSampler	: register(s1);
 
