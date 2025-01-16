@@ -21,7 +21,9 @@ namespace Yassin
 	public:
 		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false) const;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
-		
+		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const;
+		virtual void UpdateLightDirection(const LightDirectionType& lDir) const;
+
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
 
 		virtual MaterialInstance* GetMaterialInstance(unsigned int meshIdx = 0) const { return m_Material.get(); }

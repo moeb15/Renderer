@@ -13,7 +13,7 @@ namespace Yassin
         m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
         m_TransformBuffer->SetTransformBuffer();
 
-        if (!bIgnoreMaterial)
+        if (!bIgnoreMaterial || !m_Material)
             m_Material->BindMaterial();
 
         if (!m_InstancedDraw)
@@ -26,6 +26,16 @@ namespace Yassin
     void Renderable::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
     {
         m_Material->UpdateLightBuffers(lPos, lProps);
+    }
+
+    void Renderable::UpdateCameraPosition(const CameraPositionType& cPos) const
+    {
+        m_Material->UpdateCameraBuffer(cPos);
+    }
+
+    void Renderable::UpdateLightDirection(const LightDirectionType& lDir) const
+    {
+        m_Material->UpdateLightDirection(lDir);
     }
 
     void Renderable::UpdateTransparency(float blendAmount)
