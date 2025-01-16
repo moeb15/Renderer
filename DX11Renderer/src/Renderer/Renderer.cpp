@@ -21,13 +21,16 @@ namespace Yassin
 
 		m_PostProcessingEnabled = false;
 		m_DeferredRenderingEnabled = false;
+		m_BoxBlurEnabled = false;
+		m_GaussianBlurEnabled = false;
 
 		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Clamp);
 		m_GBufferSampler.Init(FilterType::Bilinear, AddressType::Wrap);
 
 		m_FullScreenWindow.Init(width, height);
 
-		m_BlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::BoxBlur);
+		m_BoxBlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::BoxBlur);
+		m_GaussianBlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::GaussianBlur);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -114,32 +117,7 @@ namespace Yassin
 		if (m_PostProcessingEnabled)
 		{
 			RenderSceneToTexture(camera);
-
-			RendererContext::DisableZBuffer();
-
-			m_BlurEffect.BlurScene(camera, m_SceneTexture.get());
-			std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Unlit Texture Shader");
-
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX proj;
-			DirectX::XMMATRIX viewProj;
-
-			camera.GetDefaultView(view);
-			m_SceneTexture->GetOrthoMatrix(proj);
-
-			viewProj = DirectX::XMMatrixMultiply(view, proj);
-
-			m_FullScreenWindow.Render(viewProj);
-			textureShader.second->SetTexture(0, m_SceneTexture->GetSRV());
-			m_PostProcessSampler.Bind(0);
-			textureShader.first->Bind();
-			textureShader.second->Bind();
-			RendererContext::GetDeviceContext()->DrawIndexed(6, 0, 0);
-
-			ID3D11ShaderResourceView* nullSRV = { nullptr };
-			RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
-			
-			RendererContext::EnableZBuffer();
+			PostProcessedScene(camera);
 
 			return;
 		}
@@ -266,5 +244,37 @@ namespace Yassin
 
 		RendererContext::SetBackBufferRenderTarget();
 		RendererContext::ResetViewport();
+	}
+
+	void Renderer::PostProcessedScene(Camera& camera)
+	{
+		RendererContext::DisableZBuffer();
+
+		if(m_BoxBlurEnabled) m_BoxBlurEffect.BlurScene(camera, m_SceneTexture.get());
+		if(m_GaussianBlurEnabled) m_GaussianBlurEffect.BlurScene(camera, m_SceneTexture.get());
+
+
+		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Unlit Texture Shader");
+
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+		DirectX::XMMATRIX viewProj;
+
+		camera.GetDefaultView(view);
+		m_SceneTexture->GetOrthoMatrix(proj);
+
+		viewProj = DirectX::XMMatrixMultiply(view, proj);
+
+		m_FullScreenWindow.Render(viewProj);
+		textureShader.second->SetTexture(0, m_SceneTexture->GetSRV());
+		m_PostProcessSampler.Bind(0);
+		textureShader.first->Bind();
+		textureShader.second->Bind();
+		RendererContext::GetDeviceContext()->DrawIndexed(6, 0, 0);
+
+		ID3D11ShaderResourceView* nullSRV = { nullptr };
+		RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
+
+		RendererContext::EnableZBuffer();
 	}
 }

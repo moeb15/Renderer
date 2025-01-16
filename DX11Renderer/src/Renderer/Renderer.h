@@ -31,10 +31,15 @@ namespace Yassin
 		inline void TogglePostProcessing() { m_PostProcessingEnabled = !m_PostProcessingEnabled; }
 		inline void ToggleDeferredRendering() { m_DeferredRenderingEnabled = !m_DeferredRenderingEnabled; }
 
+		inline bool& PostProcessingEnabled() { return m_PostProcessingEnabled; }
+		inline bool& GaussianBlurEnabled() { return m_GaussianBlurEnabled; }
+		inline bool& BoxBlurEnabled() { return m_BoxBlurEnabled; }
+
 	private:
 		void DepthPrePass(DirectX::XMMATRIX& lightViewProj);
 		void GBufferPass(Camera& camera);
 		void RenderSceneToTexture(Camera& camera);
+		void PostProcessedScene(Camera& camera);
 
 	private:
 		std::unique_ptr<TextureLibrary> m_TextureLibrary;
@@ -44,7 +49,9 @@ namespace Yassin
 		std::unique_ptr<RenderToTexture> m_DepthPass;
 		std::unique_ptr<RenderToTexture> m_SceneTexture;
 		std::unique_ptr<GBuffer> m_GBuffer;
-		Blur m_BlurEffect;
+
+		Blur m_GaussianBlurEffect;
+		Blur m_BoxBlurEffect;
 		OrthoWindow m_FullScreenWindow;
 		Sampler m_PostProcessSampler;
 		Sampler m_GBufferSampler;
@@ -57,6 +64,8 @@ namespace Yassin
 
 		float m_BackBufferColor[4];
 		bool m_PostProcessingEnabled;
+		bool m_GaussianBlurEnabled;
+		bool m_BoxBlurEnabled;
 		bool m_DeferredRenderingEnabled;
 	};
 }
