@@ -8,16 +8,24 @@ namespace Yassin
 		DepthMapTexture,
 	};
 
+	enum SamplerSlot
+	{
+		ClampSampler = 0,
+		WrapSampler,
+	};
+
 	enum VSBufferSlot
 	{
 		Matrix = 0,
 		LightPosition,
+		CameraPosition,
 	};
 
 	enum PSBufferSlot
 	{
 		LightProperties = 0,
 		Transparency,
+		LightDirection,
 	};
 
 	enum class ObjectType

@@ -177,7 +177,10 @@ namespace Yassin
 				{
 					m_Renderer->TogglePostProcessing();
 				}
-
+				if (wParam == VK_F4)
+				{
+					m_Renderer->ToggleDeferredRendering();
+				}
 
 				m_Input.OnKeyPressed(static_cast<unsigned char>(wParam));
 				break;

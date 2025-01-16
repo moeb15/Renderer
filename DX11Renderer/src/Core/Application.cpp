@@ -13,16 +13,17 @@ namespace Yassin
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
-		light->SetPosition(0.0f, 20.f, -6.f);
+		light->SetPosition(0.0f, 10.f, -6.f);
 		light->SetLookAt(0.0f, 0.0f, 0.0f);
 
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX rot;
+		DirectX::XMMATRIX translate;
 
 		std::vector<InstancePosition> boxPositions =
 		{
 			{{0.0f, 0.0f, 0.0f}},
-			{{-4.f, 0.0f, 0.0f}}
+			{{-10.f, 0.0f, 0.0f}}
 		};
 
 		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
@@ -41,7 +42,10 @@ namespace Yassin
 
 
 		world = DirectX::XMMatrixIdentity();
-		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/nanosuit.obj", world);
+		world = DirectX::XMMatrixScaling(0.5f, 0.5f, 0.5f);
+		translate = DirectX::XMMatrixTranslation(0.0f, -0.5f, 0.f);
+		world = DirectX::XMMatrixMultiply(world, translate);
+		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/nanosuit.obj", world, &boxPositions);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -115,7 +119,7 @@ namespace Yassin
 
 		//box->Rotate(dt * 10.f, 0.0f, 0.0f);
 		
-		testModel->Rotate(dt * 10.f, 0.0f, 0.0f);
+		//testModel->Rotate(dt * 10.f, 0.0f, 0.0f);
 
 		plane->UpdateLighting(
 			{ lViewProj, light->GetPosition() },
@@ -134,9 +138,9 @@ namespace Yassin
 
 		m_Window.GetRenderer().Submit(testModel.get());
 
-		m_Window.GetRenderer().Submit(transparentBox.get());
+		//m_Window.GetRenderer().Submit(transparentBox.get());
 
-		m_Window.GetRenderer().Submit(box.get());
+		//m_Window.GetRenderer().Submit(box.get());
 		m_Window.GetRenderer().Submit(plane.get());
 
 		m_Window.GetRenderer().Render(m_CameraController.GetCamera(), lViewProj);
