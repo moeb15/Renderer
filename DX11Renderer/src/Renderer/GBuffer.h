@@ -16,8 +16,7 @@ namespace Yassin
 	class GBuffer
 	{
 	public:
-		void Init(unsigned int renderWidth, unsigned int renderHeight,
-			float sNear, float sFar, RenderTargetType type);
+		void Init(unsigned int renderWidth, unsigned int renderHeight, float sNear, float sFar);
 		
 		void SetRenderTargets();
 		void ClearRenderTargets(float r, float g, float b, float a);

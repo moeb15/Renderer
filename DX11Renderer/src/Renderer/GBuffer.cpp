@@ -3,7 +3,7 @@
 
 namespace Yassin
 {
-	void GBuffer::Init(unsigned int renderWidth, unsigned int renderHeight, float sNear, float sFar, RenderTargetType type)
+	void GBuffer::Init(unsigned int renderWidth, unsigned int renderHeight, float sNear, float sFar)
 	{
 		m_Width = renderWidth;
 		m_Height = renderHeight;
@@ -14,7 +14,7 @@ namespace Yassin
 		tDesc.Height = renderHeight;
 		tDesc.MipLevels = 1;
 		tDesc.ArraySize = 1;
-		tDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		tDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		tDesc.SampleDesc.Count = 1;
 		tDesc.SampleDesc.Quality = 0;
 		tDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -114,6 +114,6 @@ namespace Yassin
 			RendererContext::GetDeviceContext()->ClearRenderTargetView(m_RTV[i].Get(), color);
 		}
 
-		RendererContext::GetDeviceContext()->ClearDepthStencilView(m_DSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		RendererContext::GetDeviceContext()->ClearDepthStencilView(m_DSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 }
