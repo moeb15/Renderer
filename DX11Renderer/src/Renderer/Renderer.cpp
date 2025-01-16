@@ -46,6 +46,7 @@ namespace Yassin
 		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
 		ShaderLibrary::Add("Unlit Texture Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/UnlitTexturePS.cso");
 		ShaderLibrary::Add("Shadow Map Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
+		ShaderLibrary::Add("PBR Shader", L"src/Shaders/CSO/PBR_VS.cso", L"src/Shaders/CSO/PBR_PS.cso");
 
 		ShaderLibrary::Add("GBuffer Shader", L"src/Shaders/CSO/DeferredVS.cso", L"src/Shaders/CSO/DeferredPS.cso");
 		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
@@ -58,6 +59,7 @@ namespace Yassin
 		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
 		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
 		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Shadow Map Shader"));
+		MaterialSystem::Add("PBR Material", ShaderLibrary::Get("PBR Shader"));
 	}
 	
 	void Renderer::BeginScene(float r, float g, float b, float a)
