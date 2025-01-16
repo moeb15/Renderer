@@ -46,6 +46,18 @@ namespace Yassin
 		DirectX::XMFLOAT4 color = DirectX::XMFLOAT4(0.5f, 0.0f, 0.0f, 1.0f);
 	};
 
+	struct CameraPositionType
+	{
+		DirectX::XMFLOAT3 cameraPos = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+		float padding;
+	};
+
+	struct LightDirectionType
+	{
+		DirectX::XMFLOAT3 lightDir = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
+		float padding;
+	};
+
 	template<typename C>
 	class ConstantBuffer
 	{
@@ -133,6 +145,10 @@ namespace Yassin
 	class TransparencyBuffer : public PixelConstantBuffer<BlendBuffer> {};
 
 	class FlatColorBuffer : public PixelConstantBuffer<FlatColorBufferType> {};
+
+	class CameraBuffer : public PixelConstantBuffer<CameraPositionType> {};
+
+	class LightDirectionBuffer : public PixelConstantBuffer<LightDirectionType> {};
 
 	class ScreenBuffer : public PixelConstantBuffer<ScreenPropertiesBuffer> 
 	{

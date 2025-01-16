@@ -38,6 +38,9 @@ namespace Yassin
 			m_Transparent = false;
 		}
 
+		m_LightDirectionBuffer = std::make_unique<LightDirectionBuffer>();
+		m_CameraBuffer = std::make_unique<CameraBuffer>();
+
 		for(const TextureMetaData& tData : material->GetTextures())
 		{
 			m_Textures.emplace(tData.slot, nullptr);
@@ -96,11 +99,24 @@ namespace Yassin
 		if(m_Transparent) m_TransparencyBuffer->UpdateBuffer(tBuffer);
 	}
 
+	void MaterialInstance::UpdateCameraBuffer(const CameraPositionType& cPos)
+	{
+		m_CameraBuffer->UpdateBuffer(cPos);
+	}
+
+	void MaterialInstance::UpdateLightDirection(const LightDirectionType& lDir)
+	{
+		m_LightDirectionBuffer->UpdateBuffer(lDir);
+	}
+
 	void MaterialInstance::BindMaterial()
 	{
 		if(m_Illuminated) m_LightPosBuffer->Bind(VSBufferSlot::LightPosition);
 		if(m_Illuminated) m_LightPropsBuffer->Bind(PSBufferSlot::LightProperties);
 		if(m_Transparent) m_TransparencyBuffer->Bind(PSBufferSlot::Transparency);
+
+		m_CameraBuffer->Bind(VSBufferSlot::CameraPosition);
+		m_LightDirectionBuffer->Bind(PSBufferSlot::LightDirection);
 
 		for(const auto& kvPair : m_Textures)
 		{
@@ -108,7 +124,7 @@ namespace Yassin
 			{
 				if (kvPair.first == TextureSlot::DepthMapTexture) continue;
 			}
-			kvPair.second->Bind(kvPair.first);
+			if (kvPair.second != nullptr) kvPair.second->Bind(kvPair.first);
 		}
 
 		for(const auto& kvPair : m_Samplers) kvPair.second->Bind(kvPair.first);

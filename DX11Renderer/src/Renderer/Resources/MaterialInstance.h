@@ -23,6 +23,8 @@ namespace Yassin
 
 		void UpdateLightBuffers(const LightPositionBuffer& lPos = {}, const LightPropertiesBuffer& lProps = {});
 		void UpdateTransparencyBuffer(const BlendBuffer& tBuffer = {});
+		void UpdateCameraBuffer(const CameraPositionType& cPos = {});
+		void UpdateLightDirection(const LightDirectionType& lDir = {});
 
 		inline VertexShader* GetVertexShader() { return m_VertexShader; }
 		inline PixelShader* GetPixelShader() { return m_PixelShader; }
@@ -36,6 +38,8 @@ namespace Yassin
 		std::unique_ptr<LightPosBuffer> m_LightPosBuffer;
 		std::unique_ptr<LightPropsBuffer> m_LightPropsBuffer;
 		std::unique_ptr<TransparencyBuffer> m_TransparencyBuffer;
+		std::unique_ptr<LightDirectionBuffer> m_LightDirectionBuffer;
+		std::unique_ptr<CameraBuffer> m_CameraBuffer;
 		bool m_Illuminated;
 		bool m_Transparent;
 		VertexShader* m_VertexShader;
