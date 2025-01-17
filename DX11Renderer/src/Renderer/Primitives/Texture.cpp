@@ -19,7 +19,7 @@ namespace Yassin
 			return false;
 		}
 
-		unsigned int rowPitch = m_Width * m_Channels;
+		unsigned int rowPitch = m_Width * 4;
 
 		D3D11_TEXTURE2D_DESC tDesc = {};
 		tDesc.Height = m_Height;
@@ -59,6 +59,8 @@ namespace Yassin
 		}
 
 		RendererContext::GetDeviceContext()->GenerateMips(m_SRV.Get());
+
+		stbi_image_free(imageData);
 
 		return true;
 	}
