@@ -16,7 +16,6 @@ namespace Yassin
 		s_Instance->m_Materials.clear();
 	}
 
-	// TODO : Need to record input layout of vertex shader to allow for creation of input layout object in material instances
 	void MaterialSystem::Add(const std::string& name, std::pair<VertexShader*, PixelShader*> shaderPair)
 	{
 		if(s_Instance->m_Materials.find(name) != s_Instance->m_Materials.end()) 
@@ -61,75 +60,6 @@ namespace Yassin
 
 		newMaterial->SetLightFlag(pixelShaderDesc.ConstantBuffers >= 1 || vertexShaderDesc.ConstantBuffers > 1);
 		newMaterial->SetTransparencyFlag(pixelShaderDesc.ConstantBuffers >= 2);
-
-		// iterate over constant buffers, slot 0 is reserved for transform buffer
-		// UPDATE : Going to avoid iterating over constant buffers for now, will just have
-		// the same constant buffers available in each shader for the sake of consistency,
-		// only iterating over shader resources and samplers, may change in the future 
-		// which is why the following is only commented out instead of removed
-
-		/*for (int i = 1; i < vertexShaderDesc.ConstantBuffers; i++)
-		{
-			D3D11_SHADER_BUFFER_DESC bufferDesc = {};
-			ID3D11ShaderReflectionConstantBuffer* cBuffer = pVertexRef->GetConstantBufferByIndex(i);
-			cBuffer->GetDesc(&bufferDesc);
-
-			CBufferMetaData cBufferData;
-			cBufferData.type = CBufferType::VS;
-			cBufferData.name = bufferDesc.Name;
-			cBufferData.size = bufferDesc.Size;
-			cBufferData.slot = i;
-
-			for(int j = 0; j < bufferDesc.Variables; j++)
-			{
-				ID3D11ShaderReflectionVariable* var = cBuffer->GetVariableByIndex(j);
-				ID3D11ShaderReflectionType* type = var->GetType();
-				D3D11_SHADER_VARIABLE_DESC varDesc = {};
-				D3D11_SHADER_TYPE_DESC tDesc = {};
-				type->GetDesc(&tDesc);
-				var->GetDesc(&varDesc);
-
-				CBufferVariableData cbufVar;
-				cbufVar.name = varDesc.Name;
-				cbufVar.type = tDesc.Type;
-				cbufVar.size = varDesc.Size;
-
-				cBufferData.variables.push_back(cbufVar);
-			}
-			newMaterial->AddCBuffer(cBufferData);
-		}
-
-		// iterate over constant buffers, slot 0 is reserved for light buffer
-		for (int i = 1; i < pixelShaderDesc.ConstantBuffers; i++)
-		{
-			D3D11_SHADER_BUFFER_DESC bufferDesc = {};
-			ID3D11ShaderReflectionConstantBuffer* cBuffer = pPixelRef->GetConstantBufferByIndex(i);
-			cBuffer->GetDesc(&bufferDesc);
-
-			CBufferMetaData cBufferData;
-			cBufferData.type = CBufferType::PS;
-			cBufferData.name = bufferDesc.Name;
-			cBufferData.size = bufferDesc.Size;
-			cBufferData.slot = i;
-
-			for (int j = 0; j < bufferDesc.Variables; j++)
-			{
-				ID3D11ShaderReflectionVariable* var = cBuffer->GetVariableByIndex(j);
-				ID3D11ShaderReflectionType* type = var->GetType();
-				D3D11_SHADER_VARIABLE_DESC varDesc = {};
-				D3D11_SHADER_TYPE_DESC tDesc = {};
-				type->GetDesc(&tDesc);
-				var->GetDesc(&varDesc);
-
-				CBufferVariableData cbufVar;
-				cbufVar.name = varDesc.Name;
-				cbufVar.type = tDesc.Type;
-				cbufVar.size = varDesc.Size;
-
-				cBufferData.variables.push_back(cbufVar);
-			}
-			newMaterial->AddCBuffer(cBufferData);
-		}*/
 
 		// iterate over shader resources
 		for(unsigned int i = 0; i < pixelShaderDesc.BoundResources; i++)

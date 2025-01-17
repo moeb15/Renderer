@@ -2,7 +2,6 @@
 #include "Renderer/Renderable.h"
 #include <unordered_map>
 
-// TODO : Need to record input layout of vertex shader to allow for creation of input layout object in material instances
 namespace Yassin
 {
 	enum class CBufferType
@@ -10,24 +9,6 @@ namespace Yassin
 		PS,
 		VS,
 	};
-
-	// See changes in MaterialSystem.cpp as to why CBuffers have been removed
-	// from Material.h
-	/*struct CBufferVariableData
-	{
-		LPCSTR name;
-		D3D_SHADER_VARIABLE_TYPE type;
-		unsigned int size;
-	};
-
-	struct CBufferMetaData
-	{
-		CBufferType type;
-		LPCSTR name;
-		unsigned int size;
-		unsigned int slot;
-		std::vector<CBufferVariableData> variables;
-	};*/
 
 	struct TextureMetaData
 	{
@@ -60,7 +41,6 @@ namespace Yassin
 			m_SamplerMetaData.push_back({ name, slot });
 		}
 
-		//inline const std::vector<CBufferMetaData>& GetCBuffers() { return m_CbufferMetaData; }
 		inline const std::vector<TextureMetaData>& GetTextures() { return m_TextureMetaData; }
 		inline const std::vector<SamplerMetaData>& GetSamplers() { return m_SamplerMetaData; }
 
@@ -78,7 +58,6 @@ namespace Yassin
 		inline PixelShader* GetPixelShader() const { return m_PixelShader; }
 
 	private:
-		//std::vector<CBufferMetaData> m_CbufferMetaData;
 		bool m_LightFlag = false;
 		bool m_TransparencyFlag = false;
 		std::vector<TextureMetaData> m_TextureMetaData;

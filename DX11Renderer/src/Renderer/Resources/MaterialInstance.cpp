@@ -6,13 +6,6 @@ namespace Yassin
 {
 	MaterialInstance::MaterialInstance(Material* material)
 	{
-		// TOOD: iterate over material constant buffers to create constant buffers for material instance
-		// Update : See MaterialSystem.cpp as to why CBuffers were removed
-		/*for (const CBufferMetaData& cData : material->GetCBuffers())
-		{
-			continue;
-		}*/
-
 		if(material->IsIlluminated())
 		{
 			m_LightPosBuffer = std::make_unique<LightPosBuffer>();
@@ -136,9 +129,9 @@ namespace Yassin
 	void MaterialInstance::UnbindShaderResources()
 	{
 		ID3D11ShaderResourceView* nullSRV = { nullptr };
-		for(const auto& kvPair : m_Textures)
+		for(unsigned int i = 0; i < TextureSlot::TEXTURE_COUNT; i++)
 		{
-			RendererContext::GetDeviceContext()->PSSetShaderResources(kvPair.first, 1, &nullSRV);
+			RendererContext::GetDeviceContext()->PSSetShaderResources(i, 1, &nullSRV);
 		}
 	}
 }
