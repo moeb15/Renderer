@@ -1,4 +1,4 @@
-#include "Renderer/CameraController.h"
+#include "Renderer/Camera/CameraController.h"
 #include "Core/Input.h"
 #include <Windows.h>
 
@@ -40,6 +40,28 @@ namespace Yassin
 			m_Position.y -= m_Camera.GetForwardVector().y * m_CameraMoveSpeed * dt;
 			m_Position.z -= m_Camera.GetForwardVector().z * m_CameraMoveSpeed * dt;
 			m_Camera.SetPosition(m_Position.x, m_Position.y, m_Position.z);
+		}
+		if(Input::IsKeyDown('O'))
+		{
+			if(m_CameraMoveSpeed < 100.f)
+			{
+				m_CameraMoveSpeed += 10.f * dt;
+			}
+			else
+			{
+				m_CameraMoveSpeed = 100.f;
+			}
+		}
+		if(Input::IsKeyDown('P'))
+		{
+			if(m_CameraMoveSpeed > 1.0f)
+			{
+				m_CameraMoveSpeed -= 10.f * dt;
+			}
+			else
+			{
+				m_CameraMoveSpeed = 1.0f;
+			}
 		}
 
 		if (Input::ShouldProcessRawMouseMove())

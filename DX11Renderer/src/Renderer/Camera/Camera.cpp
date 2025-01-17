@@ -1,4 +1,4 @@
-#include "Renderer/Camera.h"
+#include "Renderer/Camera/Camera.h"
 
 
 namespace Yassin
