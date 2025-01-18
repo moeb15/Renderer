@@ -38,7 +38,7 @@ namespace Yassin
 			m_SpecularColor = DirectX::XMFLOAT4(r, g, b, a);
 		}
 
-		inline void SetSepcularPower(float x) { m_SpecularPower = x; }
+		inline void SetSpecularPower(float x) { m_SpecularPower = x; }
 
 		inline void SetPosition(float x, float y, float z)
 		{

@@ -66,8 +66,11 @@ namespace Yassin
 			20, 21, 22, 20, 22, 23
 		};
 
-		if (instancePositions) m_InstancedDraw = true;
-
+		if (instancePositions)
+		{
+			m_InstancedDraw = true;
+			m_InstancePositions = *instancePositions;
+		}
 		m_VertexBuffer = std::make_unique<VertexBuffer>(vData, instancePositions);
 		m_IndexBuffer = std::make_unique<IndexBuffer>(indices);
 
@@ -78,5 +81,12 @@ namespace Yassin
 		m_Material->SetTexture(TextureSlot::BaseTexture, "Stone");
 		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
+
+		m_BoundingBox = DirectX::BoundingBox(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f));
+		m_BoundX = 0.75f;
+		m_BoundY = 0.75f;
+		m_BoundZ = 0.75f;
+
+		ConstructBoundingVolume(world);
 	}
 }

@@ -8,8 +8,9 @@ namespace Yassin
 	class Mesh : public Renderable
 	{
 	public:
-		Mesh(std::string material, DirectX::XMMATRIX world, std::vector<Vertex>& vertices,
-			std::vector<unsigned long>& indices,std::vector<InstancePosition>* instancePositions = nullptr);
+		Mesh(std::string material, DirectX::XMMATRIX modelWorld, DirectX::XMMATRIX meshWorld, std::vector<Vertex>& vertices,
+			std::vector<unsigned long>& indices, float boundsX, float boundsY, float boundsZ, 
+			std::vector<InstancePosition>* instancePositions = nullptr);
 
 	};
 }

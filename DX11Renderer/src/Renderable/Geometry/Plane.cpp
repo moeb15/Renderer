@@ -18,6 +18,13 @@ namespace Yassin
 		m_Material->SetTexture(TextureSlot::BaseTexture, "Metal");
 		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
+
+		m_BoundingBox = DirectX::BoundingBox(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(dimX + 0.25f, 1.25f, dimY + 0.25f));
+		m_BoundX = dimX + 0.25f;
+		m_BoundY = 1.25f;
+		m_BoundZ = dimY + 0.25f;
+
+		ConstructBoundingVolume(world);
 	}
 
 	void Plane::GeneratePlane()

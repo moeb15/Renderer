@@ -13,11 +13,11 @@ namespace Yassin
 	{
 	public:
 		Model(std::string material, const std::string& modelFile, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions = nullptr);
-		void ProcessNode(aiNode* node, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions);
-		void ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions);
+		void ProcessNode(aiNode* node, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions, aiMatrix4x4 parentTransform);
+		void ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions, aiMatrix4x4 nodeTransform);
 		std::string LoadMaterialTextures(aiMaterial* material, aiTextureType texType, const aiScene* scene);
 
-		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false) const override;
+		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false) override;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const override;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const override;

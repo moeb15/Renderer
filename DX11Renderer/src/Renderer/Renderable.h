@@ -11,6 +11,9 @@
 
 #include "Renderer/Resources/ShaderLibrary.h"
 #include "Renderer/DataTypeEnums.h"
+#include "Renderer/Camera/Camera.h"
+
+#include <DirectXCollision.h>
 
 namespace Yassin
 {
@@ -19,12 +22,14 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		virtual void Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false) const;
+		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false);
+		virtual void RenderBoundingVolume(DirectX::XMMATRIX& viewProj);
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const;
 
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
+		virtual void UpdateBoundingVolume() { m_BoundingBox.Transform(m_BoundingBox, m_TransformBuffer->GetWorld()); }
 
 		virtual MaterialInstance* GetMaterialInstance(unsigned int meshIdx = 0) const { return m_Material.get(); }
 		virtual VertexBuffer* GetVertexBuffer(unsigned int meshIdx = 0) const { return m_VertexBuffer.get(); }
@@ -37,6 +42,8 @@ namespace Yassin
 		void SetObjectVisiblity(ObjectVisibility visibility) { m_ObjectVisibility = visibility; }
 		void SetObjectType(ObjectType objectType) { m_ObjectType = objectType; }
 
+		void ConstructBoundingVolume(DirectX::XMMATRIX& world);
+
 		virtual void Translate(float x, float y, float z);
 		virtual void Rotate(float yaw, float pitch, float roll);
 		virtual void Scale(float x, float y, float z);
@@ -46,9 +53,22 @@ namespace Yassin
 		std::unique_ptr<MaterialInstance> m_Material;
 		std::unique_ptr<VertexBuffer> m_VertexBuffer;
 		std::unique_ptr<IndexBuffer> m_IndexBuffer;
+		std::vector<InstancePosition> m_InstancePositions;
+		DirectX::BoundingBox m_BoundingBox;
 		Topology m_Topology;
 		ObjectType m_ObjectType = ObjectType::Geometry;
 		ObjectVisibility m_ObjectVisibility = ObjectVisibility::Opaque;
 		bool m_InstancedDraw = false;
+		float m_BoundX;
+		float m_BoundY;
+		float m_BoundZ;
+
+	private:
+		std::unique_ptr<VertexBuffer> m_BoundingVBuffer;
+		std::unique_ptr<IndexBuffer> m_BoundingIBuffer;
+		std::unique_ptr<TransformBuffer> m_BoundingTransform;
+
+		Sampler m_BoundingSampler;
+		Topology m_BoundingTopology;
 	};
 }

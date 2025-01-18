@@ -7,44 +7,60 @@
 #include <assimp/postprocess.h>
 #include "Model.h"
 
+constexpr float negInf = -std::numeric_limits<float>::infinity();
+constexpr float posInf = std::numeric_limits<float>::infinity();
+
 namespace Yassin
 {
 	Model::Model(std::string material, const std::string& modelFile, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
 	{
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
+		const aiScene* pScene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
 		if (!pScene) return;
 		m_RootTransform = pScene->mRootNode->mTransformation;
 		size_t lastSlash = modelFile.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
 		m_ModelDirectory = modelFile.substr(0, lastSlash) + "Textures/";
-		ProcessNode(pScene->mRootNode, pScene, material, world, instancePositions);
+		ProcessNode(pScene->mRootNode, pScene, material, world, instancePositions, m_RootTransform);
 	}
 
-	void Model::ProcessNode(aiNode* node, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
+	void Model::ProcessNode(aiNode* node, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions, aiMatrix4x4 parentTransform)
 	{
 		for(unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
 			aiMesh* pMesh = scene->mMeshes[node->mMeshes[i]];
-			ProcessMesh(node, pMesh, scene, material, world, instancePositions);
+			ProcessMesh(node, pMesh, scene, material, world, instancePositions, parentTransform);
 		}
 
 		for(unsigned int i = 0; i < node->mNumChildren; i++)
 		{
-			ProcessNode(node->mChildren[i], scene, material, world, instancePositions);
+			aiMatrix4x4 childTransform = node->mChildren[i]->mTransformation;
+			ProcessNode(node->mChildren[i], scene, material, world, instancePositions, childTransform * parentTransform);
 		}
 	}
 
-	void Model::ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
+	void Model::ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions, aiMatrix4x4 nodeTransform)
 	{
+		float meshBoundsMaxX = negInf;
+		float meshBoundsMaxY = negInf;
+		float meshBoundsMaxZ = negInf;
+
+		float meshBoundsMinX = posInf;
+		float meshBoundsMinY = posInf;
+		float meshBoundsMinZ = posInf;
+
+		float meshBoundsX;
+		float meshBoundsY;
+		float meshBoundsZ;
+
 		std::vector<Vertex> vData = {};
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vertex v;
-			aiVector3D transformedPos = node->mTransformation * mesh->mVertices[i];
+			aiVector3D transformedPos = nodeTransform * mesh->mVertices[i];
 			aiVector3D normal = mesh->mNormals[i];
 			aiVector3D tangent = mesh->mTangents[i];
-			aiVector3D binormal = normal ^ tangent;
+			aiVector3D binormal = mesh->mBitangents[i];
 			v.position = *reinterpret_cast<DirectX::XMFLOAT3*>(&transformedPos);
 			v.normal = *reinterpret_cast<DirectX::XMFLOAT3*>(&normal);
 			v.tangent = *reinterpret_cast<DirectX::XMFLOAT3*>(&tangent);
@@ -55,13 +71,21 @@ namespace Yassin
 				v.uv.x = (float)mesh->mTextureCoords[0][i].x;
 				v.uv.y = (float)mesh->mTextureCoords[0][i].y;
 			}
-			else
-			{
-				v.uv = DirectX::XMFLOAT2(0.0f, 0.0f);
-			}
+
+			if (meshBoundsMinX > v.position.x) meshBoundsMinX = v.position.x;
+			if (meshBoundsMinY > v.position.y) meshBoundsMinY = v.position.y;
+			if (meshBoundsMinZ > v.position.z) meshBoundsMinZ = v.position.z;
+
+			if (meshBoundsMaxX < v.position.x) meshBoundsMaxX = v.position.x;
+			if (meshBoundsMaxY < v.position.y) meshBoundsMaxY = v.position.y;
+			if (meshBoundsMaxZ < v.position.z) meshBoundsMaxZ = v.position.z;
 
 			vData.push_back(v);
 		}
+
+		meshBoundsX = abs(meshBoundsMaxX - meshBoundsMinX);
+		meshBoundsY = abs(meshBoundsMaxY - meshBoundsMinY);
+		meshBoundsZ = abs(meshBoundsMaxZ - meshBoundsMinZ);
 
 		std::vector<unsigned long> indices = {};
 		indices.reserve(mesh->mNumFaces * 3);
@@ -77,15 +101,21 @@ namespace Yassin
 		aiMaterial* pMaterial = scene->mMaterials[mesh->mMaterialIndex];
 		std::string diffuseTex;
 		std::string normalTex;
+		std::string specularTex;
 		std::string roughnessTex;
 		diffuseTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_DIFFUSE, scene);
 		normalTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_NORMALS, scene);
 		if (normalTex == "") normalTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_HEIGHT, scene);
-		roughnessTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_SPECULAR, scene);
+		specularTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_SPECULAR, scene);
+		roughnessTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_UNKNOWN, scene);
 
-		m_Meshes.push_back(std::make_unique<Mesh>(material, world, vData, indices, instancePositions));
+		DirectX::XMMATRIX meshTransform = *reinterpret_cast<DirectX::XMMATRIX*>(&nodeTransform);
+
+		m_Meshes.push_back(std::make_unique<Mesh>(material, world, DirectX::XMMatrixMultiply(world, meshTransform) , vData, indices, meshBoundsX, meshBoundsY, meshBoundsZ, instancePositions));
+
 		if (diffuseTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::BaseTexture, diffuseTex);
 		if(normalTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::NormalTexture, normalTex);
+		if(specularTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::SpecularTexture, specularTex);
 		if(roughnessTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::RoughnessTexture, roughnessTex);
 	}
 
@@ -93,14 +123,12 @@ namespace Yassin
 	{
 		unsigned int texCount = material->GetTextureCount(texType);
 		std::string texName = "";
-		for(unsigned int i = 0; i < texCount; i++)
+		aiString path;
+		if (material->GetTexture(texType, 0, &path) == aiReturn_SUCCESS)
 		{
-			aiString path;
 			std::string sPath;
-			material->GetTexture(texType, i, &path);
 			sPath = path.C_Str();
-			if (sPath.find('.') == std::string::npos) continue;
-			
+			if (sPath.find('.') == std::string::npos) return texName;
 			std::string fileName = m_ModelDirectory + sPath;
 			size_t nameLen = sPath.rfind('.');
 			texName = sPath.substr(0, nameLen);
@@ -110,11 +138,11 @@ namespace Yassin
 		return texName;
 	}
 
-	void Model::Render(DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial) const
+	void Model::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume)
 	{
 		for(int i = 0; i < m_Meshes.size(); i++)
 		{
-			m_Meshes[i]->Render(viewProj, bIgnoreMaterial);
+			m_Meshes[i]->Render(camera, viewProj, bIgnoreMaterial, bRenderBoundingVolume);
 		}
 	}
 
