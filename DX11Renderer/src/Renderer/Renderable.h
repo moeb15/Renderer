@@ -23,13 +23,13 @@ namespace Yassin
 	{
 	public:
 		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false);
-		virtual void RenderBoundingVolume(DirectX::XMMATRIX& viewProj);
+		virtual void RenderBoundingVolume(DirectX::XMMATRIX& viewProj, unsigned int instanceCount);
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const;
 
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
-		virtual void UpdateBoundingVolume() { m_BoundingBox.Transform(m_BoundingBox, m_TransformBuffer->GetWorld()); }
+		virtual void UpdateBoundingVolume() { m_BoundingBox.Transform(m_BoundingBox, m_BoundingTransform->GetWorld()); }
 
 		virtual MaterialInstance* GetMaterialInstance(unsigned int meshIdx = 0) const { return m_Material.get(); }
 		virtual VertexBuffer* GetVertexBuffer(unsigned int meshIdx = 0) const { return m_VertexBuffer.get(); }

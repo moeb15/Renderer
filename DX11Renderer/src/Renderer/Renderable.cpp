@@ -8,11 +8,19 @@ namespace Yassin
 {
     void Renderable::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume)
     {
-        UpdateBoundingVolume();
-        //if (camera.GetBoundingFrustum().Contains(m_BoundingSphere) == DirectX::DISJOINT) return;
+        size_t instanceCount = m_VertexBuffer->GetInstanceCount();
+        DirectX::BoundingBox transformedBBox = m_BoundingBox;
+        DirectX::XMMATRIX view;
+        camera.GetViewMatrix(view);
+        transformedBBox.Transform(transformedBBox, view);
+        if (!camera.GetBoundingFrustum().Intersects(m_BoundingBox))
+        {
+            instanceCount -= 1;
+            if (instanceCount == 0) return;
+        }
 
         if (bRenderBoundingVolume)
-            RenderBoundingVolume(viewProj);
+            RenderBoundingVolume(viewProj, (unsigned int)instanceCount);
         
         m_VertexBuffer->Bind(0);
         m_IndexBuffer->Bind();
@@ -29,10 +37,10 @@ namespace Yassin
             RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
         else
             RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(),
-                (unsigned int)m_VertexBuffer->GetInstanceCount(), 0, 0, 0);
+                (unsigned int)instanceCount, 0, 0, 0);
     }
 
-    void Renderable::RenderBoundingVolume(DirectX::XMMATRIX& viewProj)
+    void Renderable::RenderBoundingVolume(DirectX::XMMATRIX& viewProj, unsigned int instanceCount)
     {
         std::pair<VertexShader*, PixelShader*> bVolumeShaders = ShaderLibrary::Get("Bounding Volume Shader");
 
@@ -54,7 +62,7 @@ namespace Yassin
             RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
         else
             RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_BoundingIBuffer->GetIndexCount(),
-                (unsigned int)m_BoundingVBuffer->GetInstanceCount(), 0, 0, 0);
+                (unsigned int)instanceCount, 0, 0, 0);
     }
 
     void Renderable::UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const
@@ -145,6 +153,7 @@ namespace Yassin
 
         m_BoundingTransform = std::make_unique<TransformBuffer>();
         m_BoundingTransform->SetWorld(world);
+        UpdateBoundingVolume();
     }
 
     void Renderable::Translate(float x, float y, float z)
@@ -152,6 +161,8 @@ namespace Yassin
         DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
         DirectX::XMMATRIX translation = DirectX::XMMatrixTranslation(x, y, z);
         world = DirectX::XMMatrixMultiply(translation, world);
+        m_BoundingTransform->SetWorld(world);
+        UpdateBoundingVolume();
     }
 
     void Renderable::Rotate(float yaw, float pitch, float roll)
@@ -163,6 +174,8 @@ namespace Yassin
         DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
         DirectX::XMMATRIX rotation = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
         world = DirectX::XMMatrixMultiply(rotation, world);
+        m_BoundingTransform->SetWorld(world);
+        UpdateBoundingVolume();
     }
 
     void Renderable::Scale(float x, float y, float z)
@@ -170,5 +183,7 @@ namespace Yassin
         DirectX::XMMATRIX& world = m_TransformBuffer->GetWorld();
         DirectX::XMMATRIX scale = DirectX::XMMatrixScaling(x, y, z);
         world = DirectX::XMMatrixMultiply(scale, world);
+        m_BoundingTransform->SetWorld(world);
+        UpdateBoundingVolume();
     }
 }
