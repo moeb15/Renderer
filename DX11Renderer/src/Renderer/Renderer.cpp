@@ -21,6 +21,7 @@ namespace Yassin
 
 		m_PostProcessingEnabled = false;
 		m_DeferredRenderingEnabled = false;
+		m_BoundingVolumesEnabled = false;
 		m_BoxBlurEnabled = false;
 		m_GaussianBlurEnabled = false;
 
@@ -40,12 +41,16 @@ namespace Yassin
 		TextureLibrary::Add("Missing Texture", "src/Assets/Textures/ErrorTexture.png", TextureType::Tex2D);
 		TextureLibrary::Add("Stone", "src/Assets/Textures/stone.png", TextureType::Tex2D);
 		TextureLibrary::Add("Metal", "src/Assets/Textures/Metal.png", TextureType::Tex2D);
+		TextureLibrary::Add("BoundingVolume", "src/Assets/Textures/BoundingVolumeTexture.png", TextureType::Tex2D);
 
 		ShaderLibrary::Init();
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
 		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
 		ShaderLibrary::Add("Unlit Texture Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/UnlitTexturePS.cso");
+		ShaderLibrary::Add("Bounding Volume Shader", L"src/Shaders/CSO/BoundingVolumeVS.cso", L"src/Shaders/CSO/BoundingVolumePS.cso");
+
 		ShaderLibrary::Add("Shadow Map Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
+		ShaderLibrary::Add("Phong Shader", L"src/Shaders/CSO/PhongDirVS.cso", L"src/Shaders/CSO/PhongDirPS.cso");
 		ShaderLibrary::Add("PBR Shader", L"src/Shaders/CSO/PBR_VS.cso", L"src/Shaders/CSO/PBR_PS.cso");
 
 		ShaderLibrary::Add("GBuffer Shader", L"src/Shaders/CSO/DeferredVS.cso", L"src/Shaders/CSO/DeferredPS.cso");
@@ -59,6 +64,7 @@ namespace Yassin
 		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
 		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
 		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Shadow Map Shader"));
+		MaterialSystem::Add("Phong Material", ShaderLibrary::Get("Phong Shader"));
 		MaterialSystem::Add("PBR Material", ShaderLibrary::Get("PBR Shader"));
 	}
 	
@@ -102,13 +108,16 @@ namespace Yassin
 	void Renderer::Render(Camera& camera, DirectX::XMMATRIX& lightViewProj)
 	{
 		// Depth pre-pass
-		DepthPrePass(lightViewProj);
+		DepthPrePass(camera, lightViewProj);
+		
+		//GBufferPass(camera);
 
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
 			m_BackBufferColor[1],
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
+
 
 		if(m_DeferredRenderingEnabled)
 		{
@@ -138,7 +147,7 @@ namespace Yassin
 			Renderable* rPtr = m_OpaqueRenderQueue.front();
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
-			rPtr->Render(viewProj);
+			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 			m_OpaqueRenderQueue.pop();
 		}
@@ -151,7 +160,7 @@ namespace Yassin
 			Renderable* rPtr = m_TransparentRenderQueue.front();
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
-			rPtr->Render(viewProj);
+			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 			m_TransparentRenderQueue.pop();
 		}
@@ -159,7 +168,7 @@ namespace Yassin
 		RendererContext::DisableAlphaBlending();
 	}
 
-	void Renderer::DepthPrePass(DirectX::XMMATRIX& lightViewProj)
+	void Renderer::DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj)
 	{
 		m_DepthPass->SetRenderTarget();
 		m_DepthPass->ClearRenderTarget(0.f, 0.f, 0.f, 1.0f);
@@ -173,7 +182,7 @@ namespace Yassin
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
 
-			rPtr->Render(lightViewProj, true);
+			rPtr->Render(camera, lightViewProj, true);
 			
 			m_DepthRenderQueue.pop();
 		}
@@ -208,7 +217,7 @@ namespace Yassin
 			gBufferShaders.first->Bind();
 			gBufferShaders.second->Bind();
 
-			rPtr->Render(viewProj, true);
+			rPtr->Render(camera, viewProj, true);
 
 			m_GBufferQueue.pop();
 		}
@@ -238,7 +247,7 @@ namespace Yassin
 			Renderable* rPtr = m_Renderables[i];
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
-			rPtr->Render(viewProj);
+			rPtr->Render(camera, viewProj);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 		}
 

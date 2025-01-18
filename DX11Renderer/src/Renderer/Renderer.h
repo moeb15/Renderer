@@ -8,7 +8,7 @@
 #include "Renderer/RendererContext.h"
 #include "Renderer/Renderable.h"
 #include "Renderer/Resources/ShaderLibrary.h"
-#include "Renderer/Camera.h"
+#include "Renderer/Camera/Camera.h"
 #include "Renderer/Resources/MaterialSystem.h"
 #include "Renderer/Resources/TextureLibrary.h"
 #include "Renderer/RenderToTexture.h"
@@ -30,13 +30,14 @@ namespace Yassin
 
 		inline void TogglePostProcessing() { m_PostProcessingEnabled = !m_PostProcessingEnabled; }
 		inline void ToggleDeferredRendering() { m_DeferredRenderingEnabled = !m_DeferredRenderingEnabled; }
+		inline void ToggleBoundingVolumes() { m_BoundingVolumesEnabled = !m_BoundingVolumesEnabled; }
 
 		inline bool& PostProcessingEnabled() { return m_PostProcessingEnabled; }
 		inline bool& GaussianBlurEnabled() { return m_GaussianBlurEnabled; }
 		inline bool& BoxBlurEnabled() { return m_BoxBlurEnabled; }
 
 	private:
-		void DepthPrePass(DirectX::XMMATRIX& lightViewProj);
+		void DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj);
 		void GBufferPass(Camera& camera);
 		void RenderSceneToTexture(Camera& camera);
 		void PostProcessedScene(Camera& camera);
@@ -67,5 +68,6 @@ namespace Yassin
 		bool m_GaussianBlurEnabled;
 		bool m_BoxBlurEnabled;
 		bool m_DeferredRenderingEnabled;
+		bool m_BoundingVolumesEnabled;
 	};
 }
