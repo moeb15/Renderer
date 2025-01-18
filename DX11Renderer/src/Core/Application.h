@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Window.h"
 #include "Core/Timer.h"
-#include "Renderer/CameraController.h"
+#include "Renderer/Camera/CameraController.h"
 #include "Renderable/RenderablePrimitives.h"
 
 namespace Yassin
@@ -31,7 +31,8 @@ namespace Yassin
 		std::unique_ptr<Box> box;
 		std::unique_ptr<Box> transparentBox;
 		std::unique_ptr<Plane> plane;
-		std::unique_ptr<Model> testModel;
+		std::unique_ptr<Model> sponza;
+		std::unique_ptr<Model> nanosuit;
 		std::unique_ptr<PointLight> light;
 		std::unique_ptr<DirectionalLight> sun;
 		char m_GPUName[128];

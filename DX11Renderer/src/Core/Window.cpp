@@ -179,7 +179,7 @@ namespace Yassin
 				}
 				if (wParam == VK_F4)
 				{
-					m_Renderer->ToggleDeferredRendering();
+					m_Renderer->ToggleBoundingVolumes();
 				}
 
 				m_Input.OnKeyPressed(static_cast<unsigned char>(wParam));

@@ -12,7 +12,7 @@ namespace Yassin
 		m_Window.Init();
 
 		sun = std::make_unique<DirectionalLight>(1000.f, 0.1f, 1000.f);
-		sun->SetDirection(0.0f, 0.0f, -1.f);
+		sun->SetDirection(0.0f, 0.0f, 1.f);
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -21,7 +21,6 @@ namespace Yassin
 
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX rot;
-		DirectX::XMMATRIX translate;
 
 		std::vector<InstancePosition> boxPositions =
 		{
@@ -30,25 +29,26 @@ namespace Yassin
 		};
 
 		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
-		box = std::make_unique<Box>("Shadow Map Material", world, &boxPositions);
+		//box = std::make_unique<Box>("Shadow Map Material", world, &boxPositions);
 		
 		world = DirectX::XMMatrixTranslation(1.5f, 0.f, 2.f);
-		transparentBox = std::make_unique<Box>("Shadow Map Material", world);
-		transparentBox->SetObjectVisiblity(ObjectVisibility::Transparent);
-		transparentBox->UpdateTransparency(0.5f);
+		//transparentBox = std::make_unique<Box>("Shadow Map Material", world);
+		//transparentBox->SetObjectVisiblity(ObjectVisibility::Transparent);
+		//transparentBox->UpdateTransparency(0.5f);
 
 		world = DirectX::XMMatrixIdentity();
 		rot = DirectX::XMMatrixRotationZ(DirectX::XMConvertToRadians(90.f));
 		world = DirectX::XMMatrixTranslation(37.5f, -0.5f, -30.f);
 		//world = DirectX::XMMatrixMultiply(rot, world);
-		plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
+		//plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
 
 
 		world = DirectX::XMMatrixIdentity();
-		world = DirectX::XMMatrixScaling(0.5f, 0.5f, 0.5f);
-		translate = DirectX::XMMatrixTranslation(0.0f, -0.5f, 0.f);
-		world = DirectX::XMMatrixMultiply(world, translate);
-		testModel = std::make_unique<Model>("Shadow Map Material", "src/Assets/Models/Nanosuit/nanosuit.obj", world, &boxPositions);
+		world = DirectX::XMMatrixScaling(0.05f, 0.05f, 0.05f);
+		//translate = DirectX::XMMatrixTranslation(0.0f, -0.5f, 0.f);
+		//world = DirectX::XMMatrixMultiply(world, translate);
+		nanosuit = std::make_unique<Model>("Phong Material", "src/Assets/Models/Nanosuit/nanosuit.obj", world);
+		//sponza = std::make_unique<Model>("Phong Material", "src/Assets/Models/Sponza/sponza.obj", world);
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -93,39 +93,39 @@ namespace Yassin
 
 		lViewProj = DirectX::XMMatrixMultiply(lView, lProj);
 
-		box->UpdateLighting(
+		/*box->UpdateLighting(
 			{ lViewProj, light->GetPosition() },
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
-
+			*/
 		//box->Rotate(dt * 10.f, 0.0f, 0.0f);
 		
-		//testModel->Rotate(dt * 10.f, 0.0f, 0.0f);
+		//nanosuit->Rotate(dt * 10.f, 0.0f, 0.0f);
 
-		plane->UpdateLighting(
+		/*plane->UpdateLighting(
+			{ lViewProj, light->GetPosition() },
+			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
+			light->GetSpecularPower() });
+			*/
+		/*transparentBox->UpdateLighting(
+			{ lViewProj, light->GetPosition() },
+			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
+			light->GetSpecularPower() });
+			*/
+		nanosuit->UpdateLighting(
 			{ lViewProj, light->GetPosition() },
 			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
 			light->GetSpecularPower() });
 
-		transparentBox->UpdateLighting(
-			{ lViewProj, light->GetPosition() },
-			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
-			light->GetSpecularPower() });
+		nanosuit->UpdateCameraPosition({ m_CameraController.GetCamera().GetPosition() });
+		nanosuit->UpdateLightDirection({ sun->GetDirection() });
 
-		testModel->UpdateLighting(
-			{ lViewProj, light->GetPosition() },
-			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
-			light->GetSpecularPower() });
-
-		testModel->UpdateCameraPosition({ m_CameraController.GetCamera().GetPosition() });
-		testModel->UpdateLightDirection({ sun->GetDirection() });
-
-		m_Window.GetRenderer().Submit(testModel.get());
+		m_Window.GetRenderer().Submit(nanosuit.get());
 
 		//m_Window.GetRenderer().Submit(transparentBox.get());
 
 		//m_Window.GetRenderer().Submit(box.get());
-		m_Window.GetRenderer().Submit(plane.get());
+		//m_Window.GetRenderer().Submit(plane.get());
 
 		m_Window.GetRenderer().Render(m_CameraController.GetCamera(), lViewProj);
 
@@ -146,6 +146,8 @@ namespace Yassin
 		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
 		DirectX::XMFLOAT3 lightLookAt = light->GetLookAt();
 		DirectX::XMFLOAT3 lightDir = sun->GetDirection();
+		DirectX::XMFLOAT4 lightSpecular = light->GetSpecularColor();
+		float lightSpecularPower = light->GetSpecularPower();
 
 		if (ImGui::Begin("Settings"))
 		{
@@ -168,6 +170,15 @@ namespace Yassin
 			ImGui::SliderFloat("X-Dir", &lightDir.x, -50.f, 50.f, "%.1f");
 			ImGui::SliderFloat("Y-Dir", &lightDir.y, -50.f, 50.f, "%.1f");
 			ImGui::SliderFloat("Z-Dir", &lightDir.z, -50.f, 50.f, "%.1f");
+
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+			ImGui::Text("Specular Light Settings");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::SliderFloat("R", &lightSpecular.x, 0.f, 1.f, "%.1f");
+			ImGui::SliderFloat("G", &lightSpecular.y, 0.f, 1.f, "%.1f");
+			ImGui::SliderFloat("B", &lightSpecular.z, 0.f, 1.f, "%.1f");
+			ImGui::SliderFloat("Specular Power", &lightSpecularPower, 0.0f, 200.f, "%.1f");
 
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -196,6 +207,8 @@ namespace Yassin
 
 		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
 		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
+		light->SetSpecularColor(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
+		light->SetSpecularPower(lightSpecularPower);
 		sun->SetDirection(lightDir.x, lightDir.y, lightDir.z);
 	}
 }
