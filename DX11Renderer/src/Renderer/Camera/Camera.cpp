@@ -56,6 +56,8 @@ namespace Yassin
 		DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(posVec, lookAtVec, upVec);
 		DirectX::XMStoreFloat4x4(&m_DefaultView, view);
 
+		DirectX::BoundingFrustum::CreateFromMatrix(m_ViewFrustum, DirectX::XMMatrixMultiply(view, proj));
+
 		UpdateView();
 	}
 
@@ -102,5 +104,9 @@ namespace Yassin
 		lookAtVec = DirectX::XMVectorAdd(posVec, lookAtVec);
 		DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(posVec, lookAtVec, upVec);
 		DirectX::XMStoreFloat4x4(&m_ViewMatrix, view);
+
+		DirectX::BoundingFrustum temp(DirectX::XMLoadFloat4x4(&m_ProjectionMatrix));
+		temp.Transform(m_ViewFrustum, DirectX::XMMatrixInverse(nullptr, view));
+
 	}
 }

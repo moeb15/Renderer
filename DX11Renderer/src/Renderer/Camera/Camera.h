@@ -1,5 +1,5 @@
 #pragma once
-#include <DirectXMath.h>
+#include <DirectXCollision.h>
 
 namespace Yassin
 {
@@ -36,6 +36,8 @@ namespace Yassin
 		inline const DirectX::XMFLOAT3& GetRightVector() const { return m_Right; }
 		inline const DirectX::XMFLOAT3& GetForwardVector() const { return m_Forward; }
 		inline const DirectX::XMFLOAT3& GetUpVector() const { return m_Up; }
+		
+		inline const DirectX::BoundingFrustum& GetBoundingFrustum() const { return m_ViewFrustum; }
 
 	private:
 		void UpdateView();
@@ -52,5 +54,7 @@ namespace Yassin
 		DirectX::XMFLOAT4X4 m_ViewMatrix;
 		DirectX::XMFLOAT4X4 m_DefaultView;
 		DirectX::XMFLOAT4X4 m_ProjectionMatrix;
+
+		DirectX::BoundingFrustum m_ViewFrustum;
 	};
 }
