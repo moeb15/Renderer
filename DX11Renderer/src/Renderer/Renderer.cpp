@@ -14,7 +14,13 @@ namespace Yassin
 		m_SceneTexture->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthStencil);
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
-		m_DepthPass->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
+		m_DepthPass->Init(1920, 1080, 1.f, 100.f, RenderTargetType::DepthMap);
+
+		m_ShadowMap = std::make_unique<RenderToTexture>();
+		m_ShadowMap->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
+
+		m_SoftShadow = std::make_unique<RenderToTexture>();
+		m_SoftShadow->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthMap);
 
 		m_GBuffer = std::make_unique<GBuffer>();
 		m_GBuffer->Init(width, height, 0.1f, 1000.f);
@@ -49,9 +55,11 @@ namespace Yassin
 		ShaderLibrary::Add("Test Shader", L"src/Shaders/CSO/TestVS.cso", L"src/Shaders/CSO/TestPS.cso");
 		ShaderLibrary::Add("Texture Shader", L"src/Shaders/CSO/TextureVS.cso", L"src/Shaders/CSO/TexturePS.cso");
 		ShaderLibrary::Add("Unlit Texture Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/UnlitTexturePS.cso");
+		ShaderLibrary::Add("Color Shader", L"src/Shaders/CSO/DeferredVS.cso", L"src/Shaders/CSO/FlatColourPS.cso");
 		ShaderLibrary::Add("Bounding Volume Shader", L"src/Shaders/CSO/BoundingVolumeVS.cso", L"src/Shaders/CSO/BoundingVolumePS.cso");
 
-		ShaderLibrary::Add("Shadow Map Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
+		ShaderLibrary::Add("Shadow Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
+		ShaderLibrary::Add("Soft Shadow Shader", L"src/Shaders/CSO/SoftShadowVS.cso", L"src/Shaders/CSO/SoftShadowPS.cso");
 		ShaderLibrary::Add("Phong Shader", L"src/Shaders/CSO/PhongDirVS.cso", L"src/Shaders/CSO/PhongDirPS.cso");
 		ShaderLibrary::Add("PBR Shader", L"src/Shaders/CSO/PBR_VS.cso", L"src/Shaders/CSO/PBR_PS.cso");
 
@@ -63,9 +71,10 @@ namespace Yassin
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
 		MaterialSystem::Add("Flat Material", ShaderLibrary::Get("Unlit Texture Shader"));
+		MaterialSystem::Add("Color Material", ShaderLibrary::Get("Unlit Texture Shader"));
 		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
 		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
-		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Shadow Map Shader"));
+		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Soft Shadow Shader"));
 		MaterialSystem::Add("Phong Material", ShaderLibrary::Get("Phong Shader"));
 		MaterialSystem::Add("PBR Material", ShaderLibrary::Get("PBR Shader"));
 	}
@@ -119,8 +128,11 @@ namespace Yassin
 
 		m_TotalMeshes = m_MeshesRendered;
 
-		// Depth pre-pass
-		DepthPrePass(camera, lightViewProj);
+		// Depth pre-pass, calculating shadow map
+		DepthPrePass(camera, lightViewProj, m_ShadowMap.get());
+
+		// Soft shadows
+		RenderShadows(camera);
 		
 		//GBufferPass(camera);
 
@@ -158,7 +170,7 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_OpaqueRenderQueue.front();
 
-			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
+			rPtr->GetMaterialInstance()->SetShadowMap(m_SoftShadow->GetSRV());
 			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 
@@ -174,7 +186,7 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_TransparentRenderQueue.front();
 
-			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
+			rPtr->GetMaterialInstance()->SetShadowMap(m_SoftShadow->GetSRV());
 			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 
@@ -186,10 +198,10 @@ namespace Yassin
 		RendererContext::DisableAlphaBlending();
 	}
 
-	void Renderer::DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj)
+	void Renderer::DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex)
 	{
-		m_DepthPass->SetRenderTarget();
-		m_DepthPass->ClearRenderTarget(0.f, 0.f, 0.f, 1.0f);
+		renderTex->SetRenderTarget();
+		renderTex->ClearRenderTarget(0.f, 0.f, 0.f, 1.0f);
 
 		std::pair<VertexShader*, PixelShader*> depthShaders = ShaderLibrary::Get("Depth Shader");
 		
@@ -264,7 +276,7 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_Renderables[i];
 
-			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
+			rPtr->GetMaterialInstance()->SetShadowMap(m_SoftShadow->GetSRV());
 			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 		}
@@ -305,5 +317,45 @@ namespace Yassin
 		RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
 
 		RendererContext::EnableZBuffer();
+	}
+
+	void Renderer::RenderShadows(Camera& camera)
+	{
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+
+		camera.GetViewMatrix(view);
+		camera.GetProjectionMatrix(proj);
+
+		DirectX::XMMATRIX viewProj =
+			DirectX::XMMatrixMultiply(view, proj);
+
+		m_SoftShadow->SetRenderTarget();
+		m_SoftShadow->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
+
+		std::pair<VertexShader*, PixelShader*> shadowShaders = ShaderLibrary::Get("Shadow Shader");
+
+		RendererContext::EnableAlphaBlending();
+
+		for (int i = 0; i < m_Renderables.size(); i++)
+		{
+			Renderable* rPtr = m_Renderables[i];
+
+			shadowShaders.second->SetTexture(TextureSlot::ShadowMapTexture, m_ShadowMap->GetSRV());
+			m_PostProcessSampler.Bind(SamplerSlot::ClampSampler);
+			shadowShaders.first->Bind();
+			shadowShaders.second->Bind();
+
+			rPtr->Render(camera, viewProj, true);
+			ID3D11ShaderResourceView* nullSRV = { nullptr };
+			RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
+		}
+
+		RendererContext::DisableAlphaBlending();
+
+		m_GaussianBlurEffect.BlurScene(camera, m_SoftShadow.get());
+
+		RendererContext::SetBackBufferRenderTarget();
+		RendererContext::ResetViewport();
 	}
 }

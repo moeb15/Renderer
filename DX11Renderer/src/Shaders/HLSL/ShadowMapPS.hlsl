@@ -1,22 +1,14 @@
-Texture2D baseTexture		: register(t0);
-Texture2D depthMapTexture	: register(t3);
+Texture2D depthMapTexture	: register(t4);
 SamplerState clampSampler	: register(s0);
-SamplerState wrapSampler	: register(s1);
 
-cbuffer LightBuffer
+cbuffer LightPropsBuffer : register(b0)
 {
     float4 ambientColor;
     float4 diffuseColor;
     float4 specularColor;
     float specularPower;
     float bias;
-    float2 padding2;
-};
-
-cbuffer TransparencyBuffer
-{
-    float blendAmount;
-    float3 padding;
+    float2 padding;
 };
 
 struct PSIn
@@ -35,9 +27,8 @@ float4 main(PSIn input) : SV_TARGET
     float depthValue;
     float lightDepthValue;
     float lightIntensity;
-    float4 texColor;
     
-    finalColor = ambientColor;
+    finalColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
     
     projectedUV.x = (input.lightViewPos.x / input.lightViewPos.w + 1.0f) / 2.0f;
     projectedUV.y = (-input.lightViewPos.y / input.lightViewPos.w + 1.0f) / 2.0f;
@@ -55,17 +46,10 @@ float4 main(PSIn input) : SV_TARGET
             
             if (lightIntensity > 0.0f)
             {
-                finalColor += (diffuseColor * lightIntensity);
-                finalColor = saturate(finalColor);
+                finalColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
     }
-    
-    texColor = baseTexture.Sample(wrapSampler, input.uv);
-    
-    finalColor *= texColor;
-    
-    finalColor.a = blendAmount;
     
     return finalColor;
 }
