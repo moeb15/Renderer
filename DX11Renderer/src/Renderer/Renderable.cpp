@@ -6,21 +6,13 @@
 
 namespace Yassin
 {
-    void Renderable::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume)
+    void Renderable::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bDepthPrePass)
     {
-        size_t instanceCount = m_VertexBuffer->GetInstanceCount();
-        DirectX::BoundingBox transformedBBox = m_BoundingBox;
-        DirectX::XMMATRIX view;
-        camera.GetViewMatrix(view);
-        transformedBBox.Transform(transformedBBox, view);
-        if (!camera.GetBoundingFrustum().Intersects(m_BoundingBox))
-        {
-            instanceCount -= 1;
-            if (instanceCount == 0) return;
-        }
+        unsigned int curInstanceCount = FrustumCulling(camera, viewProj, bDepthPrePass);
+        if (curInstanceCount == 0) return;
 
         if (bRenderBoundingVolume)
-            RenderBoundingVolume(viewProj, (unsigned int)instanceCount);
+            RenderBoundingVolume(viewProj, curInstanceCount);
         
         m_VertexBuffer->Bind(0);
         m_IndexBuffer->Bind();
@@ -36,8 +28,59 @@ namespace Yassin
         if (!m_InstancedDraw)
             RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
         else
-            RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(),
-                (unsigned int)instanceCount, 0, 0, 0);
+            RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(), curInstanceCount, 0, 0, 0);
+    }
+
+    unsigned int Renderable::FrustumCulling(Camera& camera, DirectX::XMMATRIX viewProj, bool bDepthPrePass)
+    {
+        size_t curInstanceCount = m_VertexBuffer->GetInstanceCount();
+        if (curInstanceCount > 1)
+        {
+            for (int i = 0; i < m_InstancePositions.size(); i++)
+            {
+                DirectX::BoundingBox transformedBBox(DirectX::XMFLOAT3(m_InstancePositions[i].position), DirectX::XMFLOAT3(m_BoundX, m_BoundY, m_BoundZ));
+                transformedBBox.Transform(transformedBBox, m_BoundingTransform->GetWorld());
+                if (bDepthPrePass)
+                {
+                    DirectX::BoundingFrustum temp;
+                    DirectX::BoundingFrustum::CreateFromMatrix(temp, viewProj);
+
+                    if (!temp.Intersects(transformedBBox))
+                    {
+                        curInstanceCount -= 1;
+                        if (curInstanceCount == 0) return 0;
+                    }
+                }
+                else if (!camera.GetBoundingFrustum().Intersects(transformedBBox))
+                {
+                    curInstanceCount -= 1;
+                    m_Culled += 1;
+                    if (curInstanceCount == 0) return 0;
+                }
+            }
+        }
+        else
+        {
+            if (bDepthPrePass)
+            {
+                DirectX::BoundingFrustum temp;
+                DirectX::BoundingFrustum::CreateFromMatrix(temp, viewProj);
+
+                if (!temp.Intersects(GetBoundingBox()))
+                {
+                    curInstanceCount -= 1;
+                    if (curInstanceCount == 0) return 0;
+                }
+            }
+            else if (!camera.GetBoundingFrustum().Intersects(GetBoundingBox()))
+            {
+                curInstanceCount -= 1;
+                m_Culled += 1;
+                if (curInstanceCount == 0) return 0;
+            }
+        }
+
+        return (unsigned int)curInstanceCount;
     }
 
     void Renderable::RenderBoundingVolume(DirectX::XMMATRIX& viewProj, unsigned int instanceCount)
@@ -147,7 +190,11 @@ namespace Yassin
             20, 21, 22, 20, 22, 23
         };
 
-        m_BoundingVBuffer = std::make_unique<VertexBuffer>(vData, &m_InstancePositions);
+        if(m_InstancePositions.size() > 0)
+            m_BoundingVBuffer = std::make_unique<VertexBuffer>(vData, &m_InstancePositions);
+        else
+            m_BoundingVBuffer = std::make_unique<VertexBuffer>(vData);
+        
         m_BoundingIBuffer = std::make_unique<IndexBuffer>(indices);
         m_BoundingSampler.Init(FilterType::Bilinear, AddressType::Wrap);
 

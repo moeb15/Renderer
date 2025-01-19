@@ -22,7 +22,8 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false);
+		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false,
+			bool bDepthPrePass = false);
 		virtual void RenderBoundingVolume(DirectX::XMMATRIX& viewProj, unsigned int instanceCount);
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const;
@@ -38,15 +39,21 @@ namespace Yassin
 
 		inline const ObjectType& GetObjectType() const { return m_ObjectType; }
 		inline const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
-		
+		virtual const size_t GetCulledCount() const { return m_Culled; }
+		virtual const size_t GetMeshCount() const { return 1; }
+		inline DirectX::BoundingBox GetBoundingBox() { return this->m_BoundingBox; }
+
 		void SetObjectVisiblity(ObjectVisibility visibility) { m_ObjectVisibility = visibility; }
 		void SetObjectType(ObjectType objectType) { m_ObjectType = objectType; }
+		virtual void ResetCulledCount() { m_Culled = 0; }
 
 		void ConstructBoundingVolume(DirectX::XMMATRIX& world);
 
 		virtual void Translate(float x, float y, float z);
 		virtual void Rotate(float yaw, float pitch, float roll);
 		virtual void Scale(float x, float y, float z);
+
+		unsigned int FrustumCulling(Camera& camera, DirectX::XMMATRIX viewProj, bool bDepthPrePass);
 
 	protected:
 		std::unique_ptr<TransformBuffer> m_TransformBuffer;
@@ -70,5 +77,6 @@ namespace Yassin
 
 		Sampler m_BoundingSampler;
 		Topology m_BoundingTopology;
+		size_t m_Culled;
 	};
 }
