@@ -1,12 +1,26 @@
+#include "Common.hlsli"
+
 Texture2D albedoMap			: register(t0);
 Texture2D normalMap			: register(t1);
-Texture2D roughnessMap		: register(t2);
-SamplerState wrapSampler	: register(s0);
+Texture2D roughnessMap		: register(t3);
+Texture2D shadowMap         : register(t4);
+SamplerState clampSampler	: register(s0);
+SamplerState wrapSampler	: register(s1);
+
+cbuffer LightPropsBuffer : register(b0)
+{
+    float4 ambientColor;
+    float4 diffuseColor;
+    float4 specularColor;
+    float specularPower;
+    float bias;
+    float2 padding;
+};
 
 cbuffer LightBuffer : register(b2)
 {
     float3 lightDirection;
-    float padding;
+    float padding0;
 };
 
 struct PSIn
@@ -17,7 +31,11 @@ struct PSIn
     float3 tangent : TANGENT;
     float3 binormal : BINORMAL;
     float3 viewDir : VIEWDIR;
+    float3 lightPos : LIGHTPOS;
+    float4 viewPos : VIEWPOS;
 };
+
+float CalcShadowValue(PSIn input);
 
 // cook-torrance brdf
 float4 main(PSIn input) : SV_TARGET
@@ -35,16 +53,24 @@ float4 main(PSIn input) : SV_TARGET
     float3 specularity;
     float4 color;
     
-    lDir = -lightDirection;
-    lDir = normalize(lDir);
+    lDir = -normalize(lightDirection);
     
     albedo = albedoMap.Sample(wrapSampler, input.uv).rgb;
+    float albedoAlpha = albedoMap.Sample(wrapSampler, input.uv).a;
+#ifdef ALPHATEST
+    clip(albedoAlpha < 0.1f ? -1 : 1);
+#endif
+    
     rmColor = roughnessMap.Sample(wrapSampler, input.uv).rgb;
     bumpMap = normalMap.Sample(wrapSampler, input.uv).rgb;
     
-    bumpMap = (bumpMap * 2.0f) - 1.0f;
-    bumpNormal = (bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal);
-    bumpNormal = normalize(bumpNormal);
+    bumpMap.x = (bumpMap.x * 2.0f) - 1.0f;
+    bumpMap.y = (-bumpMap.y * 2.0f) - 1.0f;
+    bumpMap.z = -bumpMap.z;
+    
+    bumpNormal = normalize(bumpMap);
+    //bumpNormal = (bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal);
+    //bumpNormal = normalize(bumpNormal);
     
     roughness = rmColor.r;
     metallic = rmColor.g;
@@ -63,12 +89,12 @@ float4 main(PSIn input) : SV_TARGET
     roughSqr2 = roughnessSqr * roughnessSqr;
     NdotHSqr = NdotH * NdotH;
     denominator = (NdotHSqr * (roughSqr2 - 1.0f) + 1.0f);
-    denominator = 3.14159265f * (denominator * denominator);
+    denominator = PI * (denominator * denominator);
     normalDist = roughSqr2 / denominator;
     
     // Schlick geometric shadow calculation
-    smithL = NdotL / (NdotL * (1.0f - roughnessSqr) + roughnessSqr);
-    smithV = NdotV / (NdotV * (1.0f - roughnessSqr) + roughnessSqr);
+    smithL = NdotL / (NdotL * (1.0f - roughnessSqr) + roughnessSqr + 0.00001f);
+    smithV = NdotV / (NdotV * (1.0f - roughnessSqr) + roughnessSqr + 0.00001f);
     geometricshadow = smithL * smithV;
     
     // fresnel schlick 
@@ -77,11 +103,28 @@ float4 main(PSIn input) : SV_TARGET
     // dfg finished, now calculate denominator
     specularity = (normalDist * fresnel * geometricshadow) / (4.0f * (NdotL * NdotV) + 0.00001f);
     
+    float shadowValue = CalcShadowValue(input);
+    float lIntensity = saturate(dot(bumpNormal, input.lightPos));
     // final light equation
-    color.rgb = albedo + specularity;
-    color.rgb = color.rgb * NdotL;
+    float3 ambient = ambientColor.rgb * albedo;
+    float3 diffuse = diffuseColor.rgb + albedo * (1.0f - fresnel) * NdotL;
+    color.rgb = (ambient + diffuse * lIntensity + specularity) * shadowValue;
+    //color.rgb = color.rgb * NdotL;
     
     color = float4(color.rgb, 1.0f);
-
+    color = saturate(color);
     return color;
+}
+
+float CalcShadowValue(PSIn input)
+{
+    float2 projectedUV;
+    float shadowValue;
+    
+    projectedUV.x = (input.viewPos.x / input.viewPos.w + 1.0f) / 2.0f;
+    projectedUV.y = (-input.viewPos.y / input.viewPos.w + 1.0f) / 2.0f;
+    
+    shadowValue = shadowMap.Sample(clampSampler, projectedUV).r;
+    
+    return (shadowValue + 0.25f);
 }

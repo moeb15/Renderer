@@ -4,10 +4,17 @@ cbuffer MatrixBuffer : register(b0)
     row_major matrix viewProj;
 };
 
+cbuffer LightBuffer : register(b1)
+{
+    row_major matrix lightViewProj;
+    float3 lightPosition;
+    float padding;
+};
+
 cbuffer CameraBuffer : register(b2)
 {
     float3 cameraPos;
-    float padding;
+    float padding0;
 };
 
 struct VSIn
@@ -28,6 +35,8 @@ struct VSOut
     float3 tangent : TANGENT;
     float3 binormal : BINORMAL;
     float3 viewDir : VIEWDIR;
+    float3 lightPos : LIGHTPOS;
+    float4 viewPos : VIEWPOS;
 };
 
 VSOut main(VSIn input)
@@ -58,6 +67,11 @@ VSOut main(VSIn input)
     
     vso.viewDir = cameraPos.xyz - worldPos.xyz;
     vso.viewDir = normalize(vso.viewDir);
+        
+    vso.lightPos = lightPosition.xyz - worldPos.xyz;
+    vso.lightPos = normalize(vso.lightPos);
+    
+    vso.viewPos = vso.position;
     
     return vso;
 }
