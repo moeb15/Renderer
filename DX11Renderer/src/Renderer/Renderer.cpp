@@ -24,6 +24,8 @@ namespace Yassin
 		m_BoundingVolumesEnabled = false;
 		m_BoxBlurEnabled = false;
 		m_GaussianBlurEnabled = false;
+		m_MeshesRendered = 0;
+		m_TotalMeshes = 0;
 
 		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Clamp);
 		m_GBufferSampler.Init(FilterType::Bilinear, AddressType::Wrap);
@@ -85,6 +87,8 @@ namespace Yassin
 	{
 		if (!renderable) return;
 		
+		renderable->ResetCulledCount();
+
 		if(renderable->GetMaterialInstance()->IsIlluminated())
 		{
 			m_DepthRenderQueue.push(renderable);
@@ -107,6 +111,14 @@ namespace Yassin
 
 	void Renderer::Render(Camera& camera, DirectX::XMMATRIX& lightViewProj)
 	{
+		m_MeshesRendered = 0;
+		for (int i = 0; i < m_Renderables.size(); i++)
+		{
+			m_MeshesRendered += m_Renderables[i]->GetMeshCount();
+		}
+
+		m_TotalMeshes = m_MeshesRendered;
+
 		// Depth pre-pass
 		DepthPrePass(camera, lightViewProj);
 		
@@ -149,6 +161,9 @@ namespace Yassin
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
+
+			if(m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
+
 			m_OpaqueRenderQueue.pop();
 		}
 
@@ -162,6 +177,9 @@ namespace Yassin
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
 			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
+
+			if (m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
+			
 			m_TransparentRenderQueue.pop();
 		}
 
@@ -182,7 +200,7 @@ namespace Yassin
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
 
-			rPtr->Render(camera, lightViewProj, true);
+			rPtr->Render(camera, lightViewProj, true, false, true);
 			
 			m_DepthRenderQueue.pop();
 		}
@@ -247,7 +265,7 @@ namespace Yassin
 			Renderable* rPtr = m_Renderables[i];
 
 			rPtr->GetMaterialInstance()->SetShadowMap(m_DepthPass->GetSRV());
-			rPtr->Render(camera, viewProj);
+			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 		}
 

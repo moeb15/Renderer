@@ -35,6 +35,8 @@ namespace Yassin
 		inline bool& PostProcessingEnabled() { return m_PostProcessingEnabled; }
 		inline bool& GaussianBlurEnabled() { return m_GaussianBlurEnabled; }
 		inline bool& BoxBlurEnabled() { return m_BoxBlurEnabled; }
+		inline size_t GetMeshesRendered() const { return m_MeshesRendered; }
+		inline size_t GetTotalMeshes() const { return m_TotalMeshes; }
 
 	private:
 		void DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj);
@@ -64,10 +66,13 @@ namespace Yassin
 		std::deque<Renderable*> m_Renderables;
 
 		float m_BackBufferColor[4];
+		size_t m_MeshesRendered;
+		size_t m_TotalMeshes;
 		bool m_PostProcessingEnabled;
 		bool m_GaussianBlurEnabled;
 		bool m_BoxBlurEnabled;
 		bool m_DeferredRenderingEnabled;
 		bool m_BoundingVolumesEnabled;
+		
 	};
 }
