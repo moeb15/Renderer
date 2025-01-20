@@ -1,5 +1,7 @@
 Texture2D baseTex :				register(t0);
-SamplerState baseSampler :		register(s0);
+Texture2D normalMap :			register(t1);
+Texture2D specMap :			    register(t2);
+SamplerState baseSampler :		register(s1);
 
 cbuffer LightPropsBuffer
 {

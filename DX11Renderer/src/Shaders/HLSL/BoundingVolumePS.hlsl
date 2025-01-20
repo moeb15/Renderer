@@ -12,7 +12,7 @@ float4 main(PSIn input) : SV_TARGET
 {
     float4 texColor = baseTex.Sample(wrapSampler, input.uv);
     
-    if (texColor.x == 0.0f && texColor.y == 0.0f && texColor.z == 0.0f)
+    if (texColor.x <= 0.1f && texColor.y <= 0.1f && texColor.z <= 0.1f)
     {
         clip(-1);
     }

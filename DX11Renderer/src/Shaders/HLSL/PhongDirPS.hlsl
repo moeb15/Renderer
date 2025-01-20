@@ -58,7 +58,7 @@ float4 main(PSIn input) : SV_TARGET
     albedoColor = albedoMap.Sample(wrapSampler, input.uv);
     
 #ifdef ALPHATEST
-    clip(albedoColor.a < 0.01f ? -1.f : 1.f);
+    clip(albedoColor.a < 0.1f ? -1.f : 1.f);
 #endif
     normalColor = normalMap.Sample(wrapSampler, input.uv);
     specmapColor = specularMap.Sample(wrapSampler, input.uv);
@@ -108,5 +108,5 @@ float CalcShadowValue(PSIn input)
     
     shadowValue = shadowMap.Sample(clampSampler, projectedUV).r;
     
-    return (shadowValue + 0.1f);
+    return saturate(shadowValue + 0.25f);
 }

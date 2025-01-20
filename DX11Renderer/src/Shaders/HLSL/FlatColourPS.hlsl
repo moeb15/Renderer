@@ -12,5 +12,5 @@ struct PSIn
 
 float4 main(PSIn input) : SV_TARGET
 {
-    return color;
+    return input.position;
 }

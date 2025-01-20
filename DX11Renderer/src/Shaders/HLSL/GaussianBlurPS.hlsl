@@ -1,3 +1,5 @@
+#include "Common.hlsli"
+
 Texture2D baseTexture :			register(t0);
 SamplerState wrapSampler :		register(s0);
 
@@ -19,8 +21,8 @@ struct PSIn
 float4 main(PSIn input) : SV_TARGET
 {
     float texelSize;
-    float2 blurLeft[4];
-    float2 blurRight[4];
+    float2 blurLeft[PCF_KERNEL_SIZE];
+    float2 blurRight[PCF_KERNEL_SIZE];
     float4 texColor;
     float4 finalColor;
     float weights[5];
@@ -28,12 +30,13 @@ float4 main(PSIn input) : SV_TARGET
     int i;
     
     texColor = baseTexture.Sample(wrapSampler, input.uv);
+
     
     if (blurType < 0.1f)
     {
         texelSize = 1.0f / screenWidth;
         
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < PCF_KERNEL_SIZE; i++)
         {
             blurLeft[i] = input.uv + float2(texelSize * -(i + 1), 0.0f);
             blurRight[i] = input.uv + float2(texelSize * (i + 1), 0.0f);
@@ -43,7 +46,7 @@ float4 main(PSIn input) : SV_TARGET
     {
         texelSize = 1.0f / screenHeight;
         
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < PCF_KERNEL_SIZE; i++)
         {
             blurLeft[i] = input.uv + float2(0.0f, texelSize * -(i + 1));
             blurRight[i] = input.uv + float2(0.0f, texelSize * (i + 1));

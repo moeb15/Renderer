@@ -53,7 +53,7 @@ float4 main(PSIn input) : SV_TARGET
     float3 specularity;
     float4 color;
     
-    lDir = -normalize(lightDirection);
+    lDir = -lightDirection;
     
     albedo = albedoMap.Sample(wrapSampler, input.uv).rgb;
     float albedoAlpha = albedoMap.Sample(wrapSampler, input.uv).a;
@@ -106,10 +106,10 @@ float4 main(PSIn input) : SV_TARGET
     float shadowValue = CalcShadowValue(input);
     float lIntensity = saturate(dot(bumpNormal, input.lightPos));
     // final light equation
-    float3 ambient = ambientColor.rgb * albedo;
-    float3 diffuse = diffuseColor.rgb + albedo * (1.0f - fresnel) * NdotL;
-    color.rgb = (ambient + diffuse * lIntensity + specularity) * shadowValue;
-    //color.rgb = color.rgb * NdotL;
+    float3 ambient = albedo;
+    float3 diffuse =  albedo * (1.0f - fresnel) * NdotL;
+    color.rgb = (ambient + diffuse + specularity) * shadowValue;
+    color.rgb = color.rgb * NdotL;
     
     color = float4(color.rgb, 1.0f);
     color = saturate(color);
@@ -126,5 +126,5 @@ float CalcShadowValue(PSIn input)
     
     shadowValue = shadowMap.Sample(clampSampler, projectedUV).r;
     
-    return (shadowValue + 0.25f);
+    return saturate(shadowValue + 0.25f);
 }
