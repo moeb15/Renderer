@@ -66,20 +66,17 @@ float4 main(PSIn input) : SV_TARGET
     normalColor.x = normalColor.x * 2.0f - 1.0f;
     normalColor.y = -normalColor.y * 2.0f - 1.0f;
     normalColor.z = -normalColor.z;
-    normalColor = normalize(normalColor);
     
     finalColor = ambientColor;
     
-    lIntensity = saturate(dot(-lightDirection, input.normal));
-    if (lIntensity > 0.0f)
-    {
-        finalColor += diffuseColor * lIntensity;
-        finalColor = saturate(finalColor);
+    lIntensity = saturate(dot(-lightDirection, normalColor.xyz));
+
+    finalColor += diffuseColor * lIntensity;
+    finalColor = saturate(finalColor);
         
-        reflection = normalize(2.0f * lIntensity * input.normal - lightDirection);
-        specIntensity = pow(saturate(dot(reflection, input.viewDir)), specularPower);
-        specular = specIntensity * specularColor * specmapColor;
-    }
+    reflection = normalize(2.0f * lIntensity * normalColor.xyz - lightDirection);
+    specIntensity = pow(saturate(dot(reflection, input.viewDir)), specularPower);
+    specular = specIntensity * specularColor * specmapColor;
     
     float shadowValue = CalcShadowValue(input);
     
