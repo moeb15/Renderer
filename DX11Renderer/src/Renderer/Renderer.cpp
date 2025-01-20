@@ -20,7 +20,7 @@ namespace Yassin
 		m_ShadowMap->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
 
 		m_SoftShadow = std::make_unique<RenderToTexture>();
-		m_SoftShadow->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthMap);
+		m_SoftShadow->Init(width, height, 1.f, 100.f, RenderTargetType::DepthMap);
 
 		m_GBuffer = std::make_unique<GBuffer>();
 		m_GBuffer->Init(width, height, 0.1f, 1000.f);
@@ -30,6 +30,7 @@ namespace Yassin
 		m_BoundingVolumesEnabled = false;
 		m_BoxBlurEnabled = false;
 		m_GaussianBlurEnabled = false;
+		m_FXAAEnabled = false;
 		m_MeshesRendered = 0;
 		m_TotalMeshes = 0;
 
@@ -40,6 +41,7 @@ namespace Yassin
 
 		m_BoxBlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::BoxBlur);
 		m_GaussianBlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::GaussianBlur);
+		m_FXAA.Init((float) width, (float) height);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -61,12 +63,15 @@ namespace Yassin
 		ShaderLibrary::Add("Shadow Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
 		ShaderLibrary::Add("Soft Shadow Shader", L"src/Shaders/CSO/SoftShadowVS.cso", L"src/Shaders/CSO/SoftShadowPS.cso");
 		ShaderLibrary::Add("Phong Shader", L"src/Shaders/CSO/PhongDirVS.cso", L"src/Shaders/CSO/PhongDirPS.cso");
+		ShaderLibrary::Add("Blinn-Phong Shader", L"src/Shaders/CSO/PhongDirVS.cso", L"src/Shaders/CSO/BlinnPhongPS.cso");
 		ShaderLibrary::Add("PBR Shader", L"src/Shaders/CSO/PBR_VS.cso", L"src/Shaders/CSO/PBR_PS.cso");
 
 		ShaderLibrary::Add("GBuffer Shader", L"src/Shaders/CSO/DeferredVS.cso", L"src/Shaders/CSO/DeferredPS.cso");
 		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
 		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
 		ShaderLibrary::Add("Box Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/BoxBlurPS.cso");
+
+		ShaderLibrary::Add("FXAA", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/FXAA_PS.cso");
 
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
@@ -76,6 +81,7 @@ namespace Yassin
 		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
 		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Soft Shadow Shader"));
 		MaterialSystem::Add("Phong Material", ShaderLibrary::Get("Phong Shader"));
+		MaterialSystem::Add("Blinn-Phong Material", ShaderLibrary::Get("Blinn-Phong Shader"));
 		MaterialSystem::Add("PBR Material", ShaderLibrary::Get("PBR Shader"));
 	}
 	
@@ -268,10 +274,12 @@ namespace Yassin
 			DirectX::XMMatrixMultiply(view, proj);
 
 		m_SceneTexture->SetRenderTarget();
-		m_SceneTexture->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
+		m_SceneTexture->ClearRenderTarget(
+			m_BackBufferColor[0],
+			m_BackBufferColor[1], 
+			m_BackBufferColor[2], 
+			m_BackBufferColor[3]);
 
-		RendererContext::EnableAlphaBlending();
-		
 		for(int i = 0; i < m_Renderables.size(); i++)
 		{
 			Renderable* rPtr = m_Renderables[i];
@@ -281,8 +289,6 @@ namespace Yassin
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 		}
 
-		RendererContext::DisableAlphaBlending();
-
 		RendererContext::SetBackBufferRenderTarget();
 		RendererContext::ResetViewport();
 	}
@@ -291,9 +297,14 @@ namespace Yassin
 	{
 		RendererContext::DisableZBuffer();
 
-		if(m_BoxBlurEnabled) m_BoxBlurEffect.BlurScene(camera, m_SceneTexture.get());
-		if(m_GaussianBlurEnabled) m_GaussianBlurEffect.BlurScene(camera, m_SceneTexture.get());
-
+		if (m_BoxBlurEnabled) 
+			m_BoxBlurEffect.BlurScene(camera, m_SceneTexture.get());
+		
+		if (m_GaussianBlurEnabled) 
+			m_GaussianBlurEffect.BlurScene(camera, m_SceneTexture.get());
+		
+		if (m_FXAAEnabled) 
+			m_FXAA.Execute(camera, m_SceneTexture.get());
 
 		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Unlit Texture Shader");
 
@@ -345,7 +356,7 @@ namespace Yassin
 			m_PostProcessSampler.Bind(SamplerSlot::ClampSampler);
 			shadowShaders.first->Bind();
 			shadowShaders.second->Bind();
-
+			rPtr->GetMaterialInstance()->GetLightPropsBuffer()->Bind(PSBufferSlot::LightProperties);
 			rPtr->Render(camera, viewProj, true);
 			ID3D11ShaderResourceView* nullSRV = { nullptr };
 			RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
