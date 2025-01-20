@@ -9,8 +9,10 @@ namespace Yassin
 	{
 	public:
 		Mesh(std::string material, DirectX::XMMATRIX modelWorld, DirectX::XMMATRIX meshWorld, std::vector<Vertex>& vertices,
-			std::vector<unsigned long>& indices, float boundsX, float boundsY, float boundsZ, 
+			std::vector<unsigned long>& indices, float boundsX, float boundsY, float boundsZ, const char* meshName,
 			std::vector<InstancePosition>* instancePositions = nullptr);
 
+	private:
+		std::string m_Name;
 	};
 }

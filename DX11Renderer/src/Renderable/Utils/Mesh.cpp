@@ -4,9 +4,11 @@
 namespace Yassin
 {
 	Mesh::Mesh(std::string material, DirectX::XMMATRIX modelWorld, DirectX::XMMATRIX meshWorld, std::vector<Vertex>& vertices,
-		std::vector<unsigned long>& indices, float boundsX, float boundsY, float boundsZ,
+		std::vector<unsigned long>& indices, float boundsX, float boundsY, float boundsZ, const char* meshName,
 		std::vector<InstancePosition>* instancePositions)
 	{
+		m_Name = meshName;
+
 		if(instancePositions)
 		{
 			m_InstancedDraw = true;
@@ -20,7 +22,6 @@ namespace Yassin
 		m_TransformBuffer->SetWorld(modelWorld);
 
 		m_Material = std::make_unique<MaterialInstance>(MaterialSystem::Get(material));
-		// TODO properly fetch textures from model
 		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 
@@ -28,9 +29,6 @@ namespace Yassin
 		m_BoundX = boundsX;
 		m_BoundY = boundsY;
 		m_BoundZ = boundsZ;
-		//m_BoundX = 1.f;
-		//m_BoundY = 1.f;
-		//m_BoundZ = 1.f;
 
 		ConstructBoundingVolume(meshWorld);
 	}
