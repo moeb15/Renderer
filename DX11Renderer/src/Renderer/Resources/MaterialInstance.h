@@ -26,6 +26,8 @@ namespace Yassin
 		void UpdateCameraBuffer(const CameraPositionType& cPos = {});
 		void UpdateLightDirection(const LightDirectionType& lDir = {});
 
+		inline LightPropsBuffer* GetLightPropsBuffer() const { return m_LightPropsBuffer.get(); }
+		inline LightPosBuffer* GetLightPosBuffer() const { return m_LightPosBuffer.get(); }
 		inline VertexShader* GetVertexShader() { return m_VertexShader; }
 		inline PixelShader* GetPixelShader() { return m_PixelShader; }
 		inline std::string GetMaterialInstanceName() const { return m_Name; }
