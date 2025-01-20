@@ -16,39 +16,11 @@ namespace Yassin
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
-		light->SetPosition(0.0f, 10.f, -6.f);
+		light->SetPosition(1.0f, 4.f, 0.f);
 		light->SetLookAt(0.0f, 0.0f, 0.0f);
 
-		DirectX::XMMATRIX world;
-		DirectX::XMMATRIX rot;
-
-		std::vector<InstancePosition> boxPositions =
-		{
-			{{0.0f, 0.0f, 0.0f}},
-			{{-10.f, 0.0f, 0.0f}}
-		};
-
-		world = DirectX::XMMatrixTranslation(2.f, 0.f, 0.f);
-		//box = std::make_unique<Box>("Shadow Map Material", world, &boxPositions);
-		
-		world = DirectX::XMMatrixTranslation(1.5f, 0.f, 2.f);
-		//transparentBox = std::make_unique<Box>("Shadow Map Material", world);
-		//transparentBox->SetObjectVisiblity(ObjectVisibility::Transparent);
-		//transparentBox->UpdateTransparency(0.5f);
-
-		world = DirectX::XMMatrixIdentity();
-		rot = DirectX::XMMatrixRotationZ(DirectX::XMConvertToRadians(90.f));
-		world = DirectX::XMMatrixTranslation(37.5f, -0.5f, -30.f);
-		//world = DirectX::XMMatrixMultiply(rot, world);
-		//plane = std::make_unique<Plane>("Shadow Map Material", world, 100, 100, 25.f, 25.f);
-
-
-		world = DirectX::XMMatrixIdentity();
-		world = DirectX::XMMatrixScaling(0.05f, 0.05f, 0.05f);
-		//translate = DirectX::XMMatrixTranslation(0.0f, -0.5f, 0.f);
-		//world = DirectX::XMMatrixMultiply(world, translate);
-		nanosuit = std::make_unique<Model>("Phong Material", "src/Assets/Models/Nanosuit/nanosuit.obj", world);
-		//sponza = std::make_unique<Model>("Phong Material", "src/Assets/Models/Sponza/sponza.obj", world);
+		m_SponzaScene = std::make_unique<SponzaScene>();
+		m_SponzaScene->Init(&m_CameraController.GetCamera(), sun.get(), light.get());
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -74,7 +46,7 @@ namespace Yassin
 		float dt = m_Timer.Tick();
 		m_CameraController.OnUpdate(dt);
 
-		m_Window.GetRenderer().BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+		m_Window.GetRenderer().BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
 
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -82,52 +54,9 @@ namespace Yassin
 
 		bool static showDemo = true;
 
-		DirectX::XMMATRIX lView;
-		DirectX::XMMATRIX lProj;
-		DirectX::XMMATRIX lViewProj;
-
 		SettingsGui();
 
-		light->GetView(lView);
-		light->GetProjection(lProj);
-
-		lViewProj = DirectX::XMMatrixMultiply(lView, lProj);
-
-		/*box->UpdateLighting(
-			{ lViewProj, light->GetPosition() },
-			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
-			light->GetSpecularPower() });
-			*/
-		//box->Rotate(dt * 10.f, 0.0f, 0.0f);
-		
-		//nanosuit->Rotate(dt * 10.f, 0.0f, 0.0f);
-
-		/*plane->UpdateLighting(
-			{ lViewProj, light->GetPosition() },
-			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
-			light->GetSpecularPower() });
-			*/
-		/*transparentBox->UpdateLighting(
-			{ lViewProj, light->GetPosition() },
-			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
-			light->GetSpecularPower() });
-			*/
-		nanosuit->UpdateLighting(
-			{ lViewProj, light->GetPosition() },
-			{ light->GetAmbientColor(), light->GetDiffuseColor(), light->GetSpecularColor(),
-			light->GetSpecularPower() });
-
-		nanosuit->UpdateCameraPosition({ m_CameraController.GetCamera().GetPosition() });
-		nanosuit->UpdateLightDirection({ sun->GetDirection() });
-
-		m_Window.GetRenderer().Submit(nanosuit.get());
-
-		//m_Window.GetRenderer().Submit(transparentBox.get());
-
-		//m_Window.GetRenderer().Submit(box.get());
-		//m_Window.GetRenderer().Submit(plane.get());
-
-		m_Window.GetRenderer().Render(m_CameraController.GetCamera(), lViewProj);
+		m_SponzaScene->RenderScene(m_Window);
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -151,6 +80,25 @@ namespace Yassin
 
 		if (ImGui::Begin("Settings"))
 		{
+			ImGui::Text("Scene Data");
+			ImGui::Dummy(ImVec2(0.0f, 1.0f));
+			ImGui::Text("Meshes Rendered : %i", m_Window.GetRenderer().GetMeshesRendered());
+			ImGui::Text("Total Meshes : %i", m_Window.GetRenderer().GetTotalMeshes());
+
+			ImGui::Checkbox("Phong Shading", &m_SponzaScene->GetPhongShaded());
+			if(m_SponzaScene->GetPhongShaded())
+			{
+				m_SponzaScene->UpdateSceneShaders("Phong Material");
+			}
+			
+			ImGui::Checkbox("PBR Shading", &m_SponzaScene->GetPBRShaded());
+			if(m_SponzaScene->GetPBRShaded())
+			{
+				m_SponzaScene->UpdateSceneShaders("PBR Material");
+			}
+
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
 			ImGui::Text("Post-Processing Settings");
 			ImGui::Dummy(ImVec2(0.0f, 1.0f));
 			ImGui::Checkbox("Toggle Post-Processing", &m_Window.GetRenderer().PostProcessingEnabled());
@@ -161,15 +109,19 @@ namespace Yassin
 				ImGui::Dummy(ImVec2(0.0f, 1.0f));
 				ImGui::Checkbox("Gaussian Blur", &m_Window.GetRenderer().GaussianBlurEnabled());
 				ImGui::Checkbox("Box Blur", &m_Window.GetRenderer().BoxBlurEnabled());
+
+				ImGui::Dummy(ImVec2(0.0f, 2.0f));
+				ImGui::Text("Anti-Aliasing");
+				ImGui::Checkbox("FXAA", &m_Window.GetRenderer().FXAAEnabled());
 			}
 
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
 			ImGui::Text("Directional Light Settings");
 			ImGui::Dummy(ImVec2(0.0f, 1.0f));
-			ImGui::SliderFloat("X-Dir", &lightDir.x, -50.f, 50.f, "%.1f");
-			ImGui::SliderFloat("Y-Dir", &lightDir.y, -50.f, 50.f, "%.1f");
-			ImGui::SliderFloat("Z-Dir", &lightDir.z, -50.f, 50.f, "%.1f");
+			ImGui::SliderFloat("X-Dir", &lightDir.x, -1.f, 1.f, "%.1f");
+			ImGui::SliderFloat("Y-Dir", &lightDir.y, -1.f, 1.f, "%.1f");
+			ImGui::SliderFloat("Z-Dir", &lightDir.z, -1.f, 1.f, "%.1f");
 
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -209,6 +161,10 @@ namespace Yassin
 		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
 		light->SetSpecularColor(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
 		light->SetSpecularPower(lightSpecularPower);
+		
+		DirectX::XMVECTOR normalDir = DirectX::XMLoadFloat3(&lightDir);
+		normalDir = DirectX::XMVector3Normalize(normalDir);
+		DirectX::XMStoreFloat3(&lightDir, normalDir);
 		sun->SetDirection(lightDir.x, lightDir.y, lightDir.z);
 	}
 }

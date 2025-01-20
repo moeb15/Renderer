@@ -3,6 +3,7 @@
 #include "Core/Timer.h"
 #include "Renderer/Camera/CameraController.h"
 #include "Renderable/RenderablePrimitives.h"
+#include "Scenes/SponzaScene.h"
 
 namespace Yassin
 {
@@ -28,13 +29,9 @@ namespace Yassin
 		Window m_Window;
 		Timer m_Timer;
 		CameraController m_CameraController;
-		std::unique_ptr<Box> box;
-		std::unique_ptr<Box> transparentBox;
-		std::unique_ptr<Plane> plane;
-		std::unique_ptr<Model> sponza;
-		std::unique_ptr<Model> nanosuit;
 		std::unique_ptr<PointLight> light;
 		std::unique_ptr<DirectionalLight> sun;
+		std::unique_ptr<SponzaScene> m_SponzaScene;
 		char m_GPUName[128];
 		size_t m_GPUMem;
 	};
