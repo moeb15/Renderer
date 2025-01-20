@@ -78,6 +78,11 @@ namespace Yassin
 				v.uv.x = (float)mesh->mTextureCoords[0][i].x;
 				v.uv.y = (float)mesh->mTextureCoords[0][i].y;
 			}
+			else
+			{
+				v.uv.x = 0.0f;
+				v.uv.y = 0.0f;
+			}
 
 			if (meshBoundsMinX > transformedPos.x) meshBoundsMinX = transformedPos.x;
 			if (meshBoundsMinY > transformedPos.y) meshBoundsMinY = transformedPos.y;
@@ -233,6 +238,14 @@ namespace Yassin
 		for(int i = 0; i < m_Meshes.size(); i++)
 		{
 			m_Meshes[i]->SetMaterial(material);
+		}
+	}
+
+	void Model::BindShaderResources()
+	{
+		for(int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->BindShaderResources();
 		}
 	}
 

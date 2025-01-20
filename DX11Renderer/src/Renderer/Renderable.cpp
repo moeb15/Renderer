@@ -23,8 +23,10 @@ namespace Yassin
         m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
         m_TransformBuffer->SetTransformBuffer();
 
-        if (!bIgnoreMaterial || !m_Material)
+        if (!bIgnoreMaterial)
             m_Material->BindMaterial();
+        else
+            m_Material->BindShaderResources();
 
         if (!m_InstancedDraw)
             RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
@@ -127,6 +129,11 @@ namespace Yassin
     void Renderable::UpdateTransparency(float blendAmount)
     {
         if (m_ObjectVisibility == ObjectVisibility::Transparent) m_Material->UpdateTransparencyBuffer({ blendAmount });
+    }
+
+    void Renderable::BindShaderResources()
+    {
+        m_Material->BindShaderResources();
     }
 
     void Renderable::SetTexture(unsigned int slot, const std::string& texture)

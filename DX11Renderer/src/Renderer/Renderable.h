@@ -32,6 +32,7 @@ namespace Yassin
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
 		virtual void UpdateBoundingVolume() { m_BoundingBox.Transform(m_BoundingBox, m_BoundingTransform->GetWorld()); }
 
+		virtual void BindShaderResources();
 		virtual MaterialInstance* GetMaterialInstance(unsigned int meshIdx = 0) const { return m_Material.get(); }
 		virtual VertexBuffer* GetVertexBuffer(unsigned int meshIdx = 0) const { return m_VertexBuffer.get(); }
 		virtual IndexBuffer* GetIndexBuffer(unsigned int meshIdx = 0) const { return m_IndexBuffer.get(); }

@@ -30,8 +30,10 @@ namespace Yassin
 		virtual const size_t GetMeshCount() const override;
 
 		virtual void ResetCulledCount() override;
-		virtual void SetMaterial(std::string material);
+		virtual void SetMaterial(std::string material) override;
 		virtual void SetTexture(unsigned int slot, const std::string& texture) {}
+		virtual void BindShaderResources() override;
+
 
 		virtual void Translate(float x, float y, float z) override;
 		virtual void Rotate(float yaw, float pitch, float roll) override;

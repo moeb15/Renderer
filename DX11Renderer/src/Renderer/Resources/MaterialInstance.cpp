@@ -1,5 +1,6 @@
 #include "Renderer/Resources/MaterialInstance.h"
 #include "Renderer/Resources/TextureLibrary.h"
+#include "MaterialInstance.h"
 
 
 namespace Yassin
@@ -52,8 +53,13 @@ namespace Yassin
 
 	void MaterialInstance::SetTexture(unsigned int slot, const std::string& texture)
 	{
-		if (m_Textures.find(slot) == m_Textures.end()) return;
-		// TODO : switch based off TextureType
+		if (m_Textures.find(slot) == m_Textures.end())
+		{
+			if(slot < TextureSlot::TEXTURE_COUNT)
+				m_Textures.emplace(slot, nullptr);
+			else
+				return;
+		}
 		m_Textures.find(slot)->second = TextureLibrary::GetTexture2D(texture);
 	}
 
@@ -125,6 +131,19 @@ namespace Yassin
 
 		m_VertexShader->Bind();
 		m_PixelShader->Bind();
+	}
+
+	void MaterialInstance::BindShaderResources()
+	{
+		for (const auto& kvPair : m_Textures)
+		{
+			if (m_Illuminated)
+			{
+				if (kvPair.first == TextureSlot::ShadowMapTexture) continue;
+			}
+			if (kvPair.second != nullptr) kvPair.second->Bind(kvPair.first);
+		}
+		for (const auto& kvPair : m_Samplers) kvPair.second->Bind(kvPair.first);
 	}
 
 	void MaterialInstance::UnbindShaderResources()

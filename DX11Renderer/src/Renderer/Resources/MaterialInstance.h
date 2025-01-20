@@ -33,6 +33,7 @@ namespace Yassin
 		inline std::string GetMaterialInstanceName() const { return m_Name; }
 
 		void BindMaterial();
+		void BindShaderResources();
 		void UnbindShaderResources();
 
 	private:
