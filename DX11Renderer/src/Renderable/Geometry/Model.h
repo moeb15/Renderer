@@ -17,7 +17,7 @@ namespace Yassin
 		void ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions, aiMatrix4x4 nodeTransform);
 		std::string LoadMaterialTextures(aiMaterial* material, aiTextureType texType, const aiScene* scene);
 
-		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false) override;
+		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false, bool bIgnoreCulling = false) override;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const override;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const override;
@@ -26,6 +26,12 @@ namespace Yassin
 		virtual VertexBuffer* GetVertexBuffer(unsigned int meshIdx = 0) const override;
 		virtual IndexBuffer* GetIndexBuffer(unsigned int meshIdx = 0) const override;
 		virtual TransformBuffer* GetTransformBuffer(unsigned int meshIdx = 0) override;
+		virtual const size_t GetCulledCount() const override;
+		virtual const size_t GetMeshCount() const override;
+
+		virtual void ResetCulledCount() override;
+		virtual void SetMaterial(std::string material);
+		virtual void SetTexture(unsigned int slot, const std::string& texture) {}
 
 		virtual void Translate(float x, float y, float z) override;
 		virtual void Rotate(float yaw, float pitch, float roll) override;

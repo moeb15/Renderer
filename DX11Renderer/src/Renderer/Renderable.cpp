@@ -3,12 +3,13 @@
 #include "Renderable/DataTypes.h"
 #include "Renderable.h"
 #include "Renderer/Resources/TextureLibrary.h"
+#include "Renderer/Resources/MaterialSystem.h"
 
 namespace Yassin
 {
     void Renderable::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bDepthPrePass)
     {
-        unsigned int curInstanceCount = FrustumCulling(camera, viewProj, bDepthPrePass);
+        unsigned int curInstanceCount = (unsigned int) m_VertexBuffer->GetInstanceCount(); //FrustumCulling(camera, viewProj, bDepthPrePass);
         if (curInstanceCount == 0) return;
 
         if (bRenderBoundingVolume)
@@ -126,6 +127,24 @@ namespace Yassin
     void Renderable::UpdateTransparency(float blendAmount)
     {
         if (m_ObjectVisibility == ObjectVisibility::Transparent) m_Material->UpdateTransparencyBuffer({ blendAmount });
+    }
+
+    void Renderable::SetTexture(unsigned int slot, const std::string& texture)
+    {
+        m_Textures.emplace((TextureSlot) slot, texture);
+        m_Material->SetTexture(slot, texture);
+    }
+
+    void Renderable::SetMaterial(std::string material)
+    {
+        Material* newMat = MaterialSystem::Get(material);
+        if(newMat)
+        {
+            m_Material = std::make_unique<MaterialInstance>(newMat);
+            for (const auto& kvPair : m_Textures) m_Material->SetTexture(kvPair.first, kvPair.second);
+            m_Material->SetSampler(SamplerSlot::ClampSampler, FilterType::Bilinear, AddressType::Clamp);
+            m_Material->SetSampler(SamplerSlot::WrapSampler, FilterType::Bilinear, AddressType::Wrap);
+        }
     }
 
     void Renderable::ConstructBoundingVolume(DirectX::XMMATRIX& world)

@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "imgui.h"
 #include "Model.h"
 
 constexpr float negInf = -std::numeric_limits<float>::infinity();
@@ -16,8 +17,13 @@ namespace Yassin
 	{
 		Assimp::Importer importer;
 		const aiScene* pScene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
-		if (!pScene) return;
+		if (!pScene) 
+		{
+			MessageBoxA(RendererContext::GetWindowHandle(), "Failed to load model", modelFile.c_str(), MB_OK);
+			exit(-1);
+		}
 		m_RootTransform = pScene->mRootNode->mTransformation;
+
 		size_t lastSlash = modelFile.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
 		m_ModelDirectory = modelFile.substr(0, lastSlash) + "Textures/";
@@ -35,7 +41,7 @@ namespace Yassin
 		for(unsigned int i = 0; i < node->mNumChildren; i++)
 		{
 			aiMatrix4x4 childTransform = node->mChildren[i]->mTransformation;
-			ProcessNode(node->mChildren[i], scene, material, world, instancePositions, childTransform * parentTransform);
+			ProcessNode(node->mChildren[i], scene, material, world, instancePositions, parentTransform * childTransform);
 		}
 	}
 
@@ -52,11 +58,12 @@ namespace Yassin
 		float meshBoundsX;
 		float meshBoundsY;
 		float meshBoundsZ;
-
+		
 		std::vector<Vertex> vData = {};
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vertex v;
+			aiVector3D prePos = mesh->mVertices[i];
 			aiVector3D transformedPos = nodeTransform * mesh->mVertices[i];
 			aiVector3D normal = mesh->mNormals[i];
 			aiVector3D tangent = mesh->mTangents[i];
@@ -72,13 +79,13 @@ namespace Yassin
 				v.uv.y = (float)mesh->mTextureCoords[0][i].y;
 			}
 
-			if (meshBoundsMinX > v.position.x) meshBoundsMinX = v.position.x;
-			if (meshBoundsMinY > v.position.y) meshBoundsMinY = v.position.y;
-			if (meshBoundsMinZ > v.position.z) meshBoundsMinZ = v.position.z;
+			if (meshBoundsMinX > transformedPos.x) meshBoundsMinX = transformedPos.x;
+			if (meshBoundsMinY > transformedPos.y) meshBoundsMinY = transformedPos.y;
+			if (meshBoundsMinZ > transformedPos.z) meshBoundsMinZ = transformedPos.z;
 
-			if (meshBoundsMaxX < v.position.x) meshBoundsMaxX = v.position.x;
-			if (meshBoundsMaxY < v.position.y) meshBoundsMaxY = v.position.y;
-			if (meshBoundsMaxZ < v.position.z) meshBoundsMaxZ = v.position.z;
+			if (meshBoundsMaxX < transformedPos.x) meshBoundsMaxX = transformedPos.x;
+			if (meshBoundsMaxY < transformedPos.y) meshBoundsMaxY = transformedPos.y;
+			if (meshBoundsMaxZ < transformedPos.z) meshBoundsMaxZ = transformedPos.z;
 
 			vData.push_back(v);
 		}
@@ -97,7 +104,7 @@ namespace Yassin
 			indices.push_back(face.mIndices[1]);
 			indices.push_back(face.mIndices[2]);
 		}
-
+		
 		aiMaterial* pMaterial = scene->mMaterials[mesh->mMaterialIndex];
 		std::string diffuseTex;
 		std::string normalTex;
@@ -109,14 +116,14 @@ namespace Yassin
 		specularTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_SPECULAR, scene);
 		roughnessTex = LoadMaterialTextures(pMaterial, aiTextureType::aiTextureType_UNKNOWN, scene);
 
-		DirectX::XMMATRIX meshTransform = *reinterpret_cast<DirectX::XMMATRIX*>(&nodeTransform);
+		DirectX::XMMATRIX meshTransform = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&nodeTransform));
 
-		m_Meshes.push_back(std::make_unique<Mesh>(material, world, DirectX::XMMatrixMultiply(world, meshTransform) , vData, indices, meshBoundsX, meshBoundsY, meshBoundsZ, instancePositions));
+		m_Meshes.push_back(std::make_unique<Mesh>(material, world, meshTransform, vData, indices, meshBoundsX, meshBoundsY, meshBoundsZ, node->mName.C_Str(), instancePositions));
 
-		if (diffuseTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::BaseTexture, diffuseTex);
-		if(normalTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::NormalTexture, normalTex);
-		if(specularTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::SpecularTexture, specularTex);
-		if(roughnessTex != "") m_Meshes.back()->GetMaterialInstance()->SetTexture(TextureSlot::RoughnessTexture, roughnessTex);
+		if (diffuseTex != "") m_Meshes.back()->SetTexture(TextureSlot::BaseTexture, diffuseTex);
+		if (normalTex != "") m_Meshes.back()->SetTexture(TextureSlot::NormalTexture, normalTex);
+		if (specularTex != "") m_Meshes.back()->SetTexture(TextureSlot::SpecularTexture, specularTex);
+		if (roughnessTex != "") m_Meshes.back()->SetTexture(TextureSlot::RoughnessTexture, roughnessTex);
 	}
 
 	std::string Model::LoadMaterialTextures(aiMaterial* material, aiTextureType texType, const aiScene* scene)
@@ -138,11 +145,11 @@ namespace Yassin
 		return texName;
 	}
 
-	void Model::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume)
+	void Model::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bIgnoreCulling)
 	{
 		for(int i = 0; i < m_Meshes.size(); i++)
 		{
-			m_Meshes[i]->Render(camera, viewProj, bIgnoreMaterial, bRenderBoundingVolume);
+			m_Meshes[i]->Render(camera, viewProj, bIgnoreMaterial, bRenderBoundingVolume, bIgnoreCulling);
 		}
 	}
 
@@ -196,6 +203,37 @@ namespace Yassin
 		if (meshIdx > m_Meshes.size() - 1) return nullptr;
 
 		return m_Meshes[meshIdx]->GetTransformBuffer();
+	}
+
+	const size_t Model::GetCulledCount() const
+	{
+		size_t meshesCulled = 0;
+		for(int i = 0; i < m_Meshes.size(); i++)
+		{
+			meshesCulled += m_Meshes[i]->GetCulledCount();
+		}
+		return meshesCulled;
+	}
+
+	const size_t Model::GetMeshCount() const
+	{
+		return m_Meshes.size();
+	}
+
+	void Model::ResetCulledCount()
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->ResetCulledCount();
+		}
+	}
+
+	void Model::SetMaterial(std::string material)
+	{
+		for(int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->SetMaterial(material);
+		}
 	}
 
 	void Model::Translate(float x, float y, float z)

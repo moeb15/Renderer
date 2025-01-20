@@ -37,12 +37,15 @@ namespace Yassin
 		virtual IndexBuffer* GetIndexBuffer(unsigned int meshIdx = 0) const { return m_IndexBuffer.get(); }
 		virtual TransformBuffer* GetTransformBuffer(unsigned int meshIdx = 0) { return m_TransformBuffer.get(); }
 
+
 		inline const ObjectType& GetObjectType() const { return m_ObjectType; }
 		inline const ObjectVisibility GetObjectVisibility() const { return m_ObjectVisibility; }
 		virtual const size_t GetCulledCount() const { return m_Culled; }
 		virtual const size_t GetMeshCount() const { return 1; }
 		inline DirectX::BoundingBox GetBoundingBox() { return this->m_BoundingBox; }
 
+		virtual void SetTexture(unsigned int slot, const std::string& texture);
+		virtual void SetMaterial(std::string material);
 		void SetObjectVisiblity(ObjectVisibility visibility) { m_ObjectVisibility = visibility; }
 		void SetObjectType(ObjectType objectType) { m_ObjectType = objectType; }
 		virtual void ResetCulledCount() { m_Culled = 0; }
@@ -78,5 +81,6 @@ namespace Yassin
 		Sampler m_BoundingSampler;
 		Topology m_BoundingTopology;
 		size_t m_Culled;
+		std::unordered_map<TextureSlot, std::string> m_Textures;
 	};
 }

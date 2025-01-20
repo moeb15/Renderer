@@ -11,6 +11,7 @@ namespace Yassin
 	{
 		GeneratePlane();
 
+		DirectX::XMMATRIX testWorld = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 		m_TransformBuffer = std::make_unique<TransformBuffer>();
 		m_TransformBuffer->SetWorld(world);
 
@@ -19,12 +20,12 @@ namespace Yassin
 		m_Material->SetSampler(0, FilterType::Bilinear, AddressType::Clamp);
 		m_Material->SetSampler(1, FilterType::Bilinear, AddressType::Wrap);
 
-		m_BoundingBox = DirectX::BoundingBox(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(dimX + 0.25f, 1.25f, dimY + 0.25f));
-		m_BoundX = dimX + 0.25f;
-		m_BoundY = 1.25f;
-		m_BoundZ = dimY + 0.25f;
+		m_BoundingBox = DirectX::BoundingBox(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(dimX / 2.f, 1.1f, dimY / 2.f));
+		m_BoundX = dimX / 2.f;
+		m_BoundY = 1.1f;
+		m_BoundZ = dimY / 2.f;
 
-		ConstructBoundingVolume(world);
+		ConstructBoundingVolume(testWorld);
 	}
 
 	void Plane::GeneratePlane()
