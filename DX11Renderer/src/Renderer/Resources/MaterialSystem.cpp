@@ -47,6 +47,7 @@ namespace Yassin
 		}
 		
 		std::unique_ptr<Material> newMaterial = std::make_unique<Material>();
+		newMaterial->SetName(name.c_str());
 
 		D3D11_SHADER_DESC pixelShaderDesc = {};
 		D3D11_SHADER_DESC vertexShaderDesc = {};

@@ -27,6 +27,8 @@ namespace Yassin
 	public:
 		inline void SetLightFlag(bool flag) { m_LightFlag = flag; }
 		inline void SetTransparencyFlag(bool flag) { m_TransparencyFlag = flag; }
+		inline void SetName(const char* name) { m_Name = name; }
+		inline std::string GetName() const { return m_Name; }
 
 		inline bool IsIlluminated() const { return m_LightFlag; }
 		inline bool IsTransparent() const { return m_TransparencyFlag; }
@@ -64,5 +66,6 @@ namespace Yassin
 		std::vector<SamplerMetaData> m_SamplerMetaData;
 		VertexShader* m_VertexShader;
 		PixelShader* m_PixelShader;
+		std::string m_Name;
 	};
 }

@@ -28,6 +28,7 @@ namespace Yassin
 
 		inline VertexShader* GetVertexShader() { return m_VertexShader; }
 		inline PixelShader* GetPixelShader() { return m_PixelShader; }
+		inline std::string GetMaterialInstanceName() const { return m_Name; }
 
 		void BindMaterial();
 		void UnbindShaderResources();
@@ -44,6 +45,7 @@ namespace Yassin
 		bool m_Transparent;
 		VertexShader* m_VertexShader;
 		PixelShader* m_PixelShader;
+		std::string m_Name;
 	};
 }
 

@@ -47,6 +47,7 @@ namespace Yassin
 
 		m_VertexShader = material->GetVertexShader();
 		m_PixelShader = material->GetPixelShader();
+		m_Name = material->GetName();
 	}
 
 	void MaterialInstance::SetTexture(unsigned int slot, const std::string& texture)
@@ -65,7 +66,7 @@ namespace Yassin
 
 	void MaterialInstance::SetShadowMap(ID3D11ShaderResourceView* srv)
 	{
-		RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::DepthMapTexture, 1, &srv);
+		RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::ShadowMapTexture, 1, &srv);
 	}
 
 	ID3D11ShaderResourceView* MaterialInstance::GetTexture(unsigned int slot)
@@ -115,7 +116,7 @@ namespace Yassin
 		{
 			if(m_Illuminated)
 			{
-				if (kvPair.first == TextureSlot::DepthMapTexture) continue;
+				if (kvPair.first == TextureSlot::ShadowMapTexture) continue;
 			}
 			if (kvPair.second != nullptr) kvPair.second->Bind(kvPair.first);
 		}
