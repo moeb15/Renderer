@@ -10,6 +10,7 @@ namespace Yassin
 		virtual void Init(Camera* camera, DirectionalLight* sun, PointLight* light) = 0;
 		void RenderScene(Window& window);
 		inline bool& GetPhongShaded() { return m_PhongShaded; }
+		inline bool& GetBlinnPhongShaded() { return m_BlinnPhongShaded; }
 		inline bool& GetPBRShaded() { return m_PBRShaded; }
 		void UpdateSceneShaders(std::string material);
 
@@ -18,9 +19,12 @@ namespace Yassin
 		DirectionalLight* m_Sun;
 		PointLight* m_Light;
 		Camera* m_Camera;
+		bool m_BlinnPhongShaded;
 		bool m_PhongShaded;
 		bool m_PBRShaded;
 		std::string m_SceneShaders;
+		std::vector<PointLight> m_PointLights;
+
 	};
 }
 

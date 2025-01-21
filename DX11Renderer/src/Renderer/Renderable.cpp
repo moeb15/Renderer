@@ -15,11 +15,15 @@ namespace Yassin
         if (bRenderBoundingVolume)
             RenderBoundingVolume(viewProj, curInstanceCount);
         
+        DirectX::XMMATRIX view;
+        camera.GetViewMatrix(view);
+
         m_VertexBuffer->Bind(0);
         m_IndexBuffer->Bind();
         m_Topology.Bind();
 
         m_TransformBuffer->SetViewProjection(viewProj);
+        m_TransformBuffer->SetView(view);
         m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
         m_TransformBuffer->SetTransformBuffer();
 

@@ -19,6 +19,11 @@ namespace Yassin
 			RendererContext::GetDeviceContext()->CSSetShaderResources(slot, 1, &srv);
 		}
 
+		inline void SetSRV(unsigned int slot, unsigned int size,ID3D11ShaderResourceView* const* srv)
+		{
+			RendererContext::GetDeviceContext()->CSSetShaderResources(slot, size, srv);
+		}
+
 		inline void SetUAV(unsigned int slot, ID3D11UnorderedAccessView* uav)
 		{
 			RendererContext::GetDeviceContext()->CSSetUnorderedAccessViews(slot, 1, &uav, nullptr);

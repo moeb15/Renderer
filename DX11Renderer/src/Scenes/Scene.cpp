@@ -25,7 +25,7 @@ namespace Yassin
 			 window.GetRenderer().Submit(renderable.get());
 		 }
 
-		 window.GetRenderer().Render(*m_Camera, lViewProj);
+		 window.GetRenderer().Render(*m_Camera, lViewProj, m_PointLights);
 	}
 
 	void Scene::UpdateSceneShaders(std::string material)
@@ -36,11 +36,19 @@ namespace Yassin
 			{
 				m_PhongShaded = true;
 				m_PBRShaded = false;
+				m_BlinnPhongShaded = false;
+			}
+			if (material == "Blinn-Phong Material")
+			{
+				m_BlinnPhongShaded = true;
+				m_PBRShaded = false;
+				m_PhongShaded = false;
 			}
 			if(material == "PBR Material")
 			{
 				m_PBRShaded = true;
 				m_PhongShaded = false;
+				m_BlinnPhongShaded = false;
 			}
 			return;
 		}
@@ -50,11 +58,19 @@ namespace Yassin
 			{
 				m_PhongShaded = true;
 				m_PBRShaded = false;
+				m_BlinnPhongShaded = false;
+			}
+			if (material == "Blinn-Phong Material")
+			{
+				m_BlinnPhongShaded = true;
+				m_PBRShaded = false;
+				m_PhongShaded = false;
 			}
 			if (material == "PBR Material")
 			{
 				m_PBRShaded = true;
 				m_PhongShaded = false;
+				m_BlinnPhongShaded = false;
 			}
 		}
 		
