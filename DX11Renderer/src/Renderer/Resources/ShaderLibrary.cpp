@@ -1,4 +1,5 @@
 #include "Renderer/Resources/ShaderLibrary.h"
+#include "ShaderLibrary.h"
 
 namespace Yassin
 {
@@ -36,5 +37,23 @@ namespace Yassin
 		auto kvPair = s_Instance->m_ShaderPairs.find(shaderName);
 		VsPsPair shaderPair = VsPsPair(kvPair->second.first.get(), kvPair->second.second.get());
 		return shaderPair;
+	}
+
+	void ShaderLibrary::AddCompute(const std::string& computeShaderName, wchar_t* csFile)
+	{
+		if (s_Instance->m_ComputeShaders.find(computeShaderName) != s_Instance->m_ComputeShaders.end()) return;
+
+		std::unique_ptr<ComputeShader> computeShader = std::make_unique<ComputeShader>(csFile);
+		if (!computeShader) return;
+
+		s_Instance->m_ComputeShaders.emplace(computeShaderName, std::move(computeShader));
+	}
+
+	ComputeShader* Yassin::ShaderLibrary::GetCompute(const std::string& computeShaderName)
+	{
+		if (s_Instance->m_ComputeShaders.find(computeShaderName) == s_Instance->m_ComputeShaders.end()) return nullptr;
+
+		auto kvPair = s_Instance->m_ComputeShaders.find(computeShaderName);
+		return kvPair->second.get();
 	}
 }
