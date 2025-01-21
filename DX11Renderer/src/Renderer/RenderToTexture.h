@@ -14,6 +14,7 @@ namespace Yassin
 		void ClearRenderTarget(float r, float g, float b, float a);
 
 		inline ID3D11ShaderResourceView* GetSRV() { return m_SRV.Get(); }
+		inline ID3D11Texture2D* GetTextureResource() { return m_RTT.Get(); }
 
 		inline void GetPerspectiveMatrix(DirectX::XMMATRIX& matrix) const { matrix = DirectX::XMLoadFloat4x4(&m_ProjMatrix); }
 		inline void GetOrthoMatrix(DirectX::XMMATRIX& matrix) const { matrix = DirectX::XMLoadFloat4x4(&m_OrthoMatrix); }
