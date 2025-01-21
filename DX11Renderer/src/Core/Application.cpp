@@ -90,6 +90,12 @@ namespace Yassin
 			{
 				m_SponzaScene->UpdateSceneShaders("Phong Material");
 			}
+
+			ImGui::Checkbox("Blinn-Phong Shading", &m_SponzaScene->GetBlinnPhongShaded());
+			if (m_SponzaScene->GetBlinnPhongShaded())
+			{
+				m_SponzaScene->UpdateSceneShaders("Blinn-Phong Material");
+			}
 			
 			ImGui::Checkbox("PBR Shading", &m_SponzaScene->GetPBRShaded());
 			if(m_SponzaScene->GetPBRShaded())
@@ -113,6 +119,10 @@ namespace Yassin
 				ImGui::Dummy(ImVec2(0.0f, 2.0f));
 				ImGui::Text("Anti-Aliasing");
 				ImGui::Checkbox("FXAA", &m_Window.GetRenderer().FXAAEnabled());
+
+				ImGui::Dummy(ImVec2(0.0f, 2.0f));
+				ImGui::Text("Ambient Occlusion");
+				ImGui::Checkbox("SSAO", &m_Window.GetRenderer().SSAOEnabled());
 			}
 
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));

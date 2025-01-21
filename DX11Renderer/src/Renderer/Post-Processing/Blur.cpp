@@ -33,7 +33,7 @@ namespace Yassin
 		m_UpSampleWindow.Init(rWidth, rHeight);
 
 		m_Sampler = Sampler();
-		m_Sampler.Init(FilterType::Anisotropic, AddressType::Clamp);
+		m_Sampler.Init(FilterType::Anisotropic, AddressType::Wrap);
 		m_ScreenBuffer = std::make_unique<ScreenBuffer>();
 	}
 

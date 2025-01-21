@@ -1,6 +1,6 @@
 #pragma once
 #include "Renderer/RenderToTexture.h"
-#include "Renderer/Camera.h"
+#include "Renderer/Camera/Camera.h"
 #include "Renderer/Renderable.h"
 #include "Renderable/Utils/OrthoWindow.h"
 #include <memory>

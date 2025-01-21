@@ -6,8 +6,11 @@ namespace Yassin
 	{
 		BaseTexture = 0,
 		NormalTexture,
+		SpecularTexture,
 		RoughnessTexture,
+		ShadowMapTexture,
 		DepthMapTexture,
+		TEXTURE_COUNT
 	};
 
 	enum SamplerSlot

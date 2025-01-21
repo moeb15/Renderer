@@ -10,6 +10,7 @@ namespace Yassin
 		Color,
 		Normal,
 		Depth,
+		ViewPosition,
 		BUFFER_COUNT
 	};
 
