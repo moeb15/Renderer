@@ -1,6 +1,7 @@
 cbuffer MatrixBuffer
 {
     row_major matrix world;
+    row_major matrix view;
     row_major matrix viewProj;
 };
 
@@ -19,6 +20,7 @@ struct VSOut
     float4 position : SV_POSITION;
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
+    float4 viewPos : VIEWPOS;
 };
 
 VSOut main(VSIn input)
@@ -35,8 +37,11 @@ VSOut main(VSIn input)
     
     vso.uv = input.uv;
     
+    vso.viewPos = mul(input.position, world);
+    vso.viewPos = mul(vso.viewPos, view);
+    
     vso.normal = mul(input.normal, (float3x3) world);
-    vso.normal = normalize(vso.normal);
+    vso.normal = mul(vso.normal, (float3x3) view);
     
     return vso;
 }

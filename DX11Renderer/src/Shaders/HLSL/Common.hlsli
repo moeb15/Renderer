@@ -26,6 +26,10 @@
     #define SUBPIXEL_QUALITY 0.75
 #endif
 
+#ifndef SHADOW_ATLAS_SIZE
+    #define SHADOW_ATLAS_SIZE 2048
+#endif
+
 static float FXAA_QUALITIES[12] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.0f, 2.0f, 2.0f, 2.0f, 4.0f, 8.0f };
 
 float RGB2Luma(float3 rgb)

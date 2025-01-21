@@ -1,6 +1,7 @@
 cbuffer MatrixBuffer : register(b0)
 {
     row_major matrix world;
+    row_major matrix view;
     row_major matrix viewProj;
 };
 

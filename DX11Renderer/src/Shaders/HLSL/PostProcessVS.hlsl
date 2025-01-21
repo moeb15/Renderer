@@ -1,6 +1,7 @@
 cbuffer MatrixBuffer
 {
     matrix world;
+    matrix view;
     matrix viewProj;
 };
 
