@@ -50,7 +50,7 @@ namespace Yassin
 #if defined(_DEBUG) || defined(DEBUG)
 		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-
+		
 		DXGI_SWAP_CHAIN_DESC sDesc = {};
 		sDesc.OutputWindow = hWnd;
 		sDesc.BufferCount = 2;
@@ -194,6 +194,11 @@ namespace Yassin
 
 		m_Context->RSSetViewports(1, &m_Viewport);
 		m_Context->OMSetRenderTargets(1, m_RenderTarget.GetAddressOf(), m_DepthStencil.Get());
+
+		hr = m_Device->QueryInterface(IID_PPV_ARGS(&m_Debug));
+		if (FAILED(hr)) return;
+
+		m_Debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
 
 		ImGui_ImplDX11_Init(m_Device.Get(), m_Context.Get());
 	}

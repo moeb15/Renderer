@@ -18,6 +18,7 @@ namespace Yassin
 		static ID3D11Device* GetDevice() { return s_Instance->m_Device.Get(); }
 		static ID3D11DeviceContext* GetDeviceContext() { return s_Instance->m_Context.Get(); }
 		static HWND GetWindowHandle() { return s_Instance->m_HWND; }
+		static ID3D11Debug* GetDebug() { return s_Instance->m_Debug.Get(); }
 
 		static void SetBackBufferRenderTarget();
 		static void ResetViewport();
@@ -98,6 +99,7 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendEnable;
 		Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendDisable;
 
+		Microsoft::WRL::ComPtr<ID3D11Debug> m_Debug;
 		D3D11_VIEWPORT m_Viewport;
 
 	private:
