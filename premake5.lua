@@ -93,6 +93,16 @@ project "DX11Renderer"
 		{
 			"%{prj.name}/src/Shaders/CSO/%(Filename).cso"
 		}
+	filter "files:**Shaders/HLSL/Compute/**CS.hlsl"
+		buildcommands
+		{
+			"echo Compiling Compute Shader: %(FullPath)",
+			"fxc /T cs_5_0 /Fo \"%(ProjectDir)src/Shaders/CSO/Compute/%(Filename).cso\" /nologo \"%(FullPath)\""
+		}
+		buildoutputs 
+		{
+			"%{prj.name}/src/Shaders/CSO/Compute/%(Filename).cso"
+		}
 
 	filter "system:windows"
 		systemversion "latest"
