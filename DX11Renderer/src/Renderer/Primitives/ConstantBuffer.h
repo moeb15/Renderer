@@ -2,11 +2,16 @@
 #include "Renderer/RendererContext.h"
 #include <vector>
 
+
 namespace Yassin
 {
+	constexpr size_t SHADOW_ATLAS_BATCH_SIZE = 64;
+	constexpr unsigned int SHADOW_MAP_SIZE = 256;
+
 	struct MatrixBuffer
 	{
 		DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
+		DirectX::XMMATRIX view = DirectX::XMMatrixIdentity();
 		DirectX::XMMATRIX viewProj = DirectX::XMMatrixIdentity();
 	};
 
@@ -60,8 +65,7 @@ namespace Yassin
 
 	struct ShadowAtlasType
 	{
-		DirectX::XMFLOAT2 offSets;
-		DirectX::XMFLOAT2 atlasSize;
+		DirectX::XMFLOAT2 offSets[SHADOW_ATLAS_BATCH_SIZE];
 	};
 
 	template<typename C>
@@ -138,6 +142,7 @@ namespace Yassin
 	{
 	public:
 		inline void SetWorld(DirectX::XMMATRIX& world) { m_MatrixBuffer.world = world; }
+		inline void SetView(DirectX::XMMATRIX& view) { m_MatrixBuffer.view = view; }
 		inline void SetViewProjection(DirectX::XMMATRIX& viewProj) { m_MatrixBuffer.viewProj = viewProj; }
 
 		inline DirectX::XMMATRIX& GetWorld() { return m_MatrixBuffer.world; }
@@ -169,16 +174,9 @@ namespace Yassin
 	class ShadowAtlasBuffer : public ComputeConstantBuffer<ShadowAtlasType> 
 	{
 	public:
-		void SetOffset(float x, float y) 
-		{ 
-			m_Offsets.offSets.x = x;
-			m_Offsets.offSets.y = y;
-		}
-
-		void SetAtlasSize(float x, float y)
+		void SetOffsets(const ShadowAtlasType& offsets)
 		{
-			m_Offsets.atlasSize.x = x;
-			m_Offsets.atlasSize.y = y;
+			m_Offsets = offsets;
 		}
 
 		void Update()
