@@ -14,7 +14,7 @@ namespace Yassin
 		m_SceneTexture->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthStencil);
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
-		m_DepthPass->Init(1920, 1080, 1.f, 100.f, RenderTargetType::DepthMap);
+		m_DepthPass->Init(width, height, 1.f, 100.f, RenderTargetType::DepthMap);
 
 		m_ShadowMap = std::make_unique<RenderToTexture>();
 		m_ShadowMap->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
@@ -25,12 +25,36 @@ namespace Yassin
 		m_GBuffer = std::make_unique<GBuffer>();
 		m_GBuffer->Init(width, height, 0.1f, 1000.f);
 
+		m_UpdateDebug = 165;
+		m_CurrentDebugFrame = 0;
+		
+		m_ShadowAtlas = std::make_unique<RenderToUAV>();
+		m_ShadowAtlas->Init(2048, 2048);
+
+		unsigned int lightDepthX = SHADOW_MAP_SIZE;
+		unsigned int lightDepthY = SHADOW_MAP_SIZE;
+		unsigned int numLightMaps = (m_ShadowAtlas->GetHeight() * m_ShadowAtlas->GetWidth()) / (lightDepthX * lightDepthY);
+		for(unsigned int i = 0 ; i < numLightMaps; i++)
+		{
+			std::unique_ptr<RenderToTexture> lDepthMap = std::make_unique<RenderToTexture>();
+			lDepthMap->Init(lightDepthX, lightDepthY, 1.f, 100.f, RenderTargetType::DepthMap);
+			m_LightDepthMaps.push_back(std::move(lDepthMap));
+		}
+
+		unsigned int numLightBuffers = numLightMaps / SHADOW_ATLAS_BATCH_SIZE;
+		for(unsigned int i = 0 ; i < numLightBuffers; i++)
+		{
+			std::unique_ptr<ShadowAtlasBuffer> buffer = std::make_unique<ShadowAtlasBuffer>();
+			m_ShadowAtlasBuffers.push_back(std::move(buffer));
+		}
+
 		m_PostProcessingEnabled = false;
 		m_DeferredRenderingEnabled = false;
 		m_BoundingVolumesEnabled = false;
 		m_BoxBlurEnabled = false;
 		m_GaussianBlurEnabled = false;
 		m_FXAAEnabled = false;
+		m_SSAOEnabled = false;
 		m_MeshesRendered = 0;
 		m_TotalMeshes = 0;
 
@@ -73,12 +97,15 @@ namespace Yassin
 
 		ShaderLibrary::Add("FXAA", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/FXAA_PS.cso");
 
+		ShaderLibrary::AddCompute("Shadow Atlas", L"src/Shaders/CSO/Compute/ShadowAtlasCS.cso");
+
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
 		MaterialSystem::Add("Flat Material", ShaderLibrary::Get("Unlit Texture Shader"));
 		MaterialSystem::Add("Color Material", ShaderLibrary::Get("Unlit Texture Shader"));
 		MaterialSystem::Add("Texture Material", ShaderLibrary::Get("Texture Shader"));
 		MaterialSystem::Add("Depth Material", ShaderLibrary::Get("Depth Shader"));
+		MaterialSystem::Add("GBuffer Material", ShaderLibrary::Get("GBuffer Shader"));
 		MaterialSystem::Add("Shadow Map Material", ShaderLibrary::Get("Soft Shadow Shader"));
 		MaterialSystem::Add("Phong Material", ShaderLibrary::Get("Phong Shader"));
 		MaterialSystem::Add("Blinn-Phong Material", ShaderLibrary::Get("Blinn-Phong Shader"));
@@ -106,7 +133,8 @@ namespace Yassin
 
 		if(renderable->GetMaterialInstance()->IsIlluminated())
 		{
-			m_DepthRenderQueue.push(renderable);
+			if (std::find(m_DepthRenderQueue.begin(), m_DepthRenderQueue.end(), renderable) == m_DepthRenderQueue.end())
+				m_DepthRenderQueue.push_back(renderable);
 		}
 
 		if(renderable->GetObjectVisibility() == ObjectVisibility::Transparent)
@@ -124,8 +152,13 @@ namespace Yassin
 		}
 	}
 
-	void Renderer::Render(Camera& camera, DirectX::XMMATRIX& lightViewProj)
+	void Renderer::Render(Camera& camera, DirectX::XMMATRIX& lightViewProj, std::vector<PointLight>& pointLights)
 	{
+		if(m_CurrentDebugFrame == 0)
+			RendererContext::GetDebug()->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
+
+		m_CurrentDebugFrame = (m_CurrentDebugFrame + 1) % m_UpdateDebug;
+
 		m_MeshesRendered = 0;
 		for (int i = 0; i < m_Renderables.size(); i++)
 		{
@@ -133,35 +166,6 @@ namespace Yassin
 		}
 
 		m_TotalMeshes = m_MeshesRendered;
-
-		// Depth pre-pass, calculating shadow map
-		DepthPrePass(camera, lightViewProj, m_ShadowMap.get());
-
-		// Soft shadows
-		RenderShadows(camera);
-		
-		//GBufferPass(camera);
-
-		RendererContext::ClearRenderTarget(
-			m_BackBufferColor[0],
-			m_BackBufferColor[1],
-			m_BackBufferColor[2],
-			m_BackBufferColor[3]);
-
-
-		if(m_DeferredRenderingEnabled)
-		{
-			// Testing for now
-			GBufferPass(camera);
-		}
-
-		if (m_PostProcessingEnabled)
-		{
-			RenderSceneToTexture(camera);
-			PostProcessedScene(camera);
-
-			return;
-		}
 
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX proj;
@@ -171,6 +175,35 @@ namespace Yassin
 
 		DirectX::XMMATRIX viewProj =
 			DirectX::XMMatrixMultiply(view, proj);
+
+		// Testing, using to construct shadow atlas
+		LightDepthPass(camera, pointLights);
+
+		// Depth pre-pass, populating depth buffer
+		DepthPrePass(camera, viewProj, m_DepthPass.get());
+
+		// Calculating shadow map
+		DepthPrePass(camera, lightViewProj, m_ShadowMap.get());
+
+		// Soft shadows
+		RenderShadows(camera);
+
+		// Testing
+		GBufferPass(camera);
+
+		RendererContext::ClearRenderTarget(
+			m_BackBufferColor[0],
+			m_BackBufferColor[1],
+			m_BackBufferColor[2],
+			m_BackBufferColor[3]);
+
+		if (m_PostProcessingEnabled)
+		{
+			RenderSceneToTexture(camera);
+			PostProcessedScene(camera);
+
+			return;
+		}
 
 		while(!m_OpaqueRenderQueue.empty())
 		{
@@ -211,20 +244,76 @@ namespace Yassin
 
 		std::pair<VertexShader*, PixelShader*> depthShaders = ShaderLibrary::Get("Depth Shader");
 		
-		while(!m_DepthRenderQueue.empty())
+		for(int i = 0; i < m_DepthRenderQueue.size(); i++)
 		{
-			Renderable* rPtr = m_DepthRenderQueue.front();
+			Renderable* rPtr = m_DepthRenderQueue[i];
 
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
 
 			rPtr->Render(camera, lightViewProj, true, false, true);
-			
-			m_DepthRenderQueue.pop();
 		}
 
 		RendererContext::SetBackBufferRenderTarget();
 		RendererContext::ResetViewport();
+	}
+
+	void Renderer::LightDepthPass(Camera& camera, std::vector<PointLight>& lights)
+	{
+		ComputeShader* atlasCS = ShaderLibrary::GetCompute("Shadow Atlas");
+
+		std::unique_ptr<TextureArray> textureArr = std::make_unique<TextureArray>();
+		textureArr->Init(SHADOW_ATLAS_BATCH_SIZE, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+
+		size_t numDispatches = (lights.size() + SHADOW_ATLAS_BATCH_SIZE - 1) / SHADOW_ATLAS_BATCH_SIZE;
+		size_t numLightMaps = 0;
+		ID3D11ShaderResourceView* srvs[SHADOW_ATLAS_BATCH_SIZE] = { nullptr };
+		ID3D11Texture2D* textures[SHADOW_ATLAS_BATCH_SIZE] = { nullptr };;
+
+		DirectX::XMMATRIX view, proj, viewProj;
+
+		for(size_t dispatch = 0; dispatch < numDispatches; dispatch++)
+		{
+			ShadowAtlasType offsets;
+
+			for(int i = 0; i < SHADOW_ATLAS_BATCH_SIZE; i++)
+			{
+				size_t lightIndex = dispatch * SHADOW_ATLAS_BATCH_SIZE + i;
+				if (lightIndex > lights.size()) break;
+
+				PointLight light = lights[lightIndex];
+				light.GetView(view);
+				light.GetProjection(proj);
+
+				if (!camera.GetBoundingFrustum().Intersects(light.GetBoundingSphere())) continue;
+
+				viewProj = DirectX::XMMatrixMultiply(view, proj);
+
+				offsets.offSets[i] = DirectX::XMFLOAT2((float)((i % 8) * SHADOW_MAP_SIZE), (float)((i / 8) * SHADOW_MAP_SIZE));
+
+				DepthPrePass(camera, viewProj, m_LightDepthMaps[lightIndex].get());
+
+				srvs[i] = m_LightDepthMaps[lightIndex]->GetSRV();
+				textures[i] = m_LightDepthMaps[lightIndex]->GetTextureResource();
+				numLightMaps++;
+			}
+			
+			textureArr->UpdateTextureArray(textures);
+
+			m_ShadowAtlasBuffers[dispatch % m_ShadowAtlasBuffers.size()]->SetOffsets(offsets);
+			m_ShadowAtlasBuffers[dispatch % m_ShadowAtlasBuffers.size()]->Update();
+			m_ShadowAtlasBuffers[dispatch % m_ShadowAtlasBuffers.size()]->Bind(0);
+			atlasCS->SetSRV(0, textureArr->GetTexture());
+			atlasCS->SetUAV(0, m_ShadowAtlas->GetUAV());
+			atlasCS->Bind();
+
+			RendererContext::GetDeviceContext()->Dispatch(16, 16, 1);
+
+			ID3D11ShaderResourceView* nullSRV = { nullptr };
+			ID3D11UnorderedAccessView* nullUAV = { nullptr };
+			RendererContext::GetDeviceContext()->CSSetShaderResources(0, 1, &nullSRV);
+			RendererContext::GetDeviceContext()->CSSetUnorderedAccessViews(0, 1, &nullUAV, nullptr);
+		}
 	}
 
 	void Renderer::GBufferPass(Camera& camera)
@@ -246,10 +335,7 @@ namespace Yassin
 		while (!m_GBufferQueue.empty())
 		{
 			Renderable* rPtr = m_GBufferQueue.front();
-
-			gBufferShaders.second->SetTexture(TextureSlot::BaseTexture,
-				rPtr->GetMaterialInstance()->GetTexture(TextureSlot::BaseTexture));
-			m_GBufferSampler.Bind(SamplerSlot::WrapSampler);
+			
 			gBufferShaders.first->Bind();
 			gBufferShaders.second->Bind();
 
@@ -305,6 +391,9 @@ namespace Yassin
 		
 		if (m_FXAAEnabled) 
 			m_FXAA.Execute(camera, m_SceneTexture.get());
+
+		if (m_SSAOEnabled)
+			GBufferPass(camera);
 
 		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Unlit Texture Shader");
 
