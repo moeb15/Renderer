@@ -58,6 +58,12 @@ namespace Yassin
 		float padding;
 	};
 
+	struct ShadowAtlasType
+	{
+		DirectX::XMFLOAT2 offSets;
+		DirectX::XMFLOAT2 atlasSize;
+	};
+
 	template<typename C>
 	class ConstantBuffer
 	{
@@ -118,6 +124,16 @@ namespace Yassin
 		}
 	};
 
+	template<typename C>
+	class ComputeConstantBuffer : public ConstantBuffer<C>
+	{
+	public:
+		inline void Bind(unsigned int slot)
+		{
+			RendererContext::GetDeviceContext()->CSSetConstantBuffers(slot, 1, m_ConstantBuffer.GetAddressOf());
+		}
+	};
+
 	class TransformBuffer : public ConstantBuffer<MatrixBuffer>
 	{
 	public:
@@ -150,11 +166,37 @@ namespace Yassin
 
 	class LightDirectionBuffer : public PixelConstantBuffer<LightDirectionType> {};
 
+	class ShadowAtlasBuffer : public ComputeConstantBuffer<ShadowAtlasType> 
+	{
+	public:
+		void SetOffset(float x, float y) 
+		{ 
+			m_Offsets.offSets.x = x;
+			m_Offsets.offSets.y = y;
+		}
+
+		void SetAtlasSize(float x, float y)
+		{
+			m_Offsets.atlasSize.x = x;
+			m_Offsets.atlasSize.y = y;
+		}
+
+		void Update()
+		{
+			UpdateBuffer(m_Offsets);
+		}
+
+	private:
+		ShadowAtlasType m_Offsets;
+	};
+
 	class ScreenBuffer : public PixelConstantBuffer<ScreenPropertiesBuffer> 
 	{
 	public:
 		void SetHorizontalBlur() { m_ScreenProps.blurType = 0.0f; }
 		void SetVerticalBlur() { m_ScreenProps.blurType = 1.0f; }
+		void SetWidth(float width) { m_ScreenProps.screenWidth = width; }
+		void SetHeight(float height) { m_ScreenProps.screenHeight = height; }
 		
 		void Update()
 		{
