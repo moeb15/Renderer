@@ -75,6 +75,11 @@ namespace Yassin
 		RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::ShadowMapTexture, 1, &srv);
 	}
 
+	void MaterialInstance::SetAmbientMap(ID3D11ShaderResourceView* srv)
+	{
+		RendererContext::GetDeviceContext()->PSSetShaderResources(TextureSlot::AmbientMap, 1, &srv);
+	}
+
 	ID3D11ShaderResourceView* MaterialInstance::GetTexture(unsigned int slot)
 	{
 		if (m_Textures.find(slot) == m_Textures.end()) return nullptr;
@@ -124,6 +129,7 @@ namespace Yassin
 			{
 				if (kvPair.first == TextureSlot::ShadowMapTexture) continue;
 			}
+			if (kvPair.first == TextureSlot::AmbientMap) continue;
 			if (kvPair.second != nullptr) kvPair.second->Bind(kvPair.first);
 		}
 
@@ -141,6 +147,7 @@ namespace Yassin
 			{
 				if (kvPair.first == TextureSlot::ShadowMapTexture) continue;
 			}
+			if (kvPair.first == TextureSlot::AmbientMap) continue;
 			if (kvPair.second != nullptr) kvPair.second->Bind(kvPair.first);
 		}
 		for (const auto& kvPair : m_Samplers) kvPair.second->Bind(kvPair.first);

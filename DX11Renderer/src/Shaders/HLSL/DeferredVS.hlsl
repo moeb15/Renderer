@@ -2,6 +2,7 @@ cbuffer MatrixBuffer
 {
     row_major matrix world;
     row_major matrix view;
+    row_major matrix proj;
     row_major matrix viewProj;
 };
 
@@ -38,7 +39,7 @@ VSOut main(VSIn input)
     vso.uv = input.uv;
     
     vso.viewPos = mul(input.position, world);
-    vso.viewPos = mul(vso.viewPos, view);
+    vso.viewPos = mul(vso.viewPos, viewProj);
     
     vso.normal = mul(input.normal, (float3x3) world);
     vso.normal = mul(vso.normal, (float3x3) view);

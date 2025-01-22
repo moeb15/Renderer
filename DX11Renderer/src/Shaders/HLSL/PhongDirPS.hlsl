@@ -4,6 +4,7 @@ Texture2D albedoMap			: register(t0);
 Texture2D normalMap			: register(t1);
 Texture2D specularMap		: register(t2);
 Texture2D shadowMap         : register(t4);
+Texture2D ambientMap        : register(t6);
 SamplerState clampSampler	: register(s0);
 SamplerState wrapSampler	: register(s1);
 
@@ -51,6 +52,7 @@ float4 main(PSIn input) : SV_TARGET
     float4 specular;
     float3 reflection;
     float4 finalColor;
+    float ambient;
     
     specIntensity = 0.0f;
     specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -60,6 +62,8 @@ float4 main(PSIn input) : SV_TARGET
 #ifdef ALPHATEST
     clip(albedoColor.a < 0.1f ? -1.f : 1.f);
 #endif
+    ambient = ambientMap.Sample(clampSampler, input.uv).r;
+    
     normalColor = normalMap.Sample(wrapSampler, input.uv);
     specmapColor = specularMap.Sample(wrapSampler, input.uv);
     
@@ -71,7 +75,7 @@ float4 main(PSIn input) : SV_TARGET
     
     lIntensity = saturate(dot(-lightDirection, normalColor.xyz));
 
-    finalColor += diffuseColor * lIntensity;
+    finalColor += diffuseColor;
     finalColor = saturate(finalColor);
         
     reflection = normalize(2.0f * lIntensity * normalColor.xyz - lightDirection);
@@ -80,7 +84,7 @@ float4 main(PSIn input) : SV_TARGET
     
     float shadowValue = CalcShadowValue(input);
     
-    finalColor *= albedoColor;
+    finalColor *= albedoColor * ambient;
     finalColor = saturate(finalColor + specular);
     finalColor *= shadowValue;
     finalColor.a = blendAmount;

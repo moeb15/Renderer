@@ -27,10 +27,12 @@ PSOut main(PSIn input)
     
     depthValue = input.position.z / input.position.w;
 
-    normals = normalMap.Sample(wrapSampler, input.uv);
+    normals = normalMap.Sample(clampSampler, input.uv);
     normals.x = normals.x * 2.0f - 1.0f;
     normals.y = -normals.y * 2.0f - 1.0f;
     normals.z = -normals.z;
+    
+    input.normal = normalize(input.normal);
     
     pso.diffuse = baseTexture.Sample(wrapSampler, input.uv);
     pso.normal = float4(input.normal.xyz, 1.0f);

@@ -22,8 +22,8 @@ namespace Yassin
 	class Renderable
 	{
 	public:
-		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false,
-			bool bDepthPrePass = false);
+		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj,
+			bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false, bool bDepthPrePass = false);
 		virtual void RenderBoundingVolume(DirectX::XMMATRIX& viewProj, unsigned int instanceCount);
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const;
@@ -50,6 +50,8 @@ namespace Yassin
 		void SetObjectVisiblity(ObjectVisibility visibility) { m_ObjectVisibility = visibility; }
 		void SetObjectType(ObjectType objectType) { m_ObjectType = objectType; }
 		virtual void ResetCulledCount() { m_Culled = 0; }
+		virtual void SetShadowMap(ID3D11ShaderResourceView* srv);
+		virtual void SetAmbientMap(ID3D11ShaderResourceView* srv);
 
 		void ConstructBoundingVolume(DirectX::XMMATRIX& world);
 

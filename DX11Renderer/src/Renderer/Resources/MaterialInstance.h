@@ -16,6 +16,7 @@ namespace Yassin
 		void SetTexture(unsigned int slot, const std::string& texture);
 		void SetSampler(unsigned int slot, FilterType fType, AddressType aType);
 		void SetShadowMap(ID3D11ShaderResourceView* srv);
+		void SetAmbientMap(ID3D11ShaderResourceView* srv);
 
 		ID3D11ShaderResourceView* GetTexture(unsigned int slot);
 

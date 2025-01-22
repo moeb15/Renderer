@@ -7,16 +7,14 @@
 
 namespace Yassin
 {
-    void Renderable::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bDepthPrePass)
+    void Renderable::Render(Camera& camera, DirectX::XMMATRIX& viewProj, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, 
+        bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bDepthPrePass)
     {
         unsigned int curInstanceCount = (unsigned int) m_VertexBuffer->GetInstanceCount(); //FrustumCulling(camera, viewProj, bDepthPrePass);
         if (curInstanceCount == 0) return;
 
         if (bRenderBoundingVolume)
             RenderBoundingVolume(viewProj, curInstanceCount);
-        
-        DirectX::XMMATRIX view;
-        camera.GetViewMatrix(view);
 
         m_VertexBuffer->Bind(0);
         m_IndexBuffer->Bind();
@@ -24,6 +22,7 @@ namespace Yassin
 
         m_TransformBuffer->SetViewProjection(viewProj);
         m_TransformBuffer->SetView(view);
+        m_TransformBuffer->SetProjection(proj);
         m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
         m_TransformBuffer->SetTransformBuffer();
 
@@ -36,6 +35,7 @@ namespace Yassin
             RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
         else
             RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_IndexBuffer->GetIndexCount(), curInstanceCount, 0, 0, 0);
+
     }
 
     unsigned int Renderable::FrustumCulling(Camera& camera, DirectX::XMMATRIX viewProj, bool bDepthPrePass)
@@ -156,6 +156,16 @@ namespace Yassin
             m_Material->SetSampler(SamplerSlot::ClampSampler, FilterType::Bilinear, AddressType::Clamp);
             m_Material->SetSampler(SamplerSlot::WrapSampler, FilterType::Bilinear, AddressType::Wrap);
         }
+    }
+
+    void Renderable::SetShadowMap(ID3D11ShaderResourceView* srv)
+    {
+        m_Material->SetShadowMap(srv);
+    }
+
+    void Renderable::SetAmbientMap(ID3D11ShaderResourceView* srv)
+    {
+        m_Material->SetAmbientMap(srv);
     }
 
     void Renderable::ConstructBoundingVolume(DirectX::XMMATRIX& world)

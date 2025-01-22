@@ -17,7 +17,7 @@ namespace Yassin
 		void ProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene, std::string material, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions, aiMatrix4x4 nodeTransform);
 		std::string LoadMaterialTextures(aiMaterial* material, aiTextureType texType, const aiScene* scene);
 
-		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false, bool bIgnoreCulling = false) override;
+		virtual void Render(Camera& camera, DirectX::XMMATRIX& viewProj, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, bool bIgnoreMaterial = false, bool bRenderBoundingVolume = false, bool bIgnoreCulling = false) override;
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const override;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const override;
@@ -33,6 +33,8 @@ namespace Yassin
 		virtual void SetMaterial(std::string material) override;
 		virtual void SetTexture(unsigned int slot, const std::string& texture) {}
 		virtual void BindShaderResources() override;
+		virtual void SetShadowMap(ID3D11ShaderResourceView* srv) override;
+		virtual void SetAmbientMap(ID3D11ShaderResourceView* srv) override;
 
 
 		virtual void Translate(float x, float y, float z) override;

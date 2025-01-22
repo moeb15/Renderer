@@ -8,7 +8,7 @@ namespace Yassin
 	{
 	public:
 		void Init(unsigned int windowWidth, unsigned int windowHeight);
-		void Render(DirectX::XMMATRIX& viewProj) const;
+		void Render(DirectX::XMMATRIX& viewProj, DirectX::XMMATRIX& view = DirectX::XMMatrixIdentity(), DirectX::XMMATRIX& proj = DirectX::XMMatrixIdentity()) const;
 
 	private:
 		std::unique_ptr<VertexBuffer> m_VertexBuffer;

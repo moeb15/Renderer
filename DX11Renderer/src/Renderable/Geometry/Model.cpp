@@ -150,11 +150,11 @@ namespace Yassin
 		return texName;
 	}
 
-	void Model::Render(Camera& camera, DirectX::XMMATRIX& viewProj, bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bIgnoreCulling)
+	void Model::Render(Camera& camera, DirectX::XMMATRIX& viewProj, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, bool bIgnoreMaterial, bool bRenderBoundingVolume, bool bIgnoreCulling)
 	{
 		for(int i = 0; i < m_Meshes.size(); i++)
 		{
-			m_Meshes[i]->Render(camera, viewProj, bIgnoreMaterial, bRenderBoundingVolume, bIgnoreCulling);
+			m_Meshes[i]->Render(camera, viewProj, view, proj, bIgnoreMaterial, bRenderBoundingVolume, bIgnoreCulling);
 		}
 	}
 
@@ -246,6 +246,22 @@ namespace Yassin
 		for(int i = 0; i < m_Meshes.size(); i++)
 		{
 			m_Meshes[i]->BindShaderResources();
+		}
+	}
+
+	void Model::SetShadowMap(ID3D11ShaderResourceView* srv)
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->SetShadowMap(srv);
+		}
+	}
+
+	void Model::SetAmbientMap(ID3D11ShaderResourceView* srv)
+	{
+		for(int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->SetAmbientMap(srv);
 		}
 	}
 

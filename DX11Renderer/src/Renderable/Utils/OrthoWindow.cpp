@@ -35,13 +35,15 @@ namespace Yassin
 		m_TransformBuffer->SetWorld(DirectX::XMMatrixIdentity());
 	}
 
-	void OrthoWindow::Render(DirectX::XMMATRIX& viewProj) const
+	void OrthoWindow::Render(DirectX::XMMATRIX& viewProj, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj) const
 	{
 		m_VertexBuffer->Bind(0);
 		m_IndexBuffer->Bind();
 		m_Topology.Bind();
 
 		m_TransformBuffer->SetViewProjection(viewProj);
+		m_TransformBuffer->SetView(view);
+		m_TransformBuffer->SetProjection(proj);
 		m_TransformBuffer->UpdateBuffer(m_TransformBuffer->GetMatrixBuffer());
 		m_TransformBuffer->SetTransformBuffer();
 	}
