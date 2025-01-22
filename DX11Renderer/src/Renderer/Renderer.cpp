@@ -31,6 +31,8 @@ namespace Yassin
 		m_ShadowAtlas = std::make_unique<RenderToUAV>();
 		m_ShadowAtlas->Init(2048, 2048);
 
+		m_Ambient = nullptr;
+
 		unsigned int lightDepthX = SHADOW_MAP_SIZE;
 		unsigned int lightDepthY = SHADOW_MAP_SIZE;
 		unsigned int numLightMaps = (m_ShadowAtlas->GetHeight() * m_ShadowAtlas->GetWidth()) / (lightDepthX * lightDepthY);
@@ -58,7 +60,7 @@ namespace Yassin
 		m_MeshesRendered = 0;
 		m_TotalMeshes = 0;
 
-		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Clamp);
+		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Wrap);
 		m_GBufferSampler.Init(FilterType::Bilinear, AddressType::Wrap);
 
 		m_FullScreenWindow.Init(width, height);
@@ -66,6 +68,7 @@ namespace Yassin
 		m_BoxBlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::BoxBlur);
 		m_GaussianBlurEffect.Init(width / 2, height / 2, 0.1f, 1000.f, width, height, BlurType::GaussianBlur);
 		m_FXAA.Init((float) width, (float) height);
+		m_SSAO.Init((float)width, (float)height);
 
 		m_ShaderLibrary = std::make_unique<ShaderLibrary>();
 		m_MaterialSystem = std::make_unique<MaterialSystem>();
@@ -75,6 +78,8 @@ namespace Yassin
 		TextureLibrary::Add("Missing Texture", "src/Assets/Textures/ErrorTexture.png", TextureType::Tex2D);
 		TextureLibrary::Add("Stone", "src/Assets/Textures/stone.png", TextureType::Tex2D);
 		TextureLibrary::Add("Metal", "src/Assets/Textures/Metal.png", TextureType::Tex2D);
+		TextureLibrary::Add("Noise", "src/Assets/Textures/Noise.png", TextureType::Tex2D);
+		TextureLibrary::Add("Default Ambient", "src/Assets/Textures/DefaultAmbient.png", TextureType::Tex2D);
 		TextureLibrary::Add("BoundingVolume", "src/Assets/Textures/BoundingVolumeTexture.png", TextureType::Tex2D);
 
 		ShaderLibrary::Init();
@@ -96,6 +101,9 @@ namespace Yassin
 		ShaderLibrary::Add("Box Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/BoxBlurPS.cso");
 
 		ShaderLibrary::Add("FXAA", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/FXAA_PS.cso");
+		ShaderLibrary::Add("SSAO", L"src/Shaders/CSO/SSAO_VS.cso", L"src/Shaders/CSO/SSAO_PS.cso");
+		ShaderLibrary::Add("SSAO Blur", L"src/Shaders/CSO/SSAO_VS.cso", L"src/Shaders/CSO/SSAOBlur_PS.cso");
+		ShaderLibrary::Add("Ambient Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/AmbientOccPS.cso");
 
 		ShaderLibrary::AddCompute("Shadow Atlas", L"src/Shaders/CSO/Compute/ShadowAtlasCS.cso");
 
@@ -110,6 +118,8 @@ namespace Yassin
 		MaterialSystem::Add("Phong Material", ShaderLibrary::Get("Phong Shader"));
 		MaterialSystem::Add("Blinn-Phong Material", ShaderLibrary::Get("Blinn-Phong Shader"));
 		MaterialSystem::Add("PBR Material", ShaderLibrary::Get("PBR Shader"));
+
+		m_Ambient = TextureLibrary::GetTexture2D("Default Ambient")->GetTexture();
 	}
 	
 	void Renderer::BeginScene(float r, float g, float b, float a)
@@ -177,7 +187,7 @@ namespace Yassin
 			DirectX::XMMatrixMultiply(view, proj);
 
 		// Testing, using to construct shadow atlas
-		LightDepthPass(camera, pointLights);
+		//LightDepthPass(camera, pointLights);
 
 		// Depth pre-pass, populating depth buffer
 		DepthPrePass(camera, viewProj, m_DepthPass.get());
@@ -209,8 +219,9 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_OpaqueRenderQueue.front();
 
-			rPtr->GetMaterialInstance()->SetShadowMap(m_SoftShadow->GetSRV());
-			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
+			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
+			rPtr->SetAmbientMap(m_Ambient);
+			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 
 			if(m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
@@ -225,8 +236,9 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_TransparentRenderQueue.front();
 
-			rPtr->GetMaterialInstance()->SetShadowMap(m_SoftShadow->GetSRV());
-			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
+			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
+			rPtr->SetAmbientMap(m_Ambient);
+			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 
 			if (m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
@@ -242,6 +254,12 @@ namespace Yassin
 		renderTex->SetRenderTarget();
 		renderTex->ClearRenderTarget(0.f, 0.f, 0.f, 1.0f);
 
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+
+		camera.GetViewMatrix(view);
+		camera.GetProjectionMatrix(proj);
+
 		std::pair<VertexShader*, PixelShader*> depthShaders = ShaderLibrary::Get("Depth Shader");
 		
 		for(int i = 0; i < m_DepthRenderQueue.size(); i++)
@@ -251,7 +269,7 @@ namespace Yassin
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
 
-			rPtr->Render(camera, lightViewProj, true, false, true);
+			rPtr->Render(camera, lightViewProj, view, proj, true, false, true);
 		}
 
 		RendererContext::SetBackBufferRenderTarget();
@@ -339,7 +357,7 @@ namespace Yassin
 			gBufferShaders.first->Bind();
 			gBufferShaders.second->Bind();
 
-			rPtr->Render(camera, viewProj, true);
+			rPtr->Render(camera, viewProj, view, proj, true);
 
 			m_GBufferQueue.pop();
 		}
@@ -370,8 +388,9 @@ namespace Yassin
 		{
 			Renderable* rPtr = m_Renderables[i];
 
-			rPtr->GetMaterialInstance()->SetShadowMap(m_SoftShadow->GetSRV());
-			rPtr->Render(camera, viewProj, false, m_BoundingVolumesEnabled);
+			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
+			rPtr->SetAmbientMap(m_Ambient);
+			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
 			rPtr->GetMaterialInstance()->UnbindShaderResources();
 		}
 
@@ -383,6 +402,8 @@ namespace Yassin
 	{
 		RendererContext::DisableZBuffer();
 
+		ID3D11ShaderResourceView* ambient;
+
 		if (m_BoxBlurEnabled) 
 			m_BoxBlurEffect.BlurScene(camera, m_SceneTexture.get());
 		
@@ -393,9 +414,18 @@ namespace Yassin
 			m_FXAA.Execute(camera, m_SceneTexture.get());
 
 		if (m_SSAOEnabled)
-			GBufferPass(camera);
+		{
+			m_SSAO.Execute(camera, m_GBuffer->GetSRV(Buffer::ViewPosition),
+				m_GBuffer->GetSRV(Buffer::Normal), TextureLibrary::GetTexture2D("Noise")->GetTexture());
+			ambient = m_SSAO.GetAmbient();
+		}
+		else
+		{
+			ambient = TextureLibrary::GetTexture2D("Default Ambient")->GetTexture();
+		}
 
-		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Unlit Texture Shader");
+
+		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Ambient Shader");
 
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX proj;
@@ -406,8 +436,9 @@ namespace Yassin
 
 		viewProj = DirectX::XMMatrixMultiply(view, proj);
 
-		m_FullScreenWindow.Render(viewProj);
+		m_FullScreenWindow.Render(viewProj, view, proj);
 		textureShader.second->SetTexture(0, m_SceneTexture->GetSRV());
+		textureShader.second->SetTexture(1, ambient);
 		m_PostProcessSampler.Bind(0);
 		textureShader.first->Bind();
 		textureShader.second->Bind();
@@ -446,7 +477,7 @@ namespace Yassin
 			shadowShaders.first->Bind();
 			shadowShaders.second->Bind();
 			rPtr->GetMaterialInstance()->GetLightPropsBuffer()->Bind(PSBufferSlot::LightProperties);
-			rPtr->Render(camera, viewProj, true);
+			rPtr->Render(camera, viewProj, view, proj, true);
 			ID3D11ShaderResourceView* nullSRV = { nullptr };
 			RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
 		}

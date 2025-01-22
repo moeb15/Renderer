@@ -19,6 +19,8 @@
 #include "Renderer/RenderToUAV.h"
 #include "Renderer/Post-Processing/Blur.h"
 #include "Renderer/Post-Processing/FXAA.h"
+#include "Renderer/Post-Processing/SSAO.h"
+
 #include "Renderable/Light/PointLight.h"
 #include "Renderer/Primitives/TextureArray.h"
 
@@ -74,6 +76,7 @@ namespace Yassin
 		Blur m_GaussianBlurEffect;
 		Blur m_BoxBlurEffect;
 		FXAA m_FXAA;
+		SSAO m_SSAO;
 		OrthoWindow m_FullScreenWindow;
 		Sampler m_PostProcessSampler;
 		Sampler m_GBufferSampler;
@@ -97,5 +100,6 @@ namespace Yassin
 
 		unsigned int m_UpdateDebug;
 		unsigned int m_CurrentDebugFrame;
+		ID3D11ShaderResourceView* m_Ambient;
 	};
 }
