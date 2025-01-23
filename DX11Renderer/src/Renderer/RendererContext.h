@@ -25,6 +25,7 @@ namespace Yassin
 		void ResizeBuffer(unsigned int width, unsigned int height);
 
 		static void ClearRenderTarget(float r, float g, float b, float a);
+		static void ClearDepthStencil();
 
 		static void GetGPUInfo(char* GPUName, size_t& memory)
 		{
@@ -34,6 +35,18 @@ namespace Yassin
 
 		static unsigned int GetWidth() { return (unsigned int)s_Instance->m_Width; }
 		static unsigned int GetHeight() { return (unsigned int)s_Instance->m_Height; }
+
+		static void EnableDepthWrites()
+		{
+			s_Instance->m_ZPass = true;
+			s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_DepthStencilState.Get(), 1);
+		}
+
+		static void DisableDepthWrites()
+		{
+			s_Instance->m_ZPass = false;
+			s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_PostZPassState.Get(), 1);
+		}
 
 		static void EnableSolidRS() 
 		{
@@ -85,6 +98,7 @@ namespace Yassin
 		int m_Width;
 		int m_Height;
 		bool m_IsSolidRaster = true;
+		bool m_ZPass = true;
 
 		Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_Context;
@@ -92,6 +106,7 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTarget;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_PostZPassState;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_2DState;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_SolidRS;

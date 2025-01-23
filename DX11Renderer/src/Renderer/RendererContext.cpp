@@ -164,6 +164,14 @@ namespace Yassin
 		hr = m_Device->CreateDepthStencilState(&dsDesc, &m_2DState);
 		if (FAILED(hr)) return;
 
+		dsDesc = {};
+		dsDesc.DepthEnable = true;
+		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+		hr = m_Device->CreateDepthStencilState(&dsDesc, &m_PostZPassState);
+		if (FAILED(hr)) return;
+
 		m_Context->OMSetDepthStencilState(m_DepthStencilState.Get(), 1);
 
 		// Alpha Blending
@@ -234,6 +242,10 @@ namespace Yassin
 	{
 		float colour[] = { r,g,b,a };
 		s_Instance->m_Context->ClearRenderTargetView(s_Instance->m_RenderTarget.Get(), colour);
+	}
+
+	void RendererContext::ClearDepthStencil()
+	{
 		s_Instance->m_Context->ClearDepthStencilView(s_Instance->m_DepthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 }
