@@ -19,6 +19,7 @@ struct VSIn
 struct VSOut
 {
     float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
     float4 depthPos : DEPTHPOS;
 };
 
@@ -35,6 +36,8 @@ VSOut main(VSIn input)
     vso.position = mul(vso.position, viewProj);
     
     vso.depthPos = vso.position;
+    
+    vso.uv = input.uv;
     
 	return vso;
 }
