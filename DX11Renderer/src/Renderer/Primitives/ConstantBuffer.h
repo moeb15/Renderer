@@ -12,6 +12,7 @@ namespace Yassin
 	{
 		DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
 		DirectX::XMMATRIX view = DirectX::XMMatrixIdentity();
+		DirectX::XMMATRIX proj = DirectX::XMMatrixIdentity();
 		DirectX::XMMATRIX viewProj = DirectX::XMMatrixIdentity();
 	};
 
@@ -19,7 +20,7 @@ namespace Yassin
 	{
 		DirectX::XMMATRIX lightViewProj = DirectX::XMMatrixIdentity();
 		DirectX::XMFLOAT3 lightPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-		float padding;
+		DirectX::XMFLOAT2 padding;
 	};
 
 	struct LightPropertiesBuffer
@@ -66,6 +67,18 @@ namespace Yassin
 	struct ShadowAtlasType
 	{
 		DirectX::XMFLOAT2 offSets[SHADOW_ATLAS_BATCH_SIZE];
+	};
+
+	struct SSAOProperties
+	{
+		float screenWidth = 1920.f;
+		float screenHeight = 1080.f;
+		float randomTextureSize = 64.f;
+		float sampleRadius = 1.0f;
+		float ssaoScale = 1.0f;
+		float ssaoBias = 0.1f;
+		float ssaoIntensity = 2.0f;
+		float padding;
 	};
 
 	template<typename C>
@@ -143,6 +156,7 @@ namespace Yassin
 	public:
 		inline void SetWorld(DirectX::XMMATRIX& world) { m_MatrixBuffer.world = world; }
 		inline void SetView(DirectX::XMMATRIX& view) { m_MatrixBuffer.view = view; }
+		inline void SetProjection(DirectX::XMMATRIX& proj) { m_MatrixBuffer.proj = proj; }
 		inline void SetViewProjection(DirectX::XMMATRIX& viewProj) { m_MatrixBuffer.viewProj = viewProj; }
 
 		inline DirectX::XMMATRIX& GetWorld() { return m_MatrixBuffer.world; }
@@ -167,9 +181,24 @@ namespace Yassin
 
 	class FlatColorBuffer : public PixelConstantBuffer<FlatColorBufferType> {};
 
-	class CameraBuffer : public PixelConstantBuffer<CameraPositionType> {};
+	class CameraBuffer : public VertexConstantBuffer<CameraPositionType> {};
 
 	class LightDirectionBuffer : public PixelConstantBuffer<LightDirectionType> {};
+
+	class SSAOPropertiesBuffer : public PixelConstantBuffer<SSAOProperties> 
+	{
+	public:
+		SSAOProperties& GetProperties() { return m_Props; };
+		void SetProperties(const SSAOProperties& props) { m_Props = props; }
+
+		void Update()
+		{
+			UpdateBuffer(m_Props);
+		}
+
+	private:
+		SSAOProperties m_Props;
+	};
 
 	class ShadowAtlasBuffer : public ComputeConstantBuffer<ShadowAtlasType> 
 	{
