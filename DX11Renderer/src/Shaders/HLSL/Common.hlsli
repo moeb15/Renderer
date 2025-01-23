@@ -19,7 +19,7 @@
 #endif
 
 #ifndef ITERATIONS
-    #define ITERATIONS 12
+    #define ITERATIONS 16
 #endif
 
 #ifndef SUBPIXEL_QUALITY
@@ -30,11 +30,11 @@
     #define SHADOW_ATLAS_SIZE 2048
 #endif
 
-static float FXAA_QUALITIES[12] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.0f, 2.0f, 2.0f, 2.0f, 4.0f, 8.0f };
+static float FXAA_QUALITIES[16] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.0f, 2.0f, 2.0f, 2.0f, 4.0f, 8.0f, 8.0f, 8.0f, 8.0f, 8.0f };
 
 float RGB2Luma(float3 rgb)
 {
-    return sqrt(dot(rgb, float3(0.299f, 0.587f, 0.114f)));
+    return dot(rgb, float3(0.299f, 0.587f, 0.114f));
 }
 
 float QUALITY(unsigned int i)

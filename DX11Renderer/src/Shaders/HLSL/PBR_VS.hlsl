@@ -10,7 +10,7 @@ cbuffer LightBuffer : register(b1)
 {
     row_major matrix lightViewProj;
     float3 lightPosition;
-    float padding;
+    float2 padding;
 };
 
 cbuffer CameraBuffer : register(b2)
