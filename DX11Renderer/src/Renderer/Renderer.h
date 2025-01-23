@@ -51,7 +51,7 @@ namespace Yassin
 		inline size_t GetTotalMeshes() const { return m_TotalMeshes; }
 
 	private:
-		void DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex);
+		void DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex, bool bForLight = false);
 		void LightDepthPass(Camera& camera, std::vector<PointLight>& lights);
 		void GBufferPass(Camera& camera);
 		void RenderSceneToTexture(Camera& camera);

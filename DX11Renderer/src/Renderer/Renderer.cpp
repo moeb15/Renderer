@@ -14,7 +14,7 @@ namespace Yassin
 		m_SceneTexture->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthStencil);
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
-		m_DepthPass->Init(width, height, 1.f, 100.f, RenderTargetType::DepthMap);
+		m_DepthPass->Init(width, height, 1.f, 50.f, RenderTargetType::DepthMap);
 
 		m_ShadowMap = std::make_unique<RenderToTexture>();
 		m_ShadowMap->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
@@ -97,6 +97,7 @@ namespace Yassin
 
 		ShaderLibrary::Add("GBuffer Shader", L"src/Shaders/CSO/DeferredVS.cso", L"src/Shaders/CSO/DeferredPS.cso");
 		ShaderLibrary::Add("Depth Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthPS.cso");
+		ShaderLibrary::Add("DepthToTexture Shader", L"src/Shaders/CSO/DepthVS.cso", L"src/Shaders/CSO/DepthToTexturePS.cso");
 		ShaderLibrary::Add("Gaussian Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/GaussianBlurPS.cso");
 		ShaderLibrary::Add("Box Blur Shader", L"src/Shaders/CSO/PostProcessVS.cso", L"src/Shaders/CSO/BoxBlurPS.cso");
 
@@ -190,16 +191,14 @@ namespace Yassin
 		//LightDepthPass(camera, pointLights);
 
 		// Depth pre-pass, populating depth buffer
+		RendererContext::EnableDepthWrites();
 		DepthPrePass(camera, viewProj, m_DepthPass.get());
 
 		// Calculating shadow map
-		DepthPrePass(camera, lightViewProj, m_ShadowMap.get());
+		DepthPrePass(camera, lightViewProj, m_ShadowMap.get(), true);
 
 		// Soft shadows
 		RenderShadows(camera);
-
-		// Testing
-		GBufferPass(camera);
 
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
@@ -207,13 +206,19 @@ namespace Yassin
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
 
+
 		if (m_PostProcessingEnabled)
 		{
+			// Need view space positions for SSAO
+			GBufferPass(camera);
+
 			RenderSceneToTexture(camera);
 			PostProcessedScene(camera);
 
 			return;
 		}
+
+		RendererContext::DisableDepthWrites();
 
 		while(!m_OpaqueRenderQueue.empty())
 		{
@@ -222,7 +227,7 @@ namespace Yassin
 			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
 			rPtr->SetAmbientMap(m_Ambient);
 			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
-			rPtr->GetMaterialInstance()->UnbindShaderResources();
+			rPtr->UnbindShaderResources();
 
 			if(m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
 
@@ -239,7 +244,7 @@ namespace Yassin
 			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
 			rPtr->SetAmbientMap(m_Ambient);
 			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
-			rPtr->GetMaterialInstance()->UnbindShaderResources();
+			rPtr->UnbindShaderResources();
 
 			if (m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
 			
@@ -249,10 +254,23 @@ namespace Yassin
 		RendererContext::DisableAlphaBlending();
 	}
 
-	void Renderer::DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex)
+	void Renderer::DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex, bool bForLight)
 	{
-		renderTex->SetRenderTarget();
-		renderTex->ClearRenderTarget(0.f, 0.f, 0.f, 1.0f);
+		if(bForLight)
+		{
+			renderTex->SetRenderTarget();
+			renderTex->ClearRenderTarget(0.f, 0.f, 0.f, 1.0f);
+		}
+		else 
+		{
+			RendererContext::SetBackBufferRenderTarget();
+			RendererContext::ClearRenderTarget(
+				m_BackBufferColor[0],
+				m_BackBufferColor[1],
+				m_BackBufferColor[2],
+				m_BackBufferColor[3]);
+			RendererContext::ClearDepthStencil();
+		}
 
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX proj;
@@ -261,19 +279,25 @@ namespace Yassin
 		camera.GetProjectionMatrix(proj);
 
 		std::pair<VertexShader*, PixelShader*> depthShaders = ShaderLibrary::Get("Depth Shader");
-		
+		if(bForLight)
+			depthShaders = ShaderLibrary::Get("DepthToTexture Shader");
+
 		for(int i = 0; i < m_DepthRenderQueue.size(); i++)
 		{
 			Renderable* rPtr = m_DepthRenderQueue[i];
 
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
-
+			rPtr->BindShaderResources();
 			rPtr->Render(camera, lightViewProj, view, proj, true, false, true);
+			rPtr->UnbindShaderResources();
 		}
 
-		RendererContext::SetBackBufferRenderTarget();
-		RendererContext::ResetViewport();
+		if(bForLight)
+		{
+			RendererContext::SetBackBufferRenderTarget();
+			RendererContext::ResetViewport();
+		}
 	}
 
 	void Renderer::LightDepthPass(Camera& camera, std::vector<PointLight>& lights)
@@ -309,7 +333,7 @@ namespace Yassin
 
 				offsets.offSets[i] = DirectX::XMFLOAT2((float)((i % 8) * SHADOW_MAP_SIZE), (float)((i / 8) * SHADOW_MAP_SIZE));
 
-				DepthPrePass(camera, viewProj, m_LightDepthMaps[lightIndex].get());
+				DepthPrePass(camera, viewProj, m_LightDepthMaps[lightIndex].get(), true);
 
 				srvs[i] = m_LightDepthMaps[lightIndex]->GetSRV();
 				textures[i] = m_LightDepthMaps[lightIndex]->GetTextureResource();
@@ -409,9 +433,6 @@ namespace Yassin
 		
 		if (m_GaussianBlurEnabled) 
 			m_GaussianBlurEffect.BlurScene(camera, m_SceneTexture.get());
-		
-		if (m_FXAAEnabled) 
-			m_FXAA.Execute(camera, m_SceneTexture.get());
 
 		if (m_SSAOEnabled)
 		{
@@ -424,6 +445,8 @@ namespace Yassin
 			ambient = TextureLibrary::GetTexture2D("Default Ambient")->GetTexture();
 		}
 
+		if (m_FXAAEnabled)
+			m_FXAA.Execute(camera, m_SceneTexture.get());
 
 		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Ambient Shader");
 
