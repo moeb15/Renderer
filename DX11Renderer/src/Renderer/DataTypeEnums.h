@@ -10,6 +10,7 @@ namespace Yassin
 		RoughnessTexture,
 		ShadowMapTexture,
 		DepthMapTexture,
+		AmbientMap,
 		TEXTURE_COUNT
 	};
 
@@ -17,6 +18,7 @@ namespace Yassin
 	{
 		ClampSampler = 0,
 		WrapSampler,
+		PointSampler,
 	};
 
 	enum VSBufferSlot

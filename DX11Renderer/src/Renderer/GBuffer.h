@@ -7,9 +7,7 @@ namespace Yassin
 {
 	enum Buffer 
 	{
-		Color,
 		Normal,
-		Depth,
 		ViewPosition,
 		BUFFER_COUNT
 	};
