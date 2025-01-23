@@ -140,6 +140,11 @@ namespace Yassin
         m_Material->BindShaderResources();
     }
 
+    void Renderable::UnbindShaderResources()
+    {
+        m_Material->UnbindShaderResources();
+    }
+
     void Renderable::SetTexture(unsigned int slot, const std::string& texture)
     {
         m_Textures.emplace((TextureSlot) slot, texture);

@@ -35,6 +35,7 @@ namespace Yassin
 		virtual void BindShaderResources() override;
 		virtual void SetShadowMap(ID3D11ShaderResourceView* srv) override;
 		virtual void SetAmbientMap(ID3D11ShaderResourceView* srv) override;
+		virtual void UnbindShaderResources() override;
 
 
 		virtual void Translate(float x, float y, float z) override;

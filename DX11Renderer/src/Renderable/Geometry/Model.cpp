@@ -265,6 +265,14 @@ namespace Yassin
 		}
 	}
 
+	void Model::UnbindShaderResources()
+	{
+		for(int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->UnbindShaderResources();
+		}
+	}
+
 	void Model::Translate(float x, float y, float z)
 	{
 		for (int i = 0; i < m_Meshes.size(); i++)
