@@ -7,6 +7,7 @@ namespace Yassin
 {
 	constexpr size_t SHADOW_ATLAS_BATCH_SIZE = 64;
 	constexpr unsigned int SHADOW_MAP_SIZE = 256;
+	constexpr unsigned int LIGHT_BATCH_SIZE = 64;
 
 	struct MatrixBuffer
 	{
@@ -67,6 +68,28 @@ namespace Yassin
 	struct ShadowAtlasType
 	{
 		DirectX::XMFLOAT2 offSets[SHADOW_ATLAS_BATCH_SIZE];
+	};
+
+	struct PointLightBatch
+	{
+		DirectX::XMFLOAT4 lightPosition[LIGHT_BATCH_SIZE];
+		float lightRadius[LIGHT_BATCH_SIZE];
+	};
+
+	// Used for compute shader to construct clusters
+	struct CameraData
+	{
+		DirectX::XMMATRIX invProj = DirectX::XMMatrixIdentity();
+		DirectX::XMFLOAT2 screenResolution = DirectX::XMFLOAT2(1920.f, 1080.f);
+		DirectX::XMFLOAT2 nfPlanes = DirectX::XMFLOAT2(0.1f, 1000.f);
+		DirectX::XMUINT3 clusterDim = DirectX::XMUINT3(16, 9, 24);
+		float depthRangeFactor = 1.1f;
+	};
+
+	struct WorkGroupData
+	{
+		DirectX::XMUINT3 NumWorkGroups;
+		float padding;
 	};
 
 	struct SSAOProperties
@@ -184,6 +207,26 @@ namespace Yassin
 	class CameraBuffer : public VertexConstantBuffer<CameraPositionType> {};
 
 	class LightDirectionBuffer : public PixelConstantBuffer<LightDirectionType> {};
+
+	class CameraDataBuffer : public ComputeConstantBuffer<CameraData> 
+	{
+	public:
+		void SetInvProj(const DirectX::XMMATRIX& invProj) { m_Data.invProj = invProj; }
+		void Update() { UpdateBuffer(m_Data); }
+
+	private:
+		CameraData m_Data;
+	};
+
+	class WorkGroupBuffer : public ComputeConstantBuffer<WorkGroupData>
+	{
+	public:
+		void SetData(const WorkGroupData& data) { m_Data = data; }
+		void Update() { UpdateBuffer(m_Data); }
+
+	private:
+		WorkGroupData m_Data;
+	};
 
 	class SSAOPropertiesBuffer : public PixelConstantBuffer<SSAOProperties> 
 	{
