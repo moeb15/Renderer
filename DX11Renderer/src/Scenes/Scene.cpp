@@ -1,8 +1,14 @@
 #include "Scenes/Scene.h"
+#include "Scene.h"
 
 
 namespace Yassin
 {
+	Scene::Scene()
+	{
+		m_PointLights.reserve(Yassin::MAX_LIGHT_COUNT);
+	}
+
 	void Scene::RenderScene(Window& window)
 	{
 		DirectX::XMMATRIX lView;

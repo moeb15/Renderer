@@ -7,6 +7,7 @@ namespace Yassin
 	class Scene
 	{
 	public:
+		Scene();
 		virtual void Init(Camera* camera, DirectionalLight* sun, PointLight* light) = 0;
 		void RenderScene(Window& window);
 		inline bool& GetPhongShaded() { return m_PhongShaded; }
