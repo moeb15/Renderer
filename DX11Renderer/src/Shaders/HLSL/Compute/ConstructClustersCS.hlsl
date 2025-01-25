@@ -49,8 +49,8 @@ void main( uint3 DTid : SV_DispatchThreadID )
     // near and far values of the cluster in view-space
     // using equation from Tiago Sousa's DOOM 2016 Siggraph presentation
     // for calculating depth values
-    float tileNear = -nfPlanes.x * pow((nfPlanes.y / nfPlanes.x), DTid.z / (float) NumWorkGroups.z);
-    float tileFar = -nfPlanes.y * pow((nfPlanes.y / nfPlanes.x), (DTid.z + 1) / (float) NumWorkGroups.z);
+    float tileNear = -nfPlanes.x * pow((nfPlanes.y / nfPlanes.x), DTid.z / (float) clusterDims.z);
+    float tileFar = -nfPlanes.y * pow((nfPlanes.y / nfPlanes.x), (DTid.z + 1) / (float) clusterDims.z);
     
     // finding the 4 intersection points made from each point to the cluster near/far plane
     float3 minPointNear = lineIntersectionToZPlane(eyePos, minPoint_VS, tileNear);
