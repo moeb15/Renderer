@@ -28,6 +28,8 @@ namespace Yassin
 
 		inline DirectX::XMFLOAT3 GetPosition() const { return m_Position; };
 		inline DirectX::XMFLOAT3 GetRotation() { return DirectX::XMFLOAT3(m_Pitch, m_Yaw, m_Roll); }
+		inline float GetNear() const { return m_Near; }
+		inline float GetFar() const { return m_Far; }
 
 		inline void GetViewMatrix(DirectX::XMMATRIX& matrix) { matrix = DirectX::XMLoadFloat4x4(&m_ViewMatrix); }
 		inline void GetDefaultView(DirectX::XMMATRIX& matrix) { matrix = DirectX::XMLoadFloat4x4(&m_DefaultView); }
@@ -47,6 +49,8 @@ namespace Yassin
 		float m_Yaw;
 		float m_Pitch;
 		float m_Roll;
+		float m_Near;
+		float m_Far;
 		DirectX::XMFLOAT3 m_Forward;
 		DirectX::XMFLOAT3 m_Right;
 		DirectX::XMFLOAT3 m_Up;

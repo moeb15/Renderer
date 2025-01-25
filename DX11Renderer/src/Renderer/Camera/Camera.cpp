@@ -12,11 +12,13 @@ namespace Yassin
 		m_Right(1.0f, 0.0f, 0.0f),
 		m_Up(0.0f, 1.0f, 0.0f)
 	{
+		m_Near = 0.1f;
+		m_Far = 1000.f;
 		DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
 			DirectX::XMConvertToRadians(FOV),
 			aspectRatio,
-			0.1f,
-			1000.f);
+			m_Near,
+			m_Far);
 
 		DirectX::XMStoreFloat4x4(&m_ProjectionMatrix, proj);
 		
