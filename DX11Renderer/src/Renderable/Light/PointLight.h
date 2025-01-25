@@ -14,6 +14,9 @@ namespace Yassin
 			m_Position(0.f, 10.f, 0.f),
 			m_LookAt(0.f, 0.f, 0.f)
 		{
+			m_Enabled = false;
+			m_Radius = radius;
+
 			DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
 				DirectX::XMConvertToRadians(FOV),
 				aspectRatio,
@@ -62,10 +65,14 @@ namespace Yassin
 		inline DirectX::XMFLOAT4 GetAmbientColor() const { return m_AmbientColor; }
 		inline DirectX::XMFLOAT4 GetSpecularColor() const { return m_SpecularColor; }
 		inline float GetSpecularPower() const { return m_SpecularPower; }
+		inline float GetRadius() const { return m_Radius; }
+		inline bool IsEnabled() const { return m_Enabled; }
+		inline void EnableLight() { m_Enabled = true; }
+		inline void DisableLight() { m_Enabled = false; }
 
 		inline void GetView(DirectX::XMMATRIX& matrix) const { matrix = DirectX::XMLoadFloat4x4(&m_ViewMatrix); }
 		inline void GetProjection(DirectX::XMMATRIX& matrix) const { matrix = DirectX::XMLoadFloat4x4(&m_ProjectionMatrix); }
-		inline const DirectX::BoundingSphere& GetBoundingSphere() { return m_BoundingSphere; }
+		inline DirectX::BoundingSphere& GetBoundingSphere() { return m_BoundingSphere; }
 
 	private:
 		void UpdateView();
@@ -74,6 +81,8 @@ namespace Yassin
 		DirectX::XMFLOAT4 m_DiffuseColor;
 		DirectX::XMFLOAT4 m_SpecularColor;
 		float m_SpecularPower;
+		bool m_Enabled;
+		float m_Radius;
 
 		DirectX::XMFLOAT3 m_Position;
 		DirectX::XMFLOAT3 m_LookAt;
