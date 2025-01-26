@@ -86,6 +86,10 @@ namespace Yassin
 
 		if (FAILED(hr)) return;
 
+		hr = m_Device->CreateDeferredContext(0, &m_DeferredContext);
+
+		if (FAILED(hr)) return;
+
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pTargetBuffer = nullptr;
 		hr = m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &pTargetBuffer);
 		if (FAILED(hr)) return;

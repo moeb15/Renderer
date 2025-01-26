@@ -17,6 +17,7 @@ namespace Yassin
 
 		static ID3D11Device* GetDevice() { return s_Instance->m_Device.Get(); }
 		static ID3D11DeviceContext* GetDeviceContext() { return s_Instance->m_Context.Get(); }
+		static ID3D11DeviceContext* GetDeferredContext() { return s_Instance->m_DeferredContext.Get(); }
 		static HWND GetWindowHandle() { return s_Instance->m_HWND; }
 		static ID3D11Debug* GetDebug() { return s_Instance->m_Debug.Get(); }
 
@@ -102,6 +103,7 @@ namespace Yassin
 
 		Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_Context;
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_DeferredContext;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTarget;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencil;
