@@ -4,6 +4,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <vector>
 
 namespace Yassin
 {
@@ -12,12 +13,12 @@ namespace Yassin
 	public:
 		RendererContext();
 		~RendererContext();
-		void Init(int width, int height, HWND hWnd, bool fullscreen = true);
+		void Init(int width, int height, HWND hWnd, bool fullscreen = true, unsigned int numCPUCores = 1);
 		void SwapBuffers(bool vSync);
 
 		static ID3D11Device* GetDevice() { return s_Instance->m_Device.Get(); }
 		static ID3D11DeviceContext* GetDeviceContext() { return s_Instance->m_Context.Get(); }
-		static ID3D11DeviceContext* GetDeferredContext() { return s_Instance->m_DeferredContext.Get(); }
+		static ID3D11DeviceContext* GetDeferredContext(unsigned int context = 0);
 		static HWND GetWindowHandle() { return s_Instance->m_HWND; }
 		static ID3D11Debug* GetDebug() { return s_Instance->m_Debug.Get(); }
 
@@ -98,12 +99,12 @@ namespace Yassin
 		HWND m_HWND;
 		int m_Width;
 		int m_Height;
+		unsigned int m_NumCPUCores;
 		bool m_IsSolidRaster = true;
 		bool m_ZPass = true;
 
 		Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_Context;
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_DeferredContext;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTarget;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencil;
@@ -116,6 +117,8 @@ namespace Yassin
 		Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendEnable;
 		Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendDisable;
 
+		std::vector<Microsoft::WRL::ComPtr<ID3D11DeviceContext>> m_DeferredContexts;
+		std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> m_CommandLists;
 		Microsoft::WRL::ComPtr<ID3D11Debug> m_Debug;
 		D3D11_VIEWPORT m_Viewport;
 

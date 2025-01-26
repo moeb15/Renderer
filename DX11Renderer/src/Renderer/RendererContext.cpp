@@ -1,5 +1,7 @@
 #include "Renderer/RendererContext.h"
 #include <backends/imgui_impl_dx11.h>
+#include <string>
+#include <sstream>
 
 namespace Yassin
 {
@@ -16,11 +18,12 @@ namespace Yassin
 		ImGui_ImplDX11_Shutdown();
 	}
 
-	void RendererContext::Init(int width, int height, HWND hWnd, bool fullscreen)
+	void RendererContext::Init(int width, int height, HWND hWnd, bool fullscreen, unsigned int numCPUCores)
 	{
 		m_HWND = hWnd;
 		m_Width = width;
 		m_Height = height;
+		m_NumCPUCores = numCPUCores;
 
 		HRESULT hr;
 		Microsoft::WRL::ComPtr<IDXGIFactory> factory;
@@ -84,9 +87,15 @@ namespace Yassin
 			&featureLevel,
 			&m_Context);
 
-		if (FAILED(hr)) return;
-
-		hr = m_Device->CreateDeferredContext(0, &m_DeferredContext);
+		for(unsigned int i = 0; i < numCPUCores; i++)
+		{
+			Microsoft::WRL::ComPtr<ID3D11DeviceContext> deferredContext;
+			hr = m_Device->CreateDeferredContext(0, &deferredContext);
+			if (FAILED(hr)) return;
+			
+			m_DeferredContexts.push_back(deferredContext);
+			m_CommandLists.push_back(nullptr);
+		}
 
 		if (FAILED(hr)) return;
 
@@ -225,6 +234,18 @@ namespace Yassin
 		{
 			m_SwapChain->Present(0, 0);
 		}
+	}
+
+	ID3D11DeviceContext* RendererContext::GetDeferredContext(unsigned int context)
+	{
+		if(context >= s_Instance->m_DeferredContexts.size())
+		{
+			std::ostringstream oss;
+			oss << "There is only 1 deferred context available per cpu core (" << s_Instance->m_NumCPUCores << ")";
+			MessageBoxA(s_Instance->m_HWND, oss.str().c_str(), "RendererContext", MB_OK);
+			return nullptr;
+		}
+		return s_Instance->m_DeferredContexts[context].Get();
 	}
 
 	void RendererContext::SetBackBufferRenderTarget()

@@ -80,8 +80,40 @@ namespace Yassin
 
 		ImGui_ImplWin32_Init(m_HWND);
 
+		LOGICAL_PROCESSOR_RELATIONSHIP rel = RelationProcessorCore;
+		DWORD len = 0;
+		GetLogicalProcessorInformationEx(rel, nullptr, &len);
+		if(GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+		{
+			std::cerr << "Error determining buffer size.\n";
+			return;
+		}
+
+		std::vector<char> buffer(len);
+
+		if(!GetLogicalProcessorInformationEx(
+			rel, 
+			reinterpret_cast<PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(buffer.data()),
+			&len))
+		{
+			std::cerr << "Error retreiving processor information.\n";
+			return;
+		}
+
+		unsigned int numCores = 0;
+		char* ptr = buffer.data();
+		while(ptr < buffer.data() + len)
+		{
+			PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = reinterpret_cast<PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(ptr);
+			if(info->Relationship == RelationProcessorCore)
+			{
+				numCores++;
+			}
+			ptr += info->Size;
+		}
+
 		m_Renderer = std::make_unique<Renderer>();
-		m_Renderer->Init(m_Width, m_Height, m_HWND, m_Fullscreen);
+		m_Renderer->Init(m_Width, m_Height, m_HWND, m_Fullscreen, numCores);
 
 		static bool raw_input_initialized = false;
 		if(!raw_input_initialized)
