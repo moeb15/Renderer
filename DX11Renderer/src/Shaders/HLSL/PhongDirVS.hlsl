@@ -39,6 +39,7 @@ struct VSOut
     float3 viewDir : VIEWDIR;
     float3 lightPos : LIGHTPOS;
     float4 viewPos : VIEWPOS;
+    float4 worldPos : WORLDPOS;
 };
 
 VSOut main(VSIn input)
@@ -67,6 +68,7 @@ VSOut main(VSIn input)
     
     worldPos = mul(input.position, world);
     
+    vso.worldPos = worldPos;
     vso.viewDir = cameraPos.xyz - worldPos.xyz;
     vso.viewDir = normalize(vso.viewDir);
         
