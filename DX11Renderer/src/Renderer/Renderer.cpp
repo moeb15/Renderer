@@ -1,23 +1,23 @@
 #include "Renderer/Renderer.h"
 #include "Renderer/Resources/MaterialInstance.h"
+#include "Renderable/Light/PointLight.h"
 #include <backends/imgui_impl_dx11.h>
 
 namespace Yassin
 {
-	void Renderer::Init(int width, int height, HWND hWnd, bool fullscreen)
+	void Renderer::Init(int width, int height, HWND hWnd, bool fullscreen, unsigned int numCPUCores)
 	{
-
 		m_Context = std::make_unique<RendererContext>();
-		m_Context->Init(width, height, hWnd, fullscreen);
+		m_Context->Init(width, height, hWnd, fullscreen, numCPUCores);
 
 		m_SceneTexture = std::make_unique<RenderToTexture>();
 		m_SceneTexture->Init(width, height, 0.1f, 1000.f, RenderTargetType::DepthStencil);
 
 		m_DepthPass = std::make_unique<RenderToTexture>();
-		m_DepthPass->Init(width, height, 1.f, 50.f, RenderTargetType::DepthMap);
+		m_DepthPass->Init(width, height, 0.1f, 100.f, RenderTargetType::DepthMap);
 
 		m_ShadowMap = std::make_unique<RenderToTexture>();
-		m_ShadowMap->Init(2048, 2048, 1.f, 100.f, RenderTargetType::DepthMap);
+		m_ShadowMap->Init(4096, 4096, 1.f, 100.f, RenderTargetType::DepthMap);
 
 		m_SoftShadow = std::make_unique<RenderToTexture>();
 		m_SoftShadow->Init(width, height, 1.f, 100.f, RenderTargetType::DepthMap);
@@ -27,28 +27,8 @@ namespace Yassin
 
 		m_UpdateDebug = 165;
 		m_CurrentDebugFrame = 0;
-		
-		m_ShadowAtlas = std::make_unique<RenderToUAV>();
-		m_ShadowAtlas->Init(2048, 2048);
 
 		m_Ambient = nullptr;
-
-		unsigned int lightDepthX = SHADOW_MAP_SIZE;
-		unsigned int lightDepthY = SHADOW_MAP_SIZE;
-		unsigned int numLightMaps = (m_ShadowAtlas->GetHeight() * m_ShadowAtlas->GetWidth()) / (lightDepthX * lightDepthY);
-		for(unsigned int i = 0 ; i < numLightMaps; i++)
-		{
-			std::unique_ptr<RenderToTexture> lDepthMap = std::make_unique<RenderToTexture>();
-			lDepthMap->Init(lightDepthX, lightDepthY, 1.f, 100.f, RenderTargetType::DepthMap);
-			m_LightDepthMaps.push_back(std::move(lDepthMap));
-		}
-
-		unsigned int numLightBuffers = numLightMaps / SHADOW_ATLAS_BATCH_SIZE;
-		for(unsigned int i = 0 ; i < numLightBuffers; i++)
-		{
-			std::unique_ptr<ShadowAtlasBuffer> buffer = std::make_unique<ShadowAtlasBuffer>();
-			m_ShadowAtlasBuffers.push_back(std::move(buffer));
-		}
 
 		m_PostProcessingEnabled = false;
 		m_DeferredRenderingEnabled = false;
@@ -90,7 +70,9 @@ namespace Yassin
 		ShaderLibrary::Add("Bounding Volume Shader", L"src/Shaders/CSO/BoundingVolumeVS.cso", L"src/Shaders/CSO/BoundingVolumePS.cso");
 
 		ShaderLibrary::Add("Shadow Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapPS.cso");
+		ShaderLibrary::Add("Directional Shadow Shader", L"src/Shaders/CSO/ShadowMapVS.cso", L"src/Shaders/CSO/ShadowMapDirPS.cso");
 		ShaderLibrary::Add("Soft Shadow Shader", L"src/Shaders/CSO/SoftShadowVS.cso", L"src/Shaders/CSO/SoftShadowPS.cso");
+		ShaderLibrary::Add("Directional Soft Shadow Shader", L"src/Shaders/CSO/SoftShadowVS.cso", L"src/Shaders/CSO/SoftShadowDirPS.cso");
 		ShaderLibrary::Add("Phong Shader", L"src/Shaders/CSO/PhongDirVS.cso", L"src/Shaders/CSO/PhongDirPS.cso");
 		ShaderLibrary::Add("Blinn-Phong Shader", L"src/Shaders/CSO/PhongDirVS.cso", L"src/Shaders/CSO/BlinnPhongPS.cso");
 		ShaderLibrary::Add("PBR Shader", L"src/Shaders/CSO/PBR_VS.cso", L"src/Shaders/CSO/PBR_PS.cso");
@@ -107,6 +89,8 @@ namespace Yassin
 		ShaderLibrary::Add("Ambient Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/AmbientOccPS.cso");
 
 		ShaderLibrary::AddCompute("Shadow Atlas", L"src/Shaders/CSO/Compute/ShadowAtlasCS.cso");
+		ShaderLibrary::AddCompute("Construct Clusters", L"src/Shaders/CSO/Compute/ConstructClustersCS.cso");
+		ShaderLibrary::AddCompute("Generate Light Lists", L"src/Shaders/CSO/Compute/GenerateLightListsCS.cso");
 
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
@@ -121,6 +105,10 @@ namespace Yassin
 		MaterialSystem::Add("PBR Material", ShaderLibrary::Get("PBR Shader"));
 
 		m_Ambient = TextureLibrary::GetTexture2D("Default Ambient")->GetTexture();
+
+		m_ViewClusters = std::make_unique<ClusterBuffer>();
+		m_ViewClusters->Init();
+		m_ClustersGenerated = false;
 	}
 	
 	void Renderer::BeginScene(float r, float g, float b, float a)
@@ -165,10 +153,11 @@ namespace Yassin
 
 	void Renderer::Render(Camera& camera, DirectX::XMMATRIX& lightViewProj, std::vector<PointLight>& pointLights)
 	{
+#if defined(_DEBUG) || defined(DEBUG)
 		if(m_CurrentDebugFrame == 0)
 			RendererContext::GetDebug()->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
-
 		m_CurrentDebugFrame = (m_CurrentDebugFrame + 1) % m_UpdateDebug;
+#endif
 
 		m_MeshesRendered = 0;
 		for (int i = 0; i < m_Renderables.size(); i++)
@@ -187,67 +176,76 @@ namespace Yassin
 		DirectX::XMMATRIX viewProj =
 			DirectX::XMMatrixMultiply(view, proj);
 
-		// Testing, using to construct shadow atlas
-		//LightDepthPass(camera, pointLights);
+		// Generate clusters
+		if(!m_ClustersGenerated)
+		{
+			m_ViewClusters->Execute(DirectX::XMMatrixInverse(nullptr, proj));
+			m_ClustersGenerated = true;
+		}
+
+		// Construct list of lights and perform culling and generation of 
+		// light lists using compute shader
+		LightCulling(camera, pointLights);
 
 		// Depth pre-pass, populating depth buffer
 		RendererContext::EnableDepthWrites();
 		DepthPrePass(camera, viewProj, m_DepthPass.get());
 
-		// Calculating shadow map
+		// Generating depth map for shadow casting light
 		DepthPrePass(camera, lightViewProj, m_ShadowMap.get(), true);
 
-		// Soft shadows
-		RenderShadows(camera);
+		// Generates and softens shadow map
+		ShadowPass(camera);
 
+		// Populate thin GBuffer with normals and view space positions
+		GBufferPass(camera);
+
+		PostProcessingPass(camera);
+
+		if (m_PostProcessingEnabled) return;
+
+		RendererContext::DisableDepthWrites();
 		RendererContext::ClearRenderTarget(
 			m_BackBufferColor[0],
 			m_BackBufferColor[1],
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
 
+		ForwardRenderingPass(camera, view, proj, viewProj);
+	}
 
-		if (m_PostProcessingEnabled)
-		{
-			// Need view space positions for SSAO
-			GBufferPass(camera);
-
-			RenderSceneToTexture(camera);
-			PostProcessedScene(camera);
-
-			return;
-		}
-
-		RendererContext::DisableDepthWrites();
-
-		while(!m_OpaqueRenderQueue.empty())
-		{
-			Renderable* rPtr = m_OpaqueRenderQueue.front();
-
-			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
-			rPtr->SetAmbientMap(m_Ambient);
-			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
-			rPtr->UnbindShaderResources();
-
-			if(m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
-
-			m_OpaqueRenderQueue.pop();
-		}
-
+	void Renderer::ForwardRenderingPass(Camera& camera, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, DirectX::XMMATRIX& viewProj)
+	{
 		// Enable alpha blending for transparent objects
 		RendererContext::EnableAlphaBlending();
 
-		while (!m_TransparentRenderQueue.empty())
+		while (!m_OpaqueRenderQueue.empty())
 		{
-			Renderable* rPtr = m_TransparentRenderQueue.front();
+			Renderable* rPtr = m_OpaqueRenderQueue.front();
 
+			rPtr->UpdatePointLights(m_ActiveLights);
 			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
 			rPtr->SetAmbientMap(m_Ambient);
 			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
 			rPtr->UnbindShaderResources();
 
 			if (m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
-			
+
+			m_OpaqueRenderQueue.pop();
+		}
+
+		while (!m_TransparentRenderQueue.empty())
+		{
+			Renderable* rPtr = m_TransparentRenderQueue.front();
+
+			rPtr->UpdatePointLights(m_ActiveLights);
+			rPtr->SetShadowMap(m_SoftShadow->GetSRV());
+			rPtr->SetAmbientMap(m_Ambient);
+			rPtr->Render(camera, viewProj, view, proj, false, m_BoundingVolumesEnabled);
+			rPtr->UnbindShaderResources();
+
+			if (m_MeshesRendered > 0) m_MeshesRendered -= rPtr->GetCulledCount();
+
 			m_TransparentRenderQueue.pop();
 		}
 
@@ -288,7 +286,6 @@ namespace Yassin
 
 			depthShaders.first->Bind();
 			depthShaders.second->Bind();
-			rPtr->BindShaderResources();
 			rPtr->Render(camera, lightViewProj, view, proj, true, false, true);
 			rPtr->UnbindShaderResources();
 		}
@@ -298,6 +295,39 @@ namespace Yassin
 			RendererContext::SetBackBufferRenderTarget();
 			RendererContext::ResetViewport();
 		}
+	}
+
+	void Renderer::LightCulling(Camera& camera, std::vector<PointLight>& lights)
+	{	
+		std::vector<LightCullingData> cullingData;
+
+		for(int i = 0; i < lights.size(); i++)
+		{
+			if (camera.GetBoundingFrustum().Intersects(lights[i].GetBoundingSphere()))
+				lights[i].EnableLight();
+			else
+				lights[i].DisableLight();
+
+			LightCullingData data;
+			data.position = lights[i].GetPosition();
+			data.lightRadius = lights[i].GetRadius();
+			data.enabled = lights[i].IsEnabled();
+			data.padding = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+			cullingData.push_back(data);
+
+			m_ActiveLights.data[i].position = lights[i].GetPosition();
+			m_ActiveLights.data[i].colour = lights[i].GetAmbientColor();
+			m_ActiveLights.data[i].radius = lights[i].GetRadius();
+			m_ActiveLights.data[i].enabled = lights[i].IsEnabled();
+		}
+
+		DirectX::XMMATRIX view;
+		camera.GetViewMatrix(view);
+		
+		m_ViewClusters->SetView(view);
+		m_ViewClusters->SetLightData(cullingData);
+		//m_ViewClusters->GenerateLightLists();
 	}
 
 	void Renderer::LightDepthPass(Camera& camera, std::vector<PointLight>& lights)
@@ -422,58 +452,63 @@ namespace Yassin
 		RendererContext::ResetViewport();
 	}
 
-	void Renderer::PostProcessedScene(Camera& camera)
+	void Renderer::PostProcessingPass(Camera& camera)
 	{
-		RendererContext::DisableZBuffer();
-
-		ID3D11ShaderResourceView* ambient;
-
-		if (m_BoxBlurEnabled) 
-			m_BoxBlurEffect.BlurScene(camera, m_SceneTexture.get());
-		
-		if (m_GaussianBlurEnabled) 
-			m_GaussianBlurEffect.BlurScene(camera, m_SceneTexture.get());
-
-		if (m_SSAOEnabled)
+		if(m_PostProcessingEnabled)
 		{
-			m_SSAO.Execute(camera, m_GBuffer->GetSRV(Buffer::ViewPosition),
-				m_GBuffer->GetSRV(Buffer::Normal), TextureLibrary::GetTexture2D("Noise")->GetTexture());
-			ambient = m_SSAO.GetAmbient();
+			RenderSceneToTexture(camera);
+
+			RendererContext::DisableZBuffer();
+
+			ID3D11ShaderResourceView* ambient;
+
+			if (m_BoxBlurEnabled)
+				m_BoxBlurEffect.BlurScene(camera, m_SceneTexture.get());
+
+			if (m_GaussianBlurEnabled)
+				m_GaussianBlurEffect.BlurScene(camera, m_SceneTexture.get());
+
+			if (m_SSAOEnabled)
+			{
+				m_SSAO.Execute(camera, m_GBuffer->GetSRV(Buffer::ViewPosition),
+					m_GBuffer->GetSRV(Buffer::Normal), TextureLibrary::GetTexture2D("Noise")->GetTexture());
+				ambient = m_SSAO.GetAmbient();
+			}
+			else
+			{
+				ambient = TextureLibrary::GetTexture2D("Default Ambient")->GetTexture();
+			}
+
+			if (m_FXAAEnabled)
+				m_FXAA.Execute(camera, m_SceneTexture.get());
+
+			std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Ambient Shader");
+
+			DirectX::XMMATRIX view;
+			DirectX::XMMATRIX proj;
+			DirectX::XMMATRIX viewProj;
+
+			camera.GetDefaultView(view);
+			m_SceneTexture->GetOrthoMatrix(proj);
+
+			viewProj = DirectX::XMMatrixMultiply(view, proj);
+
+			m_FullScreenWindow.Render(viewProj, view, proj);
+			textureShader.second->SetTexture(0, m_SceneTexture->GetSRV());
+			textureShader.second->SetTexture(1, ambient);
+			m_PostProcessSampler.Bind(0);
+			textureShader.first->Bind();
+			textureShader.second->Bind();
+			RendererContext::GetDeviceContext()->DrawIndexed(6, 0, 0);
+
+			ID3D11ShaderResourceView* nullSRV = { nullptr };
+			RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
+
+			RendererContext::EnableZBuffer();
 		}
-		else
-		{
-			ambient = TextureLibrary::GetTexture2D("Default Ambient")->GetTexture();
-		}
-
-		if (m_FXAAEnabled)
-			m_FXAA.Execute(camera, m_SceneTexture.get());
-
-		std::pair<VertexShader*, PixelShader*> textureShader = ShaderLibrary::Get("Ambient Shader");
-
-		DirectX::XMMATRIX view;
-		DirectX::XMMATRIX proj;
-		DirectX::XMMATRIX viewProj;
-
-		camera.GetDefaultView(view);
-		m_SceneTexture->GetOrthoMatrix(proj);
-
-		viewProj = DirectX::XMMatrixMultiply(view, proj);
-
-		m_FullScreenWindow.Render(viewProj, view, proj);
-		textureShader.second->SetTexture(0, m_SceneTexture->GetSRV());
-		textureShader.second->SetTexture(1, ambient);
-		m_PostProcessSampler.Bind(0);
-		textureShader.first->Bind();
-		textureShader.second->Bind();
-		RendererContext::GetDeviceContext()->DrawIndexed(6, 0, 0);
-
-		ID3D11ShaderResourceView* nullSRV = { nullptr };
-		RendererContext::GetDeviceContext()->PSSetShaderResources(0, 1, &nullSRV);
-
-		RendererContext::EnableZBuffer();
 	}
 
-	void Renderer::RenderShadows(Camera& camera)
+	void Renderer::ShadowPass(Camera& camera)
 	{
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX proj;
@@ -487,7 +522,7 @@ namespace Yassin
 		m_SoftShadow->SetRenderTarget();
 		m_SoftShadow->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
 
-		std::pair<VertexShader*, PixelShader*> shadowShaders = ShaderLibrary::Get("Shadow Shader");
+		std::pair<VertexShader*, PixelShader*> shadowShaders = ShaderLibrary::Get("Directional Shadow Shader");
 
 		RendererContext::EnableAlphaBlending();
 

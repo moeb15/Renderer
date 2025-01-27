@@ -20,8 +20,8 @@
 #include "Renderer/Post-Processing/Blur.h"
 #include "Renderer/Post-Processing/FXAA.h"
 #include "Renderer/Post-Processing/SSAO.h"
+#include "Renderer/Utils/Cluster.h"
 
-#include "Renderable/Light/PointLight.h"
 #include "Renderer/Primitives/TextureArray.h"
 
 #include <queue>
@@ -29,10 +29,12 @@
 
 namespace Yassin
 {
+	class PointLight;
+
 	class Renderer
 	{
 	public:
-		void Init(int width, int height, HWND hWnd, bool fullscreen = true);
+		void Init(int width, int height, HWND hWnd, bool fullscreen = true, unsigned int numCPUCores = 1);
 		void BeginScene(float r, float g, float b, float a);
 		void EndScene();
 		void Submit(Renderable* renderable);
@@ -51,12 +53,14 @@ namespace Yassin
 		inline size_t GetTotalMeshes() const { return m_TotalMeshes; }
 
 	private:
+		void ForwardRenderingPass(Camera& camera, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, DirectX::XMMATRIX& viewProj);
 		void DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex, bool bForLight = false);
+		void LightCulling(Camera& camera, std::vector<PointLight>& lights);
 		void LightDepthPass(Camera& camera, std::vector<PointLight>& lights);
 		void GBufferPass(Camera& camera);
 		void RenderSceneToTexture(Camera& camera);
-		void PostProcessedScene(Camera& camera);
-		void RenderShadows(Camera& camera);
+		void PostProcessingPass(Camera& camera);
+		void ShadowPass(Camera& camera);
 
 	private:
 		std::unique_ptr<TextureLibrary> m_TextureLibrary;
@@ -72,6 +76,8 @@ namespace Yassin
 		std::unique_ptr<TextureArray> m_ShadowMapArray;
 		std::vector<std::unique_ptr<ShadowAtlasBuffer>> m_ShadowAtlasBuffers;
 		std::vector<std::unique_ptr<RenderToTexture>> m_LightDepthMaps;
+
+		std::unique_ptr<ClusterBuffer> m_ViewClusters;
 
 		Blur m_GaussianBlurEffect;
 		Blur m_BoxBlurEffect;
@@ -97,9 +103,11 @@ namespace Yassin
 		bool m_SSAOEnabled;
 		bool m_DeferredRenderingEnabled;
 		bool m_BoundingVolumesEnabled;
+		bool m_ClustersGenerated;
 
 		unsigned int m_UpdateDebug;
 		unsigned int m_CurrentDebugFrame;
 		ID3D11ShaderResourceView* m_Ambient;
+		PointLightBatch m_ActiveLights;
 	};
 }

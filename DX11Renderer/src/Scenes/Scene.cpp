@@ -1,5 +1,5 @@
 #include "Scenes/Scene.h"
-#include "Scene.h"
+#include "Core/Timer.h"
 
 
 namespace Yassin
@@ -9,14 +9,14 @@ namespace Yassin
 		m_PointLights.reserve(Yassin::MAX_LIGHT_COUNT);
 	}
 
-	void Scene::RenderScene(Window& window)
+	void Scene::RenderScene(Window& window, Timer& timer)
 	{
 		DirectX::XMMATRIX lView;
 		DirectX::XMMATRIX lProj;
-		DirectX::XMMATRIX lViewProj;
+		DirectX::XMMATRIX lViewProj;;
 
-		m_Light->GetView(lView);
-		m_Light->GetProjection(lProj);
+		m_Sun->GetView(lView);
+		m_Sun->GetProjection(lProj);
 
 		lViewProj = DirectX::XMMatrixMultiply(lView, lProj);
 
@@ -26,7 +26,7 @@ namespace Yassin
 			 renderable->UpdateCameraPosition({ m_Camera->GetPosition() });
 			 renderable->UpdateLighting({ lViewProj, m_Light->GetPosition() },
 				 { m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetSpecularColor(),
-				 m_Light->GetSpecularPower() });
+				 m_Light->GetSpecularPower(), 0.0001f });
 
 			 window.GetRenderer().Submit(renderable.get());
 		 }
