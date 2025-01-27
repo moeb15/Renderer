@@ -34,6 +34,7 @@ namespace Yassin
 
 		m_LightDirectionBuffer = std::make_unique<LightDirectionBuffer>();
 		m_CameraBuffer = std::make_unique<CameraBuffer>();
+		m_PointLightBatchBuffer = std::make_unique<PointLightBatchBuffer>();
 
 		for(const TextureMetaData& tData : material->GetTextures())
 		{
@@ -114,6 +115,11 @@ namespace Yassin
 		m_LightDirectionBuffer->UpdateBuffer(lDir);
 	}
 
+	void MaterialInstance::UpdatePointLightBatch(const PointLightBatch& batch)
+	{
+		m_PointLightBatchBuffer->UpdateBuffer(batch);
+	}
+
 	void MaterialInstance::BindMaterial()
 	{
 		if(m_Illuminated) m_LightPosBuffer->Bind(VSBufferSlot::LightPosition);
@@ -122,6 +128,7 @@ namespace Yassin
 
 		m_CameraBuffer->Bind(VSBufferSlot::CameraPosition);
 		m_LightDirectionBuffer->Bind(PSBufferSlot::LightDirection);
+		m_PointLightBatchBuffer->Bind(PSBufferSlot::PointLights);
 
 		for(const auto& kvPair : m_Textures)
 		{
@@ -137,6 +144,17 @@ namespace Yassin
 
 		m_VertexShader->Bind();
 		m_PixelShader->Bind();
+	}
+
+	void MaterialInstance::BindBuffers()
+	{
+		if (m_Illuminated) m_LightPosBuffer->Bind(VSBufferSlot::LightPosition);
+		if (m_Illuminated) m_LightPropsBuffer->Bind(PSBufferSlot::LightProperties);
+		if (m_Transparent) m_TransparencyBuffer->Bind(PSBufferSlot::Transparency);
+
+		m_CameraBuffer->Bind(VSBufferSlot::CameraPosition);
+		m_LightDirectionBuffer->Bind(PSBufferSlot::LightDirection);
+		m_PointLightBatchBuffer->Bind(PSBufferSlot::PointLights);
 	}
 
 	void MaterialInstance::BindShaderResources()

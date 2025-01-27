@@ -26,6 +26,7 @@ namespace Yassin
 		void UpdateTransparencyBuffer(const BlendBuffer& tBuffer = {});
 		void UpdateCameraBuffer(const CameraPositionType& cPos = {});
 		void UpdateLightDirection(const LightDirectionType& lDir = {});
+		void UpdatePointLightBatch(const PointLightBatch& batch = {});
 
 		inline LightPropsBuffer* GetLightPropsBuffer() const { return m_LightPropsBuffer.get(); }
 		inline LightPosBuffer* GetLightPosBuffer() const { return m_LightPosBuffer.get(); }
@@ -34,6 +35,7 @@ namespace Yassin
 		inline std::string GetMaterialInstanceName() const { return m_Name; }
 
 		void BindMaterial();
+		void BindBuffers();
 		void BindShaderResources();
 		void UnbindShaderResources();
 
@@ -44,6 +46,7 @@ namespace Yassin
 		std::unique_ptr<LightPropsBuffer> m_LightPropsBuffer;
 		std::unique_ptr<TransparencyBuffer> m_TransparencyBuffer;
 		std::unique_ptr<LightDirectionBuffer> m_LightDirectionBuffer;
+		std::unique_ptr<PointLightBatchBuffer> m_PointLightBatchBuffer;
 		std::unique_ptr<CameraBuffer> m_CameraBuffer;
 		bool m_Illuminated;
 		bool m_Transparent;
