@@ -41,7 +41,8 @@ namespace Yassin
 		m_TotalMeshes = 0;
 
 		m_PostProcessSampler.Init(FilterType::Anisotropic, AddressType::Wrap);
-		m_GBufferSampler.Init(FilterType::Bilinear, AddressType::Wrap);
+		m_GBufferSamplerWrap.Init(FilterType::Bilinear, AddressType::Wrap);
+		m_GBufferSamplerClamp.Init(FilterType::Bilinear, AddressType::Clamp);
 
 		m_FullScreenWindow.Init(width, height);
 
@@ -88,9 +89,21 @@ namespace Yassin
 		ShaderLibrary::Add("SSAO Blur", L"src/Shaders/CSO/SSAO_VS.cso", L"src/Shaders/CSO/SSAOBlur_PS.cso");
 		ShaderLibrary::Add("Ambient Shader", L"src/Shaders/CSO/UnlitTextureVS.cso", L"src/Shaders/CSO/AmbientOccPS.cso");
 
+		////////////////////////////////////////////
+		///////////// Deferred Shaders /////////////
+		////////////////////////////////////////////
+
+		ShaderLibrary::Add("Deferred Phong", L"src/Shaders/CSO/Deferred/DeferredCommonVS.cso", L"src/Shaders/CSO/Deferred/DeferredPhongPS.cso");
+
+		////////////////////////////////////////////
+		///////////// Compute Shaders //////////////
+		////////////////////////////////////////////
+		
 		ShaderLibrary::AddCompute("Shadow Atlas", L"src/Shaders/CSO/Compute/ShadowAtlasCS.cso");
 		ShaderLibrary::AddCompute("Construct Clusters", L"src/Shaders/CSO/Compute/ConstructClustersCS.cso");
 		ShaderLibrary::AddCompute("Generate Light Lists", L"src/Shaders/CSO/Compute/GenerateLightListsCS.cso");
+
+
 
 		MaterialSystem::Init();
 		MaterialSystem::Add("Error Material", ShaderLibrary::Get("Test Shader"));
@@ -197,7 +210,7 @@ namespace Yassin
 		// Generates and softens shadow map
 		ShadowPass(camera);
 
-		// Populate thin GBuffer with normals and view space positions
+		// Populate GBuffer
 		GBufferPass(camera);
 
 		PostProcessingPass(camera);
@@ -211,7 +224,10 @@ namespace Yassin
 			m_BackBufferColor[2],
 			m_BackBufferColor[3]);
 
-		ForwardRenderingPass(camera, view, proj, viewProj);
+		if (m_DeferredRenderingEnabled)
+			DeferredRenderingPass(camera);
+		else
+			ForwardRenderingPass(camera, view, proj, viewProj);
 	}
 
 	void Renderer::ForwardRenderingPass(Camera& camera, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, DirectX::XMMATRIX& viewProj)
@@ -250,6 +266,54 @@ namespace Yassin
 		}
 
 		RendererContext::DisableAlphaBlending();
+	}
+
+	void Renderer::DeferredRenderingPass(Camera& camera)
+	{
+		MaterialInstance* material = m_Renderables[0]->GetMaterialInstance();
+		std::string deferredShader = "Deferred Phong";
+
+		if (material->GetMaterialInstanceName() == "Phong Material")
+			deferredShader = "Deferred Phong";
+		else
+			deferredShader = "Deferred PBR";
+
+		std::pair<VertexShader*, PixelShader*> defShaders = ShaderLibrary::Get(deferredShader);
+
+		RendererContext::DisableZBuffer();
+
+		DirectX::XMMATRIX view, proj, viewProj;
+
+		camera.GetDefaultView(view);
+		m_SceneTexture->GetOrthoMatrix(proj);
+
+		viewProj = DirectX::XMMatrixMultiply(view, proj);
+
+		m_FullScreenWindow.Render(viewProj, view, proj);
+
+		defShaders.second->SetTexture(TextureSlot::BaseTexture, m_GBuffer->GetSRV(Buffer::Color));
+		defShaders.second->SetTexture(TextureSlot::NormalTexture, m_GBuffer->GetSRV(Buffer::Normal));
+		defShaders.second->SetTexture(TextureSlot::SpecularTexture, m_GBuffer->GetSRV(Buffer::Specular));
+		defShaders.second->SetTexture(TextureSlot::RoughnessTexture, m_GBuffer->GetSRV(Buffer::Roughness));
+		defShaders.second->SetTexture(TextureSlot::AmbientMap, m_Ambient);
+		defShaders.second->SetTexture(TextureSlot::ShadowMapTexture, m_SoftShadow->GetSRV());
+		
+		m_GBufferSamplerWrap.Bind(SamplerSlot::WrapSampler);
+		m_GBufferSamplerClamp.Bind(SamplerSlot::ClampSampler);
+		
+		material->UpdatePointLightBatch(m_ActiveLights);
+		material->BindBuffers();
+
+		defShaders.first->Bind();
+		defShaders.second->Bind();
+
+		RendererContext::GetDeviceContext()->DrawIndexed(6, 0, 0);
+
+		ID3D11ShaderResourceView* nullSRV = { nullptr };
+		for(unsigned int i = 0; i < Buffer::BUFFER_COUNT; i++)
+		{
+			RendererContext::GetDeviceContext()->PSSetShaderResources(i, 1, &nullSRV);
+		}
 	}
 
 	void Renderer::DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex, bool bForLight)

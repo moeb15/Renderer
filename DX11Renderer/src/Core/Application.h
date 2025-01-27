@@ -4,6 +4,7 @@
 #include "Renderer/Camera/CameraController.h"
 #include "Renderable/RenderablePrimitives.h"
 #include "Scenes/SponzaScene.h"
+#include "Scenes/TestScene.h"
 
 namespace Yassin
 {
@@ -32,6 +33,8 @@ namespace Yassin
 		std::unique_ptr<PointLight> light;
 		std::unique_ptr<DirectionalLight> sun;
 		std::unique_ptr<SponzaScene> m_SponzaScene;
+		std::unique_ptr<TestScene> m_TestScene;
+		Scene* m_ActiveScene;
 		char m_GPUName[128];
 		size_t m_GPUMem;
 	};

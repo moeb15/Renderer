@@ -41,19 +41,23 @@ namespace Yassin
 		void Render(Camera& camera, DirectX::XMMATRIX& lightViewProj, std::vector<PointLight>& pointLights);
 
 		inline void TogglePostProcessing() { m_PostProcessingEnabled = !m_PostProcessingEnabled; }
-		inline void ToggleDeferredRendering() { m_DeferredRenderingEnabled = !m_DeferredRenderingEnabled; }
 		inline void ToggleBoundingVolumes() { m_BoundingVolumesEnabled = !m_BoundingVolumesEnabled; }
+
+		inline void EnabledDeferred() { m_DeferredRenderingEnabled = true; }
+		inline void DisableDeferred() { m_DeferredRenderingEnabled = false; }
 
 		inline bool& PostProcessingEnabled() { return m_PostProcessingEnabled; }
 		inline bool& GaussianBlurEnabled() { return m_GaussianBlurEnabled; }
 		inline bool& BoxBlurEnabled() { return m_BoxBlurEnabled; }
 		inline bool& FXAAEnabled() { return m_FXAAEnabled; }
 		inline bool& SSAOEnabled() { return m_SSAOEnabled; }
+		inline bool& IsDeferred() { return m_DeferredRenderingEnabled; }
 		inline size_t GetMeshesRendered() const { return m_MeshesRendered; }
 		inline size_t GetTotalMeshes() const { return m_TotalMeshes; }
 
 	private:
 		void ForwardRenderingPass(Camera& camera, DirectX::XMMATRIX& view, DirectX::XMMATRIX& proj, DirectX::XMMATRIX& viewProj);
+		void DeferredRenderingPass(Camera& camera);
 		void DepthPrePass(Camera& camera, DirectX::XMMATRIX& lightViewProj, RenderToTexture* renderTex, bool bForLight = false);
 		void LightCulling(Camera& camera, std::vector<PointLight>& lights);
 		void LightDepthPass(Camera& camera, std::vector<PointLight>& lights);
@@ -85,7 +89,8 @@ namespace Yassin
 		SSAO m_SSAO;
 		OrthoWindow m_FullScreenWindow;
 		Sampler m_PostProcessSampler;
-		Sampler m_GBufferSampler;
+		Sampler m_GBufferSamplerWrap;
+		Sampler m_GBufferSamplerClamp;
 
 		std::queue<Renderable*> m_OpaqueRenderQueue;
 		std::queue<Renderable*> m_TransparentRenderQueue;

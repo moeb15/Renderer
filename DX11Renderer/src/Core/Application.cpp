@@ -11,8 +11,8 @@ namespace Yassin
 	{
 		m_Window.Init();
 
-		sun = std::make_unique<DirectionalLight>(1000.f, 0.1f, 1000.f);
-		sun->SetDirection(0.0f, 0.0f, 1.f);
+		sun = std::make_unique<DirectionalLight>(10.f, -10.f, 10.f);
+		sun->SetPosition(1.0f, 5.f, 0.0f);
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);
 		light->SetAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -21,6 +21,11 @@ namespace Yassin
 
 		m_SponzaScene = std::make_unique<SponzaScene>();
 		m_SponzaScene->Init(&m_CameraController.GetCamera(), sun.get(), light.get());
+
+		m_TestScene = std::make_unique<TestScene>();
+		m_TestScene->Init(&m_CameraController.GetCamera(), sun.get(), light.get());
+
+		m_ActiveScene = m_SponzaScene.get();
 
 		RendererContext::GetGPUInfo(m_GPUName, m_GPUMem);
 	}
@@ -46,7 +51,7 @@ namespace Yassin
 		float dt = m_Timer.Tick();
 		m_CameraController.OnUpdate(dt);
 
-		m_Window.GetRenderer().BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
+		m_Window.GetRenderer().BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -56,7 +61,7 @@ namespace Yassin
 
 		SettingsGui();
 
-		m_SponzaScene->RenderScene(m_Window);
+		m_ActiveScene->RenderScene(m_Window, m_Timer);
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -72,11 +77,14 @@ namespace Yassin
 
 	void Application::SettingsGui()
 	{
-		DirectX::XMFLOAT3 lightPosition = light->GetPosition();
+		DirectX::XMFLOAT3 lightPosition = sun->GetPosition();
 		DirectX::XMFLOAT3 lightLookAt = light->GetLookAt();
 		DirectX::XMFLOAT3 lightDir = sun->GetDirection();
 		DirectX::XMFLOAT4 lightSpecular = light->GetSpecularColor();
 		float lightSpecularPower = light->GetSpecularPower();
+
+		static const char* items[] = { "Forward", "Deferred" };
+		static int SelectedItem = 0;
 
 		if (ImGui::Begin("Settings"))
 		{
@@ -85,24 +93,28 @@ namespace Yassin
 			ImGui::Text("Meshes Rendered : %i", m_Window.GetRenderer().GetMeshesRendered());
 			ImGui::Text("Total Meshes : %i", m_Window.GetRenderer().GetTotalMeshes());
 
-			ImGui::Checkbox("Phong Shading", &m_SponzaScene->GetPhongShaded());
-			if(m_SponzaScene->GetPhongShaded())
+			ImGui::Checkbox("Phong Shading", &m_ActiveScene->GetPhongShaded());
+			if(m_ActiveScene->GetPhongShaded())
 			{
-				m_SponzaScene->UpdateSceneShaders("Phong Material");
+				m_ActiveScene->UpdateSceneShaders("Phong Material");
 			}
 
-			ImGui::Checkbox("Blinn-Phong Shading", &m_SponzaScene->GetBlinnPhongShaded());
-			if (m_SponzaScene->GetBlinnPhongShaded())
+			ImGui::Checkbox("Blinn-Phong Shading", &m_ActiveScene->GetBlinnPhongShaded());
+			if (m_ActiveScene->GetBlinnPhongShaded())
 			{
-				m_SponzaScene->UpdateSceneShaders("Blinn-Phong Material");
+				m_ActiveScene->UpdateSceneShaders("Blinn-Phong Material");
 			}
 			
-			ImGui::Checkbox("PBR Shading", &m_SponzaScene->GetPBRShaded());
-			if(m_SponzaScene->GetPBRShaded())
+			ImGui::Checkbox("PBR Shading", &m_ActiveScene->GetPBRShaded());
+			if(m_ActiveScene->GetPBRShaded())
 			{
-				m_SponzaScene->UpdateSceneShaders("PBR Material");
+				m_ActiveScene->UpdateSceneShaders("PBR Material");
 			}
 
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+			ImGui::Combo("Rendering Pipeline", &SelectedItem, items, std::size(items));
+			
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
 			ImGui::Text("Post-Processing Settings");
@@ -167,7 +179,7 @@ namespace Yassin
 		}
 		ImGui::End();
 
-		light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
+		//light->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
 		light->SetLookAt(lightLookAt.x, lightLookAt.y, lightLookAt.z);
 		light->SetSpecularColor(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
 		light->SetSpecularPower(lightSpecularPower);
@@ -176,5 +188,17 @@ namespace Yassin
 		normalDir = DirectX::XMVector3Normalize(normalDir);
 		DirectX::XMStoreFloat3(&lightDir, normalDir);
 		sun->SetDirection(lightDir.x, lightDir.y, lightDir.z);
+		sun->SetPosition(lightPosition.x, lightPosition.y, lightPosition.z);
+
+		switch(SelectedItem)
+		{
+		case 0:
+			m_Window.GetRenderer().DisableDeferred();
+			break;
+
+		case 1:
+			m_Window.GetRenderer().EnabledDeferred();
+			break;
+		}
 	}
 }
