@@ -72,6 +72,26 @@ project "DX11Renderer"
 	}
 
 	-- Custom HLSL Compilation Step
+	filter "files:**Shaders/HLSL/Deferred/**VS.hlsl"
+	buildcommands
+	{
+		"echo Compiling Compute Shader: %(FullPath)",
+		"fxc /T vs_5_0 /Fo \"%(ProjectDir)src/Shaders/CSO/Deferred/%(Filename).cso\" /nologo \"%(FullPath)\""
+	}
+	buildoutputs 
+	{
+		"%{prj.name}/src/Shaders/CSO/Deferred/%(Filename).cso"
+	}
+	filter "files:**Shaders/HLSL/Deferred/**PS.hlsl"
+	buildcommands
+	{
+		"echo Compiling Compute Shader: %(FullPath)",
+		"fxc /T ps_5_0 /Fo \"%(ProjectDir)src/Shaders/CSO/Deferred/%(Filename).cso\" /nologo \"%(FullPath)\""
+	}
+	buildoutputs 
+	{
+		"%{prj.name}/src/Shaders/CSO/Deferred/%(Filename).cso"
+	}
 	filter "files:**Shaders/HLSL/**VS.hlsl"
 		buildcommands
 		{
