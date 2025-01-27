@@ -9,6 +9,10 @@ namespace Yassin
 	{
 		Normal,
 		ViewPosition,
+		Color,
+		Specular,
+		Roughness,
+		Metallic,
 		BUFFER_COUNT
 	};
 
