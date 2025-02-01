@@ -5,7 +5,7 @@
 #include "Renderer/Primitives/PixelShader.h"
 #include "Renderer/Primitives/InputLayout.h"
 #include "Renderer/Primitives/Topology.h"
-#include "Renderer/Primitives/ConstantBuffer.h"
+#include "Renderer/Primitives/CBufferDataTypes.h"
 #include "Renderer/Primitives/Texture.h"
 #include "Renderer/Primitives/Sampler.h"
 
@@ -28,6 +28,7 @@ namespace Yassin
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const;
+		virtual void UpdatePointLights(const PointLightBatch& batch) const;
 
 		virtual void UpdateTransparency(float blendAmount = 1.0f);
 		virtual void UpdateBoundingVolume() { m_BoundingBox.Transform(m_BoundingBox, m_BoundingTransform->GetWorld()); }

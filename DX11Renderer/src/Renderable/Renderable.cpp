@@ -1,4 +1,4 @@
-#include "Renderer/Renderable.h"
+#include "Renderable/Renderable.h"
 #include "Renderer/Resources/MaterialInstance.h"
 #include "Renderable/DataTypes.h"
 #include "Renderable.h"
@@ -109,7 +109,7 @@ namespace Yassin
         bVolumeShaders.second->Bind();
 
         if (!m_InstancedDraw)
-            RendererContext::GetDeviceContext()->DrawIndexed(m_IndexBuffer->GetIndexCount(), 0, 0);
+            RendererContext::GetDeviceContext()->DrawIndexed(m_BoundingIBuffer->GetIndexCount(), 0, 0);
         else
             RendererContext::GetDeviceContext()->DrawIndexedInstanced(m_BoundingIBuffer->GetIndexCount(),
                 (unsigned int)instanceCount, 0, 0, 0);
@@ -128,6 +128,11 @@ namespace Yassin
     void Renderable::UpdateLightDirection(const LightDirectionType& lDir) const
     {
         m_Material->UpdateLightDirection(lDir);
+    }
+
+    void Renderable::UpdatePointLights(const PointLightBatch& batch) const
+    {
+        m_Material->UpdatePointLightBatch(batch);
     }
 
     void Renderable::UpdateTransparency(float blendAmount)
