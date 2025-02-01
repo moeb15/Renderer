@@ -273,10 +273,11 @@ namespace Yassin
 		MaterialInstance* material = m_Renderables[0]->GetMaterialInstance();
 		std::string deferredShader = "Deferred Phong";
 
-		if (material->GetMaterialInstanceName() == "Phong Material")
+		// TODO write PBR shader for deferred renderer, fix phong shader
+		/*if (material->GetMaterialInstanceName() == "Phong Material")
 			deferredShader = "Deferred Phong";
 		else
-			deferredShader = "Deferred PBR";
+			deferredShader = "Deferred PBR";*/
 
 		std::pair<VertexShader*, PixelShader*> defShaders = ShaderLibrary::Get(deferredShader);
 
