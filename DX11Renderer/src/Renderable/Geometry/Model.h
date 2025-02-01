@@ -1,5 +1,5 @@
 #pragma once
-#include "Renderer/Renderable.h"
+#include "Renderable/Renderable.h"
 #include "Renderable/Utils/Mesh.h"
 #include <string>
 #include <vector>
@@ -21,6 +21,8 @@ namespace Yassin
 		virtual void UpdateLighting(const LightPositionBuffer& lPos, const LightPropertiesBuffer& lProps) const override;
 		virtual void UpdateCameraPosition(const CameraPositionType& cPos) const override;
 		virtual void UpdateLightDirection(const LightDirectionType& lDir) const override;
+		virtual void UpdatePointLights(const PointLightBatch& batch) const override;
+
 
 		virtual MaterialInstance* GetMaterialInstance(unsigned int meshIdx = 0) const override;
 		virtual VertexBuffer* GetVertexBuffer(unsigned int meshIdx = 0) const override;

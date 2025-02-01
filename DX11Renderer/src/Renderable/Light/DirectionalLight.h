@@ -47,6 +47,12 @@ namespace Yassin
 			UpdateView();
 		}
 
+		inline void SetLookAt(float x, float y, float z)
+		{
+			m_LookAt = DirectX::XMFLOAT3(x, y, z);
+			UpdateView();
+		}
+
 		inline void SetDirection(float x, float y, float z)
 		{
 			m_Direction = DirectX::XMFLOAT3(x, y, z);
@@ -54,6 +60,7 @@ namespace Yassin
 
 		inline DirectX::XMFLOAT3 GetPosition() const { return m_Position; }
 		inline DirectX::XMFLOAT3 GetDirection() const { return m_Direction; }
+		inline DirectX::XMFLOAT3 GetLookAt() const { return m_LookAt; }
 		inline DirectX::XMFLOAT4 GetDiffuseColor() const { return m_DiffuseColor; }
 		inline DirectX::XMFLOAT4 GetAmbientColor() const { return m_AmbientColor; }
 		inline DirectX::XMFLOAT4 GetSpecularColor() const { return m_SpecularColor; }

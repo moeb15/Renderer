@@ -70,7 +70,7 @@ float4 main(PSIn input) : SV_TARGET
 
     finalColor = CalcDirLight(input, normalColor, input.viewDir);
     
-    
+    /*
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
         if (pointLight[i].enabled == 1)
@@ -78,7 +78,7 @@ float4 main(PSIn input) : SV_TARGET
             float3 plDiff = CalcPointLight(input, i);
             finalColor.xyz += plDiff;
         }
-    }
+    }*/
     
     finalColor *= shadowValue;
     finalColor.a = blendAmount;

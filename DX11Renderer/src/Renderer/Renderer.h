@@ -1,6 +1,7 @@
 #pragma once
 // TODO clean up class, getting very bloated, 
 // should not handle much outside of submission of renderables and rendering
+// also look into render graphs
 
 #include <Windows.h>
 #include <wrl.h>
@@ -9,7 +10,7 @@
 #include <DirectXMath.h>
 #include <memory>
 #include "Renderer/RendererContext.h"
-#include "Renderer/Renderable.h"
+#include "Renderable/Renderable.h"
 #include "Renderer/Resources/ShaderLibrary.h"
 #include "Renderer/Camera/Camera.h"
 #include "Renderer/Resources/MaterialSystem.h"

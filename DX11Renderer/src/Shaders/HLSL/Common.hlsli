@@ -30,6 +30,19 @@
     #define SHADOW_ATLAS_SIZE 2048
 #endif
 
+#ifndef MAX_LIGHTS
+    #define MAX_LIGHTS 128
+#endif
+
+struct PointLight
+{
+    float4 colour;
+    float3 position;
+    float radius;
+    uint enabled;
+    float3 padding;
+};
+
 static float FXAA_QUALITIES[16] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.0f, 2.0f, 2.0f, 2.0f, 4.0f, 8.0f, 8.0f, 8.0f, 8.0f, 8.0f };
 
 float RGB2Luma(float3 rgb)

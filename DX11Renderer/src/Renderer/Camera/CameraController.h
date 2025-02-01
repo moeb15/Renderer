@@ -15,7 +15,7 @@ namespace Yassin
 	private:
 		float m_FOV;
 		float m_AspectRatio;
-		float m_CameraMoveSpeed = 6.f;
+		float m_CameraMoveSpeed = 1.f;
 		float m_CameraRotationSpeed = 100.f;
 		DirectX::XMFLOAT3 m_Position = DirectX::XMFLOAT3(0.f, 0.f, 0.f);
 		float m_Yaw = 0.f;

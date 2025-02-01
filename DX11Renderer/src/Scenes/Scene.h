@@ -4,12 +4,14 @@
 
 namespace Yassin
 {
+	class Timer;
+
 	class Scene
 	{
 	public:
 		Scene();
 		virtual void Init(Camera* camera, DirectionalLight* sun, PointLight* light) = 0;
-		void RenderScene(Window& window);
+		void RenderScene(Window& window, Timer& timer);
 		inline bool& GetPhongShaded() { return m_PhongShaded; }
 		inline bool& GetBlinnPhongShaded() { return m_BlinnPhongShaded; }
 		inline bool& GetPBRShaded() { return m_PBRShaded; }

@@ -39,7 +39,7 @@ VSOut main(VSIn input)
     vso.uv = input.uv;
     
     vso.viewPos = mul(input.position, world);
-    vso.viewPos = mul(vso.viewPos, viewProj);
+    vso.viewPos = mul(vso.viewPos, view);
     
     vso.normal = mul(input.normal, (float3x3) world);
     vso.normal = mul(vso.normal, (float3x3) view);

@@ -16,7 +16,7 @@ namespace Yassin
 	Model::Model(std::string material, const std::string& modelFile, DirectX::XMMATRIX world, std::vector<InstancePosition>* instancePositions)
 	{
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
+		const aiScene* pScene = importer.ReadFile(modelFile, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
 		if (!pScene) 
 		{
 			MessageBoxA(RendererContext::GetWindowHandle(), "Failed to load model", modelFile.c_str(), MB_OK);
@@ -41,7 +41,7 @@ namespace Yassin
 		for(unsigned int i = 0; i < node->mNumChildren; i++)
 		{
 			aiMatrix4x4 childTransform = node->mChildren[i]->mTransformation;
-			ProcessNode(node->mChildren[i], scene, material, world, instancePositions, parentTransform * childTransform);
+			ProcessNode(node->mChildren[i], scene, material, world, instancePositions, childTransform * parentTransform);
 		}
 	}
 
@@ -179,6 +179,14 @@ namespace Yassin
 		for (int i = 0; i < m_Meshes.size(); i++)
 		{
 			m_Meshes[i]->UpdateLightDirection(lDir);
+		}
+	}
+
+	void Model::UpdatePointLights(const PointLightBatch& batch) const
+	{
+		for (int i = 0; i < m_Meshes.size(); i++)
+		{
+			m_Meshes[i]->UpdatePointLights(batch);
 		}
 	}
 

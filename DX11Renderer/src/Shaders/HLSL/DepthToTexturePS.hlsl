@@ -1,6 +1,7 @@
 struct PSIn
 {
     float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
     float4 depthPos : DEPTHPOS;
 };
 

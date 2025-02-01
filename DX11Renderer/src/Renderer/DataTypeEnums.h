@@ -33,6 +33,13 @@ namespace Yassin
 		LightProperties = 0,
 		Transparency,
 		LightDirection,
+		PointLights,
+	};
+
+	enum CSBufferSlot
+	{
+		CameraDataCB = 0,
+		WorkGroupDataCB,
 	};
 
 	enum class ObjectType

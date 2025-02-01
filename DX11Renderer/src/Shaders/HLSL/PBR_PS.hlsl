@@ -58,17 +58,18 @@ float4 main(PSIn input) : SV_TARGET
     albedo = albedoMap.Sample(wrapSampler, input.uv).rgb;
     float albedoAlpha = albedoMap.Sample(wrapSampler, input.uv).a;
 #ifdef ALPHATEST
-    clip(albedoAlpha < 0.1f ? -1 : 1);
+    //clip(albedoAlpha < 0.1f ? -1 : 1);
 #endif
     
     rmColor = roughnessMap.Sample(wrapSampler, input.uv).rgb;
     bumpMap = normalMap.Sample(wrapSampler, input.uv).rgb;
     
-    bumpMap.x = (bumpMap.x * 2.0f) - 1.0f;
-    bumpMap.y = (-bumpMap.y * 2.0f) - 1.0f;
-    bumpMap.z = -bumpMap.z;
+    //bumpMap.x = (bumpMap.x * 2.0f) - 1.0f;
+    //bumpMap.y = (-bumpMap.y * 2.0f) - 1.0f;
+    //bumpMap.z = -bumpMap.z;
     
-    bumpNormal = normalize(bumpMap);
+    
+    bumpNormal = bumpMap;
     //bumpNormal = (bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal);
     //bumpNormal = normalize(bumpNormal);
     
@@ -104,7 +105,7 @@ float4 main(PSIn input) : SV_TARGET
     specularity = (normalDist * fresnel * geometricshadow) / (4.0f * (NdotL * NdotV) + 0.00001f);
     
     float shadowValue = CalcShadowValue(input);
-    float lIntensity = saturate(dot(bumpNormal, input.lightPos));
+    float lIntensity = saturate(dot(bumpNormal, lDir));
     // final light equation
     float3 ambient = albedo;
     float3 diffuse =  albedo * (1.0f - fresnel) * NdotL;

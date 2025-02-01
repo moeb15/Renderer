@@ -23,7 +23,7 @@ namespace Yassin
 		hr = RendererContext::GetDevice()->CreateTexture2D(&tDesc, nullptr, &m_RTT);
 		if (FAILED(hr))
 		{
-			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create render target texture", L"RenderToTexture", MB_OK);
+			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create render target texture", L"RenderToUAV", MB_OK);
 			return;
 		}
 
@@ -36,7 +36,7 @@ namespace Yassin
 		hr = RendererContext::GetDevice()->CreateShaderResourceView(m_RTT.Get(), &srvDesc, &m_SRV);
 		if (FAILED(hr))
 		{
-			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create shader resource view", L"RenderToTexture", MB_OK);
+			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create shader resource view", L"RenderToUAV", MB_OK);
 			return;
 		}
 
@@ -48,7 +48,7 @@ namespace Yassin
 		hr = RendererContext::GetDevice()->CreateUnorderedAccessView(m_RTT.Get(), &uavDesc, &m_UAV);
 		if (FAILED(hr))
 		{
-			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create shader resource view", L"RenderToTexture", MB_OK);
+			MessageBox(RendererContext::GetWindowHandle(), L"Failed to create unordered access view", L"RenderToUAV", MB_OK);
 			return;
 		}
 	}
