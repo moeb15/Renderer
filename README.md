@@ -30,5 +30,7 @@ The following is what I'm currently working on implementing,
 
 * Clustered forward and clustered deferred rendering
 * Multithreading, at the moment I'm relying on the immediate context, I'd like to treat
-the immediate context as a command queue, and have seperated deferred contexts and command lists
+the immediate context as a command queue, and have seperate deferred contexts and command lists
 for each physical CPU core
+* Fixing an issue with frustum culling, bounding volumes are not being drawn at proper positions
+for imported glTF models despite using node transforms
