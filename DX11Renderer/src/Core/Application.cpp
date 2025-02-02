@@ -11,7 +11,7 @@ namespace Yassin
 	{
 		m_Window.Init();
 
-		sun = std::make_unique<DirectionalLight>(10.f, -10.f, 10.f);
+		sun = std::make_unique<DirectionalLight>(10.f, -100.f, 100.f);
 		sun->SetPosition(1.0f, 5.f, 0.0f);
 
 		light = std::make_unique<PointLight>(90.f, 1.f, 1.f, 100.f);

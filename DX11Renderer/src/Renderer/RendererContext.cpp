@@ -248,14 +248,20 @@ namespace Yassin
 		return s_Instance->m_DeferredContexts[context].Get();
 	}
 
-	void RendererContext::SetBackBufferRenderTarget()
+	void RendererContext::SetBackBufferRenderTarget(bool ImmediateContext)
 	{
-		s_Instance->m_Context->OMSetRenderTargets(1, s_Instance->m_RenderTarget.GetAddressOf(), s_Instance->m_DepthStencil.Get());
+		if(ImmediateContext)
+			s_Instance->m_Context->OMSetRenderTargets(1, s_Instance->m_RenderTarget.GetAddressOf(), s_Instance->m_DepthStencil.Get());
+		else
+			s_Instance->GetDeferredContext(0)->OMSetRenderTargets(1, s_Instance->m_RenderTarget.GetAddressOf(), s_Instance->m_DepthStencil.Get());
 	}
 
-	void RendererContext::ResetViewport()
+	void RendererContext::ResetViewport(bool ImmediateContext)
 	{
-		s_Instance->m_Context->RSSetViewports(1, &s_Instance->m_Viewport);
+		if(ImmediateContext)
+			s_Instance->m_Context->RSSetViewports(1, &s_Instance->m_Viewport);
+		else
+			s_Instance->GetDeferredContext(0)->RSSetViewports(1, &s_Instance->m_Viewport);
 	}
 
 	void RendererContext::ResizeBuffer(unsigned int width, unsigned int height)
@@ -263,14 +269,20 @@ namespace Yassin
 		m_SwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 	}
 
-	void RendererContext::ClearRenderTarget(float r, float g, float b, float a)
+	void RendererContext::ClearRenderTarget(float r, float g, float b, float a, bool ImmediateContext)
 	{
 		float colour[] = { r,g,b,a };
-		s_Instance->m_Context->ClearRenderTargetView(s_Instance->m_RenderTarget.Get(), colour);
+		if(ImmediateContext)
+			s_Instance->m_Context->ClearRenderTargetView(s_Instance->m_RenderTarget.Get(), colour);
+		else
+			s_Instance->GetDeferredContext(0)->ClearRenderTargetView(s_Instance->m_RenderTarget.Get(), colour);
 	}
 
-	void RendererContext::ClearDepthStencil()
+	void RendererContext::ClearDepthStencil(bool ImmediateContext)
 	{
-		s_Instance->m_Context->ClearDepthStencilView(s_Instance->m_DepthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		if(ImmediateContext)
+			s_Instance->m_Context->ClearDepthStencilView(s_Instance->m_DepthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		else
+			s_Instance->GetDeferredContext(0)->ClearDepthStencilView(s_Instance->m_DepthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 }

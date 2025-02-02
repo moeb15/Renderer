@@ -22,12 +22,12 @@ namespace Yassin
 		static HWND GetWindowHandle() { return s_Instance->m_HWND; }
 		static ID3D11Debug* GetDebug() { return s_Instance->m_Debug.Get(); }
 
-		static void SetBackBufferRenderTarget();
-		static void ResetViewport();
+		static void SetBackBufferRenderTarget(bool ImmediateContext = true);
+		static void ResetViewport(bool ImmediateContext = true);
 		void ResizeBuffer(unsigned int width, unsigned int height);
 
-		static void ClearRenderTarget(float r, float g, float b, float a);
-		static void ClearDepthStencil();
+		static void ClearRenderTarget(float r, float g, float b, float a, bool ImmediateContext = true);
+		static void ClearDepthStencil(bool ImmediateContext = true);
 
 		static void GetGPUInfo(char* GPUName, size_t& memory)
 		{
@@ -38,16 +38,20 @@ namespace Yassin
 		static unsigned int GetWidth() { return (unsigned int)s_Instance->m_Width; }
 		static unsigned int GetHeight() { return (unsigned int)s_Instance->m_Height; }
 
-		static void EnableDepthWrites()
+		static void EnableDepthWrites(bool ImmediateContext = true)
 		{
-			s_Instance->m_ZPass = true;
-			s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_DepthStencilState.Get(), 1);
+			if (ImmediateContext)
+				s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_DepthStencilState.Get(), 1);
+			else
+				s_Instance->GetDeferredContext(0)->OMSetDepthStencilState(s_Instance->m_DepthStencilState.Get(), 1);
 		}
 
-		static void DisableDepthWrites()
+		static void DisableDepthWrites(bool ImmediateContext = true)
 		{
-			s_Instance->m_ZPass = false;
-			s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_PostZPassState.Get(), 1);
+			if (ImmediateContext)
+				s_Instance->m_Context->OMSetDepthStencilState(s_Instance->m_PostZPassState.Get(), 1);
+			else
+				s_Instance->GetDeferredContext(0)->OMSetDepthStencilState(s_Instance->m_PostZPassState.Get(), 1);
 		}
 
 		static void EnableSolidRS() 
@@ -101,7 +105,6 @@ namespace Yassin
 		int m_Height;
 		unsigned int m_NumCPUCores;
 		bool m_IsSolidRaster = true;
-		bool m_ZPass = true;
 
 		Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_Context;
