@@ -34,3 +34,5 @@ the immediate context as a command queue, and have seperate deferred contexts an
 for each physical CPU core
 * Fixing an issue with frustum culling, bounding volumes are not being drawn at proper positions
 for imported glTF models despite using node transforms
+* Fixing an issue with shadow mapping
+* Fixing pbr and phong shader for deferred rendering pipeline
