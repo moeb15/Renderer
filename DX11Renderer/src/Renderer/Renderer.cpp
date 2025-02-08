@@ -94,6 +94,7 @@ namespace Yassin
 		////////////////////////////////////////////
 
 		ShaderLibrary::Add("Deferred Phong", L"src/Shaders/CSO/Deferred/DeferredCommonVS.cso", L"src/Shaders/CSO/Deferred/DeferredPhongPS.cso");
+		ShaderLibrary::Add("Deferred PBR", L"src/Shaders/CSO/Deferred/DeferredCommonVS.cso", L"src/Shaders/CSO/Deferred/DeferredPBRPS.cso");
 
 		////////////////////////////////////////////
 		///////////// Compute Shaders //////////////
@@ -274,10 +275,10 @@ namespace Yassin
 		std::string deferredShader = "Deferred Phong";
 
 		// TODO write PBR shader for deferred renderer, fix phong shader
-		/*if (material->GetMaterialInstanceName() == "Phong Material")
+		if (material->GetMaterialInstanceName() == "Phong Material")
 			deferredShader = "Deferred Phong";
 		else
-			deferredShader = "Deferred PBR";*/
+			deferredShader = "Deferred PBR";
 
 		std::pair<VertexShader*, PixelShader*> defShaders = ShaderLibrary::Get(deferredShader);
 
@@ -295,7 +296,7 @@ namespace Yassin
 		defShaders.second->SetTexture(TextureSlot::BaseTexture, m_GBuffer->GetSRV(Buffer::Color));
 		defShaders.second->SetTexture(TextureSlot::NormalTexture, m_GBuffer->GetSRV(Buffer::Normal));
 		defShaders.second->SetTexture(TextureSlot::SpecularTexture, m_GBuffer->GetSRV(Buffer::Specular));
-		defShaders.second->SetTexture(TextureSlot::RoughnessTexture, m_GBuffer->GetSRV(Buffer::Roughness));
+		defShaders.second->SetTexture(TextureSlot::RoughnessTexture, m_GBuffer->GetSRV(Buffer::RM));
 		defShaders.second->SetTexture(TextureSlot::AmbientMap, m_Ambient);
 		defShaders.second->SetTexture(TextureSlot::ShadowMapTexture, m_SoftShadow->GetSRV());
 		

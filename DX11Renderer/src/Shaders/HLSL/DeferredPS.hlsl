@@ -21,8 +21,7 @@ struct PSOut
     float4 vPos         : SV_TARGET1;
     float4 color        : SV_TARGET2;
     float4 specular     : SV_TARGET3;
-    float4 roughness    : SV_TARGET4;
-    float4 metallic     : SV_TARGET5;
+    float4 rm           : SV_TARGET4;
 };
 
 PSOut main(PSIn input) 
@@ -55,9 +54,7 @@ PSOut main(PSIn input)
     pso.vPos = float4(input.viewPos.xyz, diffuse.a);
     pso.color = color;
     pso.specular = specular;
-    pso.roughness = float4(roughness, roughness, roughness, 1.0f);
-    pso.metallic = float4(metallic, metallic, metallic, 1.0f);
-   
+    pso.rm = float4(roughness, metallic, 0.0f, 1.0f);
     
     return pso;
 }

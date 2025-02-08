@@ -1,12 +1,12 @@
-#include "Common.hlsli"
+#include "../Common.hlsli"
 
-Texture2D albedoMap			: register(t0);
-Texture2D normalMap			: register(t1);
-Texture2D roughnessMap		: register(t3);
-Texture2D shadowMap         : register(t4);
+Texture2D albedoMap : register(t0);
+Texture2D normalMap : register(t1);
+Texture2D roughnessMap : register(t3);
+Texture2D shadowMap : register(t4);
 Texture2D ambientMap : register(t6);
-SamplerState clampSampler	: register(s0);
-SamplerState wrapSampler	: register(s1);
+SamplerState clampSampler : register(s0);
+SamplerState wrapSampler : register(s1);
 
 cbuffer LightPropsBuffer : register(b0)
 {
@@ -28,12 +28,9 @@ struct PSIn
 {
     float4 position : SV_POSITION;
     float2 uv : TEXCOORD;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float3 binormal : BINORMAL;
     float3 viewDir : VIEWDIR;
-    float3 lightPos : LIGHTPOS;
     float4 viewPos : VIEWPOS;
+    float4 worldPos : WORLDPOS;
 };
 
 float CalcShadowValue(PSIn input);
@@ -108,8 +105,8 @@ float4 main(PSIn input) : SV_TARGET
     float shadowValue = CalcShadowValue(input);
     float lIntensity = saturate(dot(bumpNormal, lDir));
     // final light equation
-    float3 ambient = ambientMap.Sample(wrapSampler, input.uv).xyz * albedo;
-    float3 diffuse =  albedo * (1.0f - fresnel) * NdotL;
+    float3 ambient = ambientMap.Sample(clampSampler, input.uv).xyz * albedo;
+    float3 diffuse = albedo * (1.0f - fresnel);
     color.rgb = (ambient + diffuse + specularity) * shadowValue;
     color.rgb = color.rgb * NdotL;
     

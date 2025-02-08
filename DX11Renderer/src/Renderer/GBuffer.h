@@ -11,8 +11,7 @@ namespace Yassin
 		ViewPosition,
 		Color,
 		Specular,
-		Roughness,
-		Metallic,
+		RM,
 		BUFFER_COUNT
 	};
 
