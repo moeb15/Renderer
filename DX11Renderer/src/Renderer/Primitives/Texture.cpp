@@ -1,25 +1,26 @@
 #include "Renderer/Primitives/Texture.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
+#include <DirectXTex.h>
 
 namespace Yassin
 {
 	bool Texture2D::Init(const char* textureFile)
 	{
 		HRESULT hr;
-		unsigned char* imageData = stbi_load(textureFile, &m_Width, &m_Height, &m_Channels, 4);
-		if (!imageData)
+		size_t len = 128;
+		wchar_t wTexFile[128];
+		mbstowcs_s(&len, wTexFile, textureFile, len);
+		DirectX::ScratchImage imageData;
+
+		hr = DirectX::LoadFromWICFile(wTexFile, DirectX::WIC_FLAGS_NONE, nullptr, imageData);
+		if (FAILED(hr))
 		{
-			size_t len = 128;
-			wchar_t wTexFile[128];
-			mbstowcs_s(&len, wTexFile, textureFile, len);
 			MessageBox(RendererContext::GetWindowHandle(), L"Invalid texture file", wTexFile, MB_OK);
 
 			return false;
 		}
 
-		unsigned int rowPitch = m_Width * 4;
+		m_Height = imageData.GetImage(0, 0, 0)->height;
+		m_Width = imageData.GetImage(0, 0, 0)->width;
 
 		D3D11_TEXTURE2D_DESC tDesc = {};
 		tDesc.Height = m_Height;
@@ -33,8 +34,9 @@ namespace Yassin
 		tDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 		D3D11_SUBRESOURCE_DATA tData = {};
-		tData.pSysMem = imageData;
-		tData.SysMemPitch = rowPitch;
+		tData.pSysMem = imageData.GetImage(0,0,0)->pixels;
+		tData.SysMemPitch = imageData.GetImage(0,0,0)->rowPitch;
+		tData.SysMemSlicePitch = imageData.GetImage(0, 0, 0)->slicePitch;
 
 		hr = RendererContext::GetDevice()->CreateTexture2D(&tDesc, nullptr, &m_Texture);
 		if (FAILED(hr))
@@ -43,7 +45,7 @@ namespace Yassin
 			return false;
 		}
 
-		RendererContext::GetDeviceContext()->UpdateSubresource(m_Texture.Get(), 0, nullptr, imageData, rowPitch, 0);
+		RendererContext::GetDeviceContext()->UpdateSubresource(m_Texture.Get(), 0, nullptr, imageData.GetImage(0,0,0)->pixels, imageData.GetImage(0,0,0)->rowPitch, 0);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = tDesc.Format;
@@ -59,8 +61,6 @@ namespace Yassin
 		}
 
 		RendererContext::GetDeviceContext()->GenerateMips(m_SRV.Get());
-
-		stbi_image_free(imageData);
 
 		return true;
 	}
