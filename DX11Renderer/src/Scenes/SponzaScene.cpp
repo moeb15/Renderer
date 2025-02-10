@@ -31,7 +31,7 @@ namespace Yassin
 			m_PointLights.push_back(newLight);
 		}
 
-		DirectX::XMMATRIX world = DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f);
+		DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();//DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f);
 		std::unique_ptr<Model> sponza = std::make_unique<Model>(m_SceneShaders, "src/Assets/Models/Sponza_GLTF/Sponza.gltf", world);
 
 		m_Renderables.push_back(std::move(sponza));

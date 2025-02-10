@@ -26,7 +26,7 @@ namespace Yassin
 			 renderable->UpdateCameraPosition({ m_Camera->GetPosition() });
 			 renderable->UpdateLighting({ lViewProj, m_Light->GetPosition() },
 				 { m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetSpecularColor(),
-				 m_Light->GetSpecularPower(), 0.0001f });
+				 m_Light->GetSpecularPower() });
 
 			 window.GetRenderer().Submit(renderable.get());
 		 }
